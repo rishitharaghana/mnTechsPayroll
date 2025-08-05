@@ -58,7 +58,7 @@ const Payslip = () => {
           <p className="text-gray-500">Generate and manage employee payslips</p>
         </div>
         <button
-          onClick={() => navigate('/payslip/payslip-form')}
+          onClick={() => navigate('/admin/payslip/payslip-form')}
           className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg shadow-md transition"
         >
           Generate Payslip
