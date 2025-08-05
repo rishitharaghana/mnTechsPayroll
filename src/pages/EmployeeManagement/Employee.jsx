@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus, Search, Filter, Edit, Trash2, User,
   Mail, Phone, Calendar
 } from 'lucide-react';
+import FormInput from '../../form/FormInput'; 
 
 const Employee = () => {
   const [employees, setEmployees] = useState([
@@ -17,50 +19,20 @@ const Employee = () => {
       joinDate: '2023-01-15',
       salary: 75000,
       status: 'Active',
-    },
-    {
-      id: 'EMP002',
-      name: 'Sarah Wilson',
-      email: 'sarah.wilson@company.com',
-      phone: '+1 234 567 8901',
-      type: 'Full-time',
-      department: 'Marketing',
-      position: 'Marketing Manager',
-      joinDate: '2023-03-20',
-      salary: 65000,
-      status: 'Active',
-    },
-    {
-      id: 'EMP003',
-      name: 'Mike Johnson',
-      email: 'mike.johnson@company.com',
-      phone: '+1 234 567 8902',
-      type: 'Part-time',
-      department: 'Design',
-      position: 'UI Designer',
-      joinDate: '2023-06-10',
-      salary: 45000,
-      status: 'Active',
     }
   ]);
 
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
   const [newEmployee, setNewEmployee] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    type: 'Full-time',
-    department: '',
-    position: '',
-    joinDate: '',
-    salary: '',
-    address: '',
-    emergencyContact: '',
+    name: '', email: '', phone: '', type: 'Full-time',
+    department: '', position: '', joinDate: '',
+    salary: '', address: '', emergencyContact: ''
   });
 
   const handleInput = (field, value) => {
-    setNewEmployee((prev) => ({ ...prev, [field]: value }));
+    setNewEmployee(prev => ({ ...prev, [field]: value }));
   };
 
   const generateEmployeeId = () => `EMP${(employees.length + 1).toString().padStart(3, '0')}`;
@@ -98,13 +70,20 @@ const Employee = () => {
           </h1>
           <p className="text-gray-600 mt-1">Manage team members and their data</p>
         </div>
-        <button
+        {/* <button
           onClick={() => setShowForm(true)}
           className="flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-transform hover:scale-105"
         >
           <Plus size={20} />
           <span>Add Employee</span>
-        </button>
+        </button> */}
+        <button
+  onClick={() => navigate('/employees/add-employee')}
+  className="flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-transform hover:scale-105"
+>
+  <Plus size={20} />
+  <span>Add Employee</span>
+</button>
       </div>
 
       {/* Search & Filter */}
@@ -130,10 +109,7 @@ const Employee = () => {
       {/* Employee Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filtered.map((emp) => (
-          <div
-            key={emp.id}
-            className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:shadow-xl hover:-translate-y-1 transition"
-          >
+          <div key={emp.id} className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:shadow-xl hover:-translate-y-1 transition">
             <div className="flex justify-between items-center mb-4">
               <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
                 <User className="text-white" size={20} />
@@ -177,7 +153,7 @@ const Employee = () => {
         ))}
       </div>
 
-      {/* Add Form Modal */}
+      {/* Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -193,21 +169,19 @@ const Employee = () => {
                   { label: 'Email', field: 'email', type: 'email' },
                   { label: 'Phone', field: 'phone', type: 'tel' },
                   { label: 'Join Date', field: 'joinDate', type: 'date' },
-                  { label: 'Position', field: 'position', type: 'text' },
                   { label: 'Department', field: 'department', type: 'text' },
                   { label: 'Annual Salary', field: 'salary', type: 'number' },
+                  
                 ].map(({ label, field, type }) => (
-                  <div key={field}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-                    <input
-                      type={type}
-                      required
-                      value={newEmployee[field]}
-                      onChange={(e) => handleInput(field, e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
+                  <FormInput
+                    key={field}
+                    label={label}
+                    type={type}
+                    value={newEmployee[field]}
+                    onChange={(e) => handleInput(field, e.target.value)}
+                  />
                 ))}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Employee Type</label>
                   <select
@@ -223,25 +197,19 @@ const Employee = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                <textarea
-                  rows={3}
-                  value={newEmployee.address}
-                  onChange={(e) => handleInput('address', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
+              <FormInput
+                label="Address"
+                type="text"
+                value={newEmployee.address}
+                onChange={(e) => handleInput('address', e.target.value)}
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
-                <input
-                  type="text"
-                  value={newEmployee.emergencyContact}
-                  onChange={(e) => handleInput('emergencyContact', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
+              <FormInput
+                label="Emergency Contact"
+                type="text"
+                value={newEmployee.emergencyContact}
+                onChange={(e) => handleInput('emergencyContact', e.target.value)}
+              />
 
               <div className="flex gap-4 pt-4">
                 <button

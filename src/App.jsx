@@ -12,6 +12,7 @@ import HolidayCalendar from "./pages/HolidayCalendar/Calendar";
 import Cards from "./pages/Cards/Cards";
 import Employee from "./pages/EmployeeManagement/Employee";
 import LeaveTracker  from "./pages/LeaveManagement/LeaveTracker";
+import AddEmployee from "./pages/EmployeeManagement/AddEmployee";
 
 const App = () => {
   return (
@@ -27,6 +28,8 @@ const App = () => {
           <Route path="/calendar" element={<HolidayCalendar />} />
           <Route path="/cards" element={<Cards />} />
           <Route path="/employees" element={<Employee />} />
+          <Route path="/employees/add-employee" element={<AddEmployee/>} />
+
           <Route path ='/leave_tracker' element={<LeaveTracker/>}  />
         </Routes>
       </AppLayout>
