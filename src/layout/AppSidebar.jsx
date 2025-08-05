@@ -3,16 +3,15 @@ import {
   TrendingUp, Users
 } from 'lucide-react';
 import React from 'react';
-import { NavLink } from 'react-router-dom'; // ✅ Import NavLink
+import { NavLink } from 'react-router-dom'; 
 
 const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: TrendingUp, path: '/dashboard' },
     { id: 'employees', label: 'Employees', icon: Users, path: '/employees' },
-    { id: 'attendance', label: 'Attendance', icon: Clock, path: '/attendance' },
-    { id: 'timetracking', label: 'Time Tracking', icon: Clock, path: '/timetracking' },
+    { id: 'attendance', label: 'Attendance', icon: Clock, path: '/attendance' },  
     { id: 'payroll', label: 'Payroll', icon: CreditCard, path: '/payroll' },
-    { id: 'payslips', label: 'Payslips', icon: FileText, path: '/payslips' },
+    { id: 'payslips', label: 'Payslips', icon: FileText, path: '/payslip' },
     { id: 'calendar', label: 'Calendar', icon: Calendar, path: '/calendar' },
     { id: 'performance', label: 'Performance', icon: TrendingUp, path: '/performance' },
     { id: 'visitingcards', label: 'Visiting Cards', icon: MapPin, path: '/visitingcards' },
