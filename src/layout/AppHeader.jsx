@@ -1,5 +1,6 @@
-import { Clock, Menu, X, Users } from "lucide-react";
+import { Clock, Menu, X, Users, CircleUser } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const AppHeader = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -35,8 +36,18 @@ const AppHeader = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
               <Clock size={16} />
               <span>{currentTime.toLocaleTimeString()}</span>
             </div>
-
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
+            <div className="relative">
+              <ul>
+                <li>
+                  <Link
+                    to="/userprofile"
+                    className="p-2 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/70 transition-all duration-200"
+                  >
+                    <CircleUser size={25} />
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
