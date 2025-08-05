@@ -1,183 +1,140 @@
-import { Calendar, Plus, Clock, CheckCircle, XCircle } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import React from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Clock,
+  CheckCircle,
+  XCircle,
+  User,
+  Plus,
+  Calendar,
+  UserCheck
+} from "lucide-react";
 
-interface LeaveRequest {
-  id: string;
-  employeeName: string;
-  department: string;
-  leaveType: "vacation" | "sick" | "personal" | "maternity";
-  startDate: string;
-  endDate: string;
-  days: number;
-  status: "pending" | "approved" | "rejected";
-  reason: string;
-}
-
-const mockLeaveRequests: LeaveRequest[] = [
+const leaveData = [
   {
     id: "1",
-    employeeName: "John Doe",
+    name: "John Doe",
     department: "Engineering",
-    leaveType: "vacation",
-    startDate: "2024-04-01",
-    endDate: "2024-04-05",
+    type: "vacation",
+    from: "2024-04-01",
+    to: "2024-04-05",
     days: 5,
     status: "pending",
     reason: "Family vacation"
   },
   {
     id: "2",
-    employeeName: "Sarah Wilson",
+    name: "Sarah Wilson",
     department: "HR",
-    leaveType: "sick",
-    startDate: "2024-03-18",
-    endDate: "2024-03-20",
+    type: "sick",
+    from: "2024-03-18",
+    to: "2024-03-20",
     days: 3,
     status: "approved",
     reason: "Medical treatment"
   }
 ];
 
-export const LeaveTracker = () => {
-  const getStatusBadge = (status: LeaveRequest["status"]) => {
-    switch (status) {
-      case "approved":
-        return <Badge className="bg-success text-success-foreground">Approved</Badge>;
-      case "rejected":
-        return <Badge className="bg-destructive text-destructive-foreground">Rejected</Badge>;
-      case "pending":
-        return <Badge className="bg-warning text-warning-foreground">Pending</Badge>;
-    }
-  };
+const statusColors = {
+  approved: "bg-green-100 text-green-700",
+  pending: "bg-yellow-100 text-yellow-700",
+  rejected: "bg-red-100 text-red-700"
+};
 
-  const getLeaveTypeBadge = (type: LeaveRequest["leaveType"]) => {
-    const colors = {
-      vacation: "bg-info text-info-foreground",
-      sick: "bg-destructive text-destructive-foreground",
-      personal: "bg-secondary text-secondary-foreground",
-      maternity: "bg-primary text-primary-foreground"
-    };
-    return <Badge className={colors[type]}>{type.charAt(0).toUpperCase() + type.slice(1)}</Badge>;
-  };
+const typeColors = {
+  vacation: "from-blue-500 to-blue-700",
+  sick: "from-red-500 to-red-700",
+  personal: "from-gray-500 to-gray-700",
+  maternity: "from-purple-500 to-purple-700"
+};
+
+const LeaveTracker = () => {
+  const summary = [
+    { label: "Pending", count: 4, icon: <Clock className="text-yellow-500" />, color: "from-yellow-400 to-yellow-600" },
+    { label: "Approved", count: 12, icon: <CheckCircle className="text-green-500" />, color: "from-green-400 to-green-600" },
+    { label: "Rejected", count: 3, icon: <XCircle className="text-red-500" />, color: "from-red-400 to-red-600" },
+    { label: "Total Requests", count: 19, icon: <UserCheck className="text-indigo-500" />, color: "from-indigo-400 to-indigo-600" }
+  ];
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-foreground">Leave Management</h2>
-          <p className="text-muted-foreground">Track and manage employee leave requests</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Leave Management</h1>
+          <p className="text-gray-600 mt-1">Monitor and process employee leave requests</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90">
-          <Plus className="w-4 h-4 mr-2" />
-          New Leave Request
-        </Button>
+        <button className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl hover:shadow-lg flex items-center gap-2">
+          <Plus size={18} />
+          New Request
+        </button>
       </div>
 
-      {/* Leave Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pending Requests</CardTitle>
-            <Clock className="h-4 w-4 text-warning" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-warning">12</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Approved Today</CardTitle>
-            <CheckCircle className="h-4 w-4 text-success" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-success">8</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">On Leave Today</CardTitle>
-            <Calendar className="h-4 w-4 text-info" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-info">15</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Rejected</CardTitle>
-            <XCircle className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">2</div>
-          </CardContent>
-        </Card>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {summary.map((item, i) => (
+          <div key={i} className="p-6 rounded-2xl bg-white/70 backdrop-blur-md border border-white/20 hover:shadow-lg">
+            <div className="flex justify-between items-center mb-4">
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${item.color} flex items-center justify-center`}>
+                {item.icon}
+              </div>
+              <div className="text-2xl font-bold text-gray-800">{item.count}</div>
+            </div>
+            <div className="text-gray-500 font-medium text-sm">{item.label}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Leave Requests Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Leave Requests</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>Leave Type</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Days</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockLeaveRequests.map((request) => (
-                <TableRow key={request.id}>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{request.employeeName}</p>
-                      <p className="text-sm text-muted-foreground">{request.department}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getLeaveTypeBadge(request.leaveType)}</TableCell>
-                  <TableCell>{new Date(request.startDate).toLocaleDateString()}</TableCell>
-                  <TableCell>{new Date(request.endDate).toLocaleDateString()}</TableCell>
-                  <TableCell>{request.days} days</TableCell>
-                  <TableCell>{getStatusBadge(request.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      {request.status === "pending" && (
-                        <>
-                          <Button size="sm" className="bg-success hover:bg-success/90">
-                            Approve
-                          </Button>
-                          <Button size="sm" variant="destructive">
-                            Reject
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {/* Leave Requests List */}
+      <div className="space-y-4">
+        {leaveData.map((req) => (
+          <div
+            key={req.id}
+            className="p-6 bg-white/70 backdrop-blur-md rounded-2xl border border-white/20 hover:shadow-xl transition"
+          >
+            <div className="flex justify-between items-start flex-wrap gap-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 text-white flex items-center justify-center">
+                  <User size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">{req.name}</h3>
+                  <p className="text-sm text-gray-500">{req.department}</p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[req.status]}`}>
+                  {req.status}
+                </span>
+                <span className="text-sm text-gray-600">{req.days} days • {req.reason}</span>
+                <div
+                  className={`px-3 py-1 rounded-full text-xs text-white font-semibold bg-gradient-to-r ${typeColors[req.type]}`}
+                >
+                  {req.type}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-between items-center text-sm text-gray-600 flex-wrap gap-2">
+              <div>
+                <span className="font-semibold text-gray-800">From:</span>{" "}
+                {new Date(req.from).toLocaleDateString()}
+              </div>
+              <div>
+                <span className="font-semibold text-gray-800">To:</span>{" "}
+                {new Date(req.to).toLocaleDateString()}
+              </div>
+              {req.status === "pending" && (
+                <div className="flex gap-2 mt-2 sm:mt-0">
+                  <button className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-xl">Approve</button>
+                  <button className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded-xl">Reject</button>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
+
+export default LeaveTracker;

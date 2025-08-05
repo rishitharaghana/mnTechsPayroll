@@ -11,7 +11,7 @@ import Payslip from "./pages/PayslipManagement/Payslip";
 import HolidayCalendar from "./pages/HolidayCalendar/Calendar";
 import Cards from "./pages/Cards/Cards";
 import Employee from "./pages/EmployeeManagement/Employee";
-import { LeaveTracker } from "./pages/LeaveManagement/LeaveTracker";
+import LeaveTracker  from "./pages/LeaveManagement/LeaveTracker";
 
 const App = () => {
   return (
@@ -27,7 +27,7 @@ const App = () => {
           <Route path="/calendar" element={<HolidayCalendar />} />
           <Route path="/cards" element={<Cards />} />
           <Route path="/employees" element={<Employee />} />
-          <Route path ='/leave_tracker' element={LeaveTracker}  />
+          <Route path ='/leave_tracker' element={<LeaveTracker/>}  />
         </Routes>
       </AppLayout>
     </BrowserRouter>

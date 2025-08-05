@@ -176,6 +176,6 @@ const Payroll = () => {
     </div>
   );
 };
-
+  
 export default Payroll;
 
