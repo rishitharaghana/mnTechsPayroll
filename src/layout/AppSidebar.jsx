@@ -1,5 +1,6 @@
 import {
   Calendar,
+  CalendarClock,
   Clock,
   CreditCard,
   FileText,
@@ -20,9 +21,11 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
     },
     { id: "employees", label: "Employees", icon: Users, path: "/employees" },
     { id: "attendance", label: "Attendance", icon: Clock, path: "/attendance" },
+    { id: "leave_tracker", label: "Leave Management", icon: CalendarClock, path: "/leave_tracker" },
     { id: "payroll", label: "Payroll", icon: CreditCard, path: "/payroll" },
     { id: "payslips", label: "Payslips", icon: FileText, path: "/payslip" },
     { id: "calendar", label: "Calendar", icon: Calendar, path: "/calendar" },
+
     {
       id: "performance",
       label: "Performance",
