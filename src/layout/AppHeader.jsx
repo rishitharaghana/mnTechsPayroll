@@ -1,5 +1,5 @@
 import {
-  Clock, Menu, X, Search, Bell, Settings, Users
+  Clock, Menu, X,  Users
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
@@ -27,7 +27,7 @@ const AppHeader = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                 <Users className="text-white" size={20} />
               </div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                PayrollPro
+                Payroll
               </h1>
             </div>
           </div>
@@ -37,16 +37,11 @@ const AppHeader = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
               <Clock size={16} />
               <span>{currentTime.toLocaleTimeString()}</span>
             </div>
-            <button className="p-2 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/70 transition-all duration-200">
-              <Search size={20} />
-            </button>
-            <button className="p-2 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/70 transition-all duration-200 relative">
-              <Bell size={20} />
+           
+           
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
-            </button>
-            <button className="p-2 rounded-lg bg-white/50 backdrop-blur-sm hover:bg-white/70 transition-all duration-200">
-              <Settings size={20} />
-            </button>
+            
+            
           </div>
         </div>
       </div>
