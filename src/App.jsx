@@ -9,27 +9,18 @@ import Payroll from "./pages/PayrollManagement/Payroll";
 import Performance from "./pages/PerformanceManagement/Performance";
 import Payslip from "./pages/PayslipManagement/Payslip";
 import HolidayCalendar from "./pages/HolidayCalendar/Calendar";
-import Cards from "./pages/Cards/Cards";  
+import Cards from "./pages/Cards/Cards";
 import Employee from "./pages/EmployeeManagement/Employee";
 import LeaveTracker  from "./pages/LeaveManagement/LeaveTracker";
 import AddEmployee from "./pages/EmployeeManagement/AddEmployee";
-import EmployeeAttendance from "./pages/AttendanceManagement/EmployeeAttendance";
-import AdminLogin from "./pages/Login/AdminLogin";
-import EmployeeLogin from "./pages/Login/EmployeeLogin";
+import PayslipForm from "./form/PayslipForm";
 
 const App = () => {
   return (
     <BrowserRouter>
-    <Routes >
-       <Route path="/admin-login" element = {<AdminLogin/>} />
-          <Route path="/employee-login" element = {<EmployeeLogin/>} />
-    </Routes>
-   
       <AppLayout>
-
         <Routes>
           <Route path="/" element={<Home />} />
-          
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/attendance" element={<Attendance />} />
           <Route path="/payroll" element={<Payroll />} />
@@ -39,7 +30,9 @@ const App = () => {
           <Route path="/cards" element={<Cards />} />
           <Route path="/employees" element={<Employee />} />
           <Route path="/employees/add-employee" element={<AddEmployee/>} />
-          <Route path="/employee-attendance" element={<EmployeeAttendance/>}  />
+          <Route path="/payslip/payslip-form" element={<PayslipForm />} />
+
+
           <Route path ='/leave_tracker' element={<LeaveTracker/>}  />
         </Routes>
       </AppLayout>

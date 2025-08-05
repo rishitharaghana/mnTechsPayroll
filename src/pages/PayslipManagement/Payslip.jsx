@@ -1,336 +1,184 @@
 import React, { useState } from 'react';
-import { FileText, Download, Eye, Building, Mail, Phone, MapPin, Calendar } from 'lucide-react';
+import { Eye, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Payslip = () => {
-  const [selectedEmployee, setSelectedEmployee] = useState('EMP001');
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+  const navigate = useNavigate();
+  const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [selectedPeriod, setSelectedPeriod] = useState('');
   const [showPreview, setShowPreview] = useState(false);
 
-  const employees = [
-    { id: 'EMP001', name: 'John Smith', position: 'Senior Developer', department: 'Engineering' },
-    { id: 'EMP002', name: 'Sarah Wilson', position: 'Marketing Manager', department: 'Marketing' },
-    { id: 'EMP003', name: 'Mike Johnson', position: 'UI Designer', department: 'Design' },
+  const payslips = [
+    {
+      id: 1,
+      employee: 'John Smith',
+      month: 'August 2025',
+      department: 'Engineering',
+      position: 'Software Engineer',
+      salary: '$7,500',
+    },
+    {
+      id: 2,
+      employee: 'Jane Doe',
+      month: 'August 2025',
+      department: 'Design',
+      position: 'UI/UX Designer',
+      salary: '$6,200',
+    },
+    {
+      id: 3,
+      employee: 'John Smith',
+      month: 'July 2025',
+      department: 'Engineering',
+      position: 'Software Engineer',
+      salary: '$7,500',
+    },
   ];
 
-  const companyInfo = {
-    name: 'TechCorp Solutions',
-    address: '123 Business Avenue, Tech City, TC 12345',
-    phone: '+1 (555) 123-4567',
-    email: 'hr@techcorp.com',
-    logo: '🏢' // Using emoji as placeholder for logo
-  };
+  // Get unique employees and pay periods for dropdowns
+  const employees = [...new Set(payslips.map((slip) => slip.employee))];
+  const payPeriods = [...new Set(payslips.map((slip) => slip.month))];
 
-  const payslipData = {
-    'EMP001': {
-      basicSalary: 75000,
-      allowances: 5000,
-      bonus: 2000,
-      overtime: 1500,
-      healthInsurance: 800,
-      retirementFund: 400,
-      incomeTax: 18000,
-      socialSecurity: 1200,
-      paidLeave: 2,
-      unpaidLeave: 0,
-      workingDays: 22,
-      expenses: 300
-    },
-    'EMP002': {
-      basicSalary: 65000,
-      allowances: 4000,
-      bonus: 1500,
-      overtime: 800,
-      healthInsurance: 700,
-      retirementFund: 350,
-      incomeTax: 15000,
-      socialSecurity: 1000,
-      paidLeave: 1,
-      unpaidLeave: 1,
-      workingDays: 21,
-      expenses: 250
-    },
-    'EMP003': {
-      basicSalary: 45000,
-      allowances: 3000,
-      bonus: 1000,
-      overtime: 600,
-      healthInsurance: 600,
-      retirementFund: 300,
-      incomeTax: 9000,
-      socialSecurity: 800,
-      paidLeave: 0,
-      unpaidLeave: 2,
-      workingDays: 20,
-      expenses: 200
-    }
-  };
+  // Filter payslips based on selected employee and pay period
+  const filteredPayslips = payslips.filter(
+    (slip) =>
+      (!selectedEmployee || slip.employee === selectedEmployee) &&
+      (!selectedPeriod || slip.month === selectedPeriod)
+  );
 
-  const selectedEmployeeData = employees.find(emp => emp.id === selectedEmployee);
-  const payData = payslipData[selectedEmployee];
-
-  const calculateGrossSalary = () => {
-    return payData.basicSalary + payData.allowances + payData.bonus + payData.overtime;
-  };
-
-  const calculateTotalDeductions = () => {
-    return payData.healthInsurance + payData.retirementFund + payData.incomeTax + payData.socialSecurity;
-  };
-
-  const calculateNetSalary = () => {
-    return calculateGrossSalary() - calculateTotalDeductions();
-  };
-
-  const generatePayslip = () => {
-    setShowPreview(true);
-  };
+  // Handle preview modal
+  const openPreview = () => setShowPreview(true);
+  const closePreview = () => setShowPreview(false);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-          Payslip Generator
-        </h1>
-        <p className="text-gray-600 mt-1">Generate and download employee payslips with company branding</p>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Payslips</h1>
+          <p className="text-gray-500">Generate and manage employee payslips</p>
+        </div>
+        <button
+          onClick={() => navigate('/payslip/payslip-form')}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg shadow-md transition"
+        >
+          Generate Payslip
+        </button>
       </div>
 
-      {/* Controls */}
-      <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Select Employee</label>
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-gray-700 mb-1">Select Employee</label>
+          <select
+            value={selectedEmployee}
+            onChange={(e) => setSelectedEmployee(e.target.value)}
+            className="w-full p-2 border rounded"
+          >
+            <option value="">All Employees</option>
+            {employees.map((employee) => (
+              <option key={employee} value={employee}>
+                {employee}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-end gap-4">
+          <div className="flex-1">
+            <label className="block text-gray-700 mb-1">Select Pay Period</label>
             <select
-              value={selectedEmployee}
-              onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+              className="w-full p-2 border rounded"
             >
-              {employees.map((employee) => (
-                <option key={employee.id} value={employee.id}>
-                  {employee.name} ({employee.id})
+              <option value="">All Periods</option>
+              {payPeriods.map((period) => (
+                <option key={period} value={period}>
+                  {period}
                 </option>
               ))}
             </select>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Pay Period</label>
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          
-          <div className="flex items-end">
-            <button
-              onClick={generatePayslip}
-              className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300"
+          <button
+            onClick={openPreview}
+            className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition"
+            disabled={filteredPayslips.length === 0}
+          >
+            Preview Payslip
+          </button>
+        </div>
+      </div>
+
+      {filteredPayslips.length === 0 ? (
+        <p className="text-gray-500 text-center">No payslips found.</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filteredPayslips.map((slip) => (
+            <div
+              key={slip.id}
+              className="bg-white/70 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-md hover:shadow-lg transition"
             >
-              <Eye size={20} />
-              <span>Preview Payslip</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center hover:shadow-xl transition-all duration-300">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <FileText className="text-white" size={24} />
-          </div>
-          <h3 className="font-bold text-gray-900 mb-2">Generate Single</h3>
-          <p className="text-gray-600 text-sm">Create payslip for individual employee</p>
-        </div>
-        
-        <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center hover:shadow-xl transition-all duration-300">
-          <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <FileText className="text-white" size={24} />
-          </div>
-          <h3 className="font-bold text-gray-900 mb-2">Bulk Generate</h3>
-          <p className="text-gray-600 text-sm">Create payslips for all employees</p>
-        </div>
-        
-        <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center hover:shadow-xl transition-all duration-300">
-          <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Download className="text-white" size={24} />
-          </div>
-          <h3 className="font-bold text-gray-900 mb-2">Download Archive</h3>
-          <p className="text-gray-600 text-sm">Download all payslips as ZIP</p>
-        </div>
-      </div>
-
-      {/* Payslip Preview */}
-      {showPreview && (
-        <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-          {/* Payslip Header */}
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-8">
-            <div className="flex justify-between items-start">
-              <div className="flex items-center space-x-4">
-                <div className="text-4xl">{companyInfo.logo}</div>
-                <div>
-                  <h2 className="text-2xl font-bold">{companyInfo.name}</h2>
-                  <div className="flex items-center space-x-2 mt-2 opacity-90">
-                    <MapPin size={16} />
-                    <span className="text-sm">{companyInfo.address}</span>
-                  </div>
-                  <div className="flex items-center space-x-4 mt-1 opacity-90">
-                    <div className="flex items-center space-x-1">
-                      <Phone size={14} />
-                      <span className="text-sm">{companyInfo.phone}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Mail size={14} />
-                      <span className="text-sm">{companyInfo.email}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-xl font-bold">PAYSLIP</div>
-                <div className="flex items-center space-x-1 mt-2 opacity-90">
-                  <Calendar size={16} />
-                  <span>{new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Employee Info */}
-          <div className="p-8 border-b border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Employee Information</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Name:</span>
-                    <span className="font-medium">{selectedEmployeeData?.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Employee ID:</span>
-                    <span className="font-medium">{selectedEmployee}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Position:</span>
-                    <span className="font-medium">{selectedEmployeeData?.position}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Department:</span>
-                    <span className="font-medium">{selectedEmployeeData?.department}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Pay Period Details</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Pay Period:</span>
-                    <span className="font-medium">{new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Working Days:</span>
-                    <span className="font-medium">{payData.workingDays}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Paid Leave:</span>
-                    <span className="font-medium">{payData.paidLeave} days</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Unpaid Leave:</span>
-                    <span className="font-medium">{payData.unpaidLeave} days</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Earnings and Deductions */}
-          <div className="p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Earnings */}
-              <div>
-                <h3 className="text-lg font-bold text-green-600 mb-4">Earnings</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Basic Salary</span>
-                    <span className="font-medium">${payData.basicSalary.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Allowances</span>
-                    <span className="font-medium">${payData.allowances.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Bonus</span>
-                    <span className="font-medium">${payData.bonus.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Overtime</span>
-                    <span className="font-medium">${payData.overtime.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Expenses</span>
-                    <span className="font-medium">${payData.expenses.toLocaleString()}</span>
-                  </div>
-                  <div className="border-t border-gray-200 pt-3 mt-3">
-                    <div className="flex justify-between font-bold text-green-600">
-                      <span>Gross Salary</span>
-                      <span>${calculateGrossSalary().toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Deductions */}
-              <div>
-                <h3 className="text-lg font-bold text-red-600 mb-4">Deductions</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Health Insurance</span>
-                    <span className="font-medium">${payData.healthInsurance.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Retirement Fund</span>
-                    <span className="font-medium">${payData.retirementFund.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Income Tax</span>
-                    <span className="font-medium">${payData.incomeTax.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-600">Social Security</span>
-                    <span className="font-medium">${payData.socialSecurity.toLocaleString()}</span>
-                  </div>
-                  <div className="py-2">
-                    <span className="text-gray-600"></span>
-                    <span className="font-medium"></span>
-                  </div>
-                  <div className="border-t border-gray-200 pt-3 mt-3">
-                    <div className="flex justify-between font-bold text-red-600">
-                      <span>Total Deductions</span>
-                      <span>${calculateTotalDeductions().toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Net Salary */}
-            <div className="mt-8 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200">
-              <div className="flex justify-between items-center">
-                <span className="text-xl font-bold text-gray-900">Net Salary (Take Home)</span>
-                <span className="text-3xl font-bold text-indigo-600">${calculateNetSalary().toLocaleString()}</span>
-              </div>
-            </div>
-
-            {/* Download Button */}
-            <div className="mt-8 flex justify-center">
-              <button className="flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-8 py-3 rounded-xl hover:shadow-lg transition-all duration-300">
-                <Download size={20} />
-                <span>Download PDF</span>
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                {slip.employee}
+              </h2>
+              <p className="text-gray-600 mb-1">
+                <strong>Month:</strong> {slip.month}
+              </p>
+              <p className="text-gray-600 mb-1">
+                <strong>Department:</strong> {slip.department}
+              </p>
+              <p className="text-gray-600 mb-1">
+                <strong>Position:</strong> {slip.position}
+              </p>
+              <p className="text-indigo-600 font-bold mt-2">{slip.salary}</p>
+              <button
+                onClick={() => navigate(`/payslip/${slip.id}`)}
+                className="mt-4 w-full flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-lg transition"
+              >
+                <Eye size={18} className="mr-2" />
+                View Payslip
               </button>
             </div>
+          ))}
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {showPreview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-lg w-full relative">
+            <button
+              onClick={closePreview}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+            >
+              <X size={24} />
+            </button>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              Payslip Preview
+            </h2>
+            {filteredPayslips.map((slip) => (
+              <div key={slip.id} className="mb-4 border-b pb-4 last:border-b-0">
+                <p className="text-gray-600 mb-2">
+                  <strong>Employee:</strong> {slip.employee}
+                </p>
+                <p className="text-gray-600 mb-2">
+                  <strong>Month:</strong> {slip.month}
+                </p>
+                <p className="text-gray-600 mb-2">
+                  <strong>Department:</strong> {slip.department}
+                </p>
+                <p className="text-gray-600 mb-2">
+                  <strong>Position:</strong> {slip.position}
+                </p>
+                <p className="text-indigo-600 font-bold">
+                  <strong>Salary:</strong> {slip.salary}
+                </p>
+              </div>
+            ))}
+            <button
+              onClick={closePreview}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
