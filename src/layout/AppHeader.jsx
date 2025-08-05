@@ -1,7 +1,5 @@
-import {
-  Clock, Menu, X,  Users
-} from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { Clock, Menu, X, Users } from "lucide-react";
+import React, { useEffect, useState } from "react";
 
 const AppHeader = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -37,11 +35,8 @@ const AppHeader = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
               <Clock size={16} />
               <span>{currentTime.toLocaleTimeString()}</span>
             </div>
-           
-           
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
-            
-            
+
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
           </div>
         </div>
       </div>

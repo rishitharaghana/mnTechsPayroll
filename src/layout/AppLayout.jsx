@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import AppHeader from './AppHeader';
-import AppSidebar from './AppSidebar';
+import React, { useState } from "react";
+import AppHeader from "./AppHeader";
+import AppSidebar from "./AppSidebar";
 
 const AppLayout = ({ children }) => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -20,9 +20,7 @@ const AppLayout = ({ children }) => {
           setIsMobileMenuOpen={setIsMobileMenuOpen}
         />
         <main className="flex-1 p-4 lg:p-8">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
+          <div className="max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
     </div>

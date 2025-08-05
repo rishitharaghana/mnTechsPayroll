@@ -136,7 +136,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Performance Overview */}
+      
       <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Performance Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
