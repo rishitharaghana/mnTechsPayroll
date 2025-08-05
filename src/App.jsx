@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Dashboard from './Components/dashboard/Dashboard';
 import Home from './pages/HomePage/home';
 import AppLayout from './layout/AppLayout';
+import Attendance from './pages/AttendanceManagement/Attendance'
 ;
 
 const App = () => {
@@ -13,6 +14,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path='/attendance' element={<Attendance/>}/>
       </Routes>
     </AppLayout>
     </BrowserRouter>

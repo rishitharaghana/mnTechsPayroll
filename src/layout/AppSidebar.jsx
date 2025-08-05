@@ -3,18 +3,19 @@ import {
   TrendingUp, Users
 } from 'lucide-react';
 import React from 'react';
+import { NavLink } from 'react-router-dom'; // ✅ Import NavLink
 
-const AppSidebar = ({ activeTab, setActiveTab, isMobileMenuOpen, setIsMobileMenuOpen }) => {
+const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
-    { id: 'employees', label: 'Employees', icon: Users },
-    { id: 'attendance', label: 'Attendance', icon: Clock },
-    { id: 'timetracking', label: 'Time Tracking', icon: Clock },
-    { id: 'payroll', label: 'Payroll', icon: CreditCard },
-    { id: 'payslips', label: 'Payslips', icon: FileText },
-    { id: 'calendar', label: 'Calendar', icon: Calendar },
-    { id: 'performance', label: 'Performance', icon: TrendingUp },
-    { id: 'visitingcards', label: 'Visiting Cards', icon: MapPin },
+    { id: 'dashboard', label: 'Dashboard', icon: TrendingUp, path: '/dashboard' },
+    { id: 'employees', label: 'Employees', icon: Users, path: '/employees' },
+    { id: 'attendance', label: 'Attendance', icon: Clock, path: '/attendance' },
+    { id: 'timetracking', label: 'Time Tracking', icon: Clock, path: '/timetracking' },
+    { id: 'payroll', label: 'Payroll', icon: CreditCard, path: '/payroll' },
+    { id: 'payslips', label: 'Payslips', icon: FileText, path: '/payslips' },
+    { id: 'calendar', label: 'Calendar', icon: Calendar, path: '/calendar' },
+    { id: 'performance', label: 'Performance', icon: TrendingUp, path: '/performance' },
+    { id: 'visitingcards', label: 'Visiting Cards', icon: MapPin, path: '/visitingcards' },
   ];
 
   return (
@@ -26,27 +27,27 @@ const AppSidebar = ({ activeTab, setActiveTab, isMobileMenuOpen, setIsMobileMenu
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
-              <button
+              <NavLink
                 key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  activeTab === item.id
-                    ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg transform scale-105'
-                    : 'text-gray-700 hover:bg-white/50 hover:backdrop-blur-sm'
-                }`}
+                to={item.path}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg transform scale-105'
+                      : 'text-gray-700 hover:bg-white/50 hover:backdrop-blur-sm'
+                  }`
+                }
               >
                 <Icon size={20} />
                 <span className="font-medium">{item.label}</span>
-              </button>
+              </NavLink>
             );
           })}
         </nav>
       </aside>
 
-      {/* Overlay */}
+      {/* Overlay for mobile */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 lg:hidden"
