@@ -10,7 +10,7 @@ import {
   FileText,
 } from 'lucide-react';
 
-import AppLayout from '../../layout/AppLayout';
+
 
 const Dashboard = () => {
   const stats = [
