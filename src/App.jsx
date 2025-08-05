@@ -6,7 +6,10 @@ import Home from './pages/HomePage/home';
 import AppLayout from './layout/AppLayout';
 import Attendance from './pages/AttendanceManagement/Attendance';
 import Payroll from './pages/PayrollManagement/Payroll';
-import Performance from "./pages/PerformanceManagement/Performance"
+import Performance from "./pages/PerformanceManagement/Performance";
+import Payslip from './pages/PayslipManagement/Payslip';
+import HolidayCalendar from './pages/HolidayCalendar/Calendar';
+
 
 const App = () => {
   return (
@@ -18,7 +21,9 @@ const App = () => {
         <Route path='/attendance' element={<Attendance/>}/>
         <Route path='/payroll' element={<Payroll/>}/>
          <Route path='/performance' element={<Performance/>}/>
-        
+        <Route path = '/payslip' element= {<Payslip/>} />
+        <Route path = '/calendar' element={<HolidayCalendar/>} />
+
 
 
       </Routes>
