@@ -14,7 +14,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
     { id: 'payslips', label: 'Payslips', icon: FileText, path: '/payslip' },
     { id: 'calendar', label: 'Calendar', icon: Calendar, path: '/calendar' },
     { id: 'performance', label: 'Performance', icon: TrendingUp, path: '/performance' },
-    { id: 'visitingcards', label: 'Visiting Cards', icon: MapPin, path: '/visitingcards' },
+    { id: 'visitingcards', label: 'Visiting Cards', icon: MapPin, path: '/cards' },
   ];
 
   return (
