@@ -19,7 +19,6 @@ import EmployeeLogin from "./pages/Login/EmployeeLogin";
 import AdminLogin from "./pages/Login/AdminLogin";
 import IdCard from "./pages/IdCards/IdCard";
 import IdCardForm from "./form/IdCardForm";
-import UserProfile from "./header/userProfile";
 
 const App = () => {
   return (
@@ -48,7 +47,6 @@ const App = () => {
           <Route path="/employee/leave-application" element={<LeaveApplication />} />
           <Route path="/idcard" element={<IdCard />} />
              <Route path="/idcard/idcard-form" element={<IdCardForm />} />
-          <Route path="/userprofile" element={<UserProfile />} />
 
 
         </Routes>

@@ -50,7 +50,7 @@ const Employee = () => {
           <p className="text-gray-500">Manage your team members</p>
         </div>
         <Link
-          to="/employees/add-employee"
+          to="/admin/employees/add-employee"
           className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
         >
           <UserPlus className="mr-2" size={20} />
