@@ -17,7 +17,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "dashboard",
       label: "Dashboard",
       icon: TrendingUp,
-      path: "/dashboard",
+      path: "/admin/dashboard",
     },
     { id: "employees", label: "Employees", icon: Users, path: "/admin/employees" },
     { id: "attendance", label: "Attendance", icon: Clock, path: "/admin/attendance" },
