@@ -10,6 +10,8 @@ import {
   FileText,
 } from 'lucide-react';
 
+import AppLayout from '../../layout/AppLayout';
+
 const Dashboard = () => {
   const stats = [
     {
@@ -50,7 +52,9 @@ const Dashboard = () => {
   ];
 
   return (
+   
     <div className="space-y-8">
+       
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-3xl p-8 text-white">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
@@ -160,7 +164,9 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
+    
   );
+
 };
 
 export default Dashboard;
