@@ -19,24 +19,24 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       icon: TrendingUp,
       path: "/dashboard",
     },
-    { id: "employees", label: "Employees", icon: Users, path: "/employees" },
-    { id: "attendance", label: "Attendance", icon: Clock, path: "/attendance" },
-    { id: "leave-tracker", label: "Leave Management", icon: CalendarClock, path: "/leave-tracker" },
-    { id: "payroll", label: "Payroll", icon: CreditCard, path: "/payroll" },
-    { id: "payslips", label: "Payslips", icon: FileText, path: "/payslip" },
-    { id: "calendar", label: "Calendar", icon: Calendar, path: "/calendar" },
+    { id: "employees", label: "Employees", icon: Users, path: "/admin/employees" },
+    { id: "attendance", label: "Attendance", icon: Clock, path: "/admin/attendance" },
+    { id: "leave-tracker", label: "Leave Management", icon: CalendarClock, path: "/admin/leave-tracker" },
+    { id: "payroll", label: "Payroll", icon: CreditCard, path: "/admin/payroll" },
+    { id: "payslips", label: "Payslips", icon: FileText, path: "/admin/payslip" },
+    { id: "calendar", label: "Calendar", icon: Calendar, path: "/admin/calendar" },
 
     {
       id: "performance",
       label: "Performance",
       icon: TrendingUp,
-      path: "/performance",
+      path: "/admin/performance",
     },
     {
       id: "visitingcards",
       label: "Visiting Cards",
       icon: MapPin,
-      path: "/cards",
+      path: "/admin/cards",
     },
   ];
 
