@@ -17,6 +17,7 @@ import PayslipForm from "./form/PayslipForm";
 import LeaveApplication from "./pages/LeaveManagement/LeaveApplication";
 import EmployeeLogin from "./pages/Login/EmployeeLogin";
 import AdminLogin from "./pages/Login/AdminLogin";
+import UserProfile from "./header/userProfile";
 
 const App = () => {
   return (
@@ -43,6 +44,7 @@ const App = () => {
           <Route path="/admin/payslip/payslip-form" element={<PayslipForm />} />
           <Route path="/admin/leave-tracker" element={<LeaveTracker />} />
           <Route path="/employee/leave-application" element={<LeaveApplication />} />
+          <Route path="/userprofile" element={<UserProfile />} />
 
         </Routes>
       </AppLayout>
