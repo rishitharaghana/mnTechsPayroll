@@ -17,6 +17,8 @@ import PayslipForm from "./form/PayslipForm";
 import LeaveApplication from "./pages/LeaveManagement/LeaveApplication";
 import EmployeeLogin from "./pages/Login/EmployeeLogin";
 import AdminLogin from "./pages/Login/AdminLogin";
+import IdCard from "./pages/IdCards/IdCard";
+import IdCardForm from "./form/IdCardForm";
 
 const App = () => {
   return (
@@ -43,6 +45,9 @@ const App = () => {
           <Route path="/admin/payslip/payslip-form" element={<PayslipForm />} />
           <Route path="/admin/leave-tracker" element={<LeaveTracker />} />
           <Route path="/employee/leave-application" element={<LeaveApplication />} />
+          <Route path="/idcard" element={<IdCard />} />
+             <Route path="/idcard/idcard-form" element={<IdCardForm />} />
+
 
         </Routes>
       </AppLayout>
