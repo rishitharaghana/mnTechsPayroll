@@ -65,18 +65,8 @@ const AddEmployee = () => {
           </div>
         </div>
 
-        <FormInput
-          label="Address"
-          type="text"
-          value={employee.address}
-          onChange={(e) => handleInput('address', e.target.value)}
-        />
-        <FormInput
-          label="Emergency Contact"
-          type="text"
-          value={employee.emergencyContact}
-          onChange={(e) => handleInput('emergencyContact', e.target.value)}
-        />
+
+       
 
         <div className="flex justify-between gap-4 pt-4">
           <button
@@ -87,7 +77,7 @@ const AddEmployee = () => {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/')}
+          
             className="bg-gray-200 text-gray-800 py-3 px-6 rounded-xl hover:bg-gray-300"
           >
             Cancel
