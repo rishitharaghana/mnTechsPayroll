@@ -36,8 +36,14 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "visitingcards",
       label: "Visiting Cards",
       icon: MapPin,
-      path: "/admin/cards",
+      path: "/admin/visitingcards",
     },
+     {
+      id: "idcard",
+      label: "ID Card",
+      icon: CreditCard, // Replaced invalid 'id-card' with CreditCard
+      path: "/idcard",
+    }
   ];
 
   return (
