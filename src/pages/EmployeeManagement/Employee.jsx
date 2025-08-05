@@ -82,7 +82,7 @@ const Employee = () => {
   className="flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-transform hover:scale-105"
 >
   <Plus size={20} />
-  <span>No Add Employee</span>
+  <span>Add Employee</span>
 </button>
       </div>
 
