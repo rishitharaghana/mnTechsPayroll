@@ -5,38 +5,54 @@ import {
   Users,
   TrendingUp,
   Calculator,
-  FileSpreadsheet
+  FileSpreadsheet,
 } from 'lucide-react';
+import PayslipGenerator from '../PayslipManagement/PaySlipGenerator';
 
-const Payroll = () => {
+const Payroll = ({ employees = [] }) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
-
-  const payrollData = [
+  const [filters, setFilters] = useState({ search: '', department: '', status: '' });
+  const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [payrollData, setPayrollData] = useState(employees.length > 0 ? employees : [
     {
       id: 'EMP001', name: 'John Smith', department: 'Engineering',
-      basicSalary: 75000, allowances: 5000, bonus: 2000, overtime: 1500,
-      deductions: 1200, tax: 18000, grossSalary: 83500, netSalary: 64300,
-      paidLeave: 2, unpaidLeave: 0, workingDays: 22, status: 'Processed'
+      grossSalary: 75000, deductions: { pf: 1200 },
+      netSalary: 73800, paidLeave: 2, unpaidLeave: 0,
+      paymentMethod: 'Direct Deposit', bankDetails: { accountNumber: 'XXXX1234', bankName: 'Bank of America' },
+      status: 'Processed'
     },
     {
       id: 'EMP002', name: 'Sarah Wilson', department: 'Marketing',
-      basicSalary: 65000, allowances: 4000, bonus: 1500, overtime: 800,
-      deductions: 1000, tax: 15000, grossSalary: 71300, netSalary: 55300,
-      paidLeave: 1, unpaidLeave: 1, workingDays: 21, status: 'Processed'
+      grossSalary: 65000, deductions: { pf: 1000 },
+      netSalary: 64000, paidLeave: 1, unpaidLeave: 1,
+      paymentMethod: 'Check', bankDetails: {}, status: 'Processed'
     },
     {
       id: 'EMP003', name: 'Mike Johnson', department: 'Design',
-      basicSalary: 45000, allowances: 3000, bonus: 1000, overtime: 600,
-      deductions: 800, tax: 9000, grossSalary: 49600, netSalary: 39800,
-      paidLeave: 0, unpaidLeave: 2, workingDays: 20, status: 'Pending'
+      grossSalary: 50000, deductions: { pf: 800 },
+      netSalary: 49200, paidLeave: 0, unpaidLeave: 2,
+      paymentMethod: 'Direct Deposit', bankDetails: { accountNumber: 'XXXX5678', bankName: 'Chase' },
+      status: 'Pending'
     }
-  ];
+  ]);
+  const [newEmployee, setNewEmployee] = useState({
+    name: '',
+    department: '',
+    grossSalary: 0,
+    deductions: { pf: 0 },
+    netSalary: 0,
+    paymentMethod: 'Direct Deposit',
+    bankDetails: { accountNumber: '', bankName: '' }
+  });
+  const itemsPerPage = 5;
 
   const summaryStats = [
     { title: 'Total Payroll', value: '$159,400', change: '+5.2%', icon: DollarSign, color: 'from-green-500 to-emerald-500' },
     { title: 'Employees Paid', value: '248', change: '+2', icon: Users, color: 'from-blue-500 to-cyan-500' },
-    { title: 'Avg. Salary', value: '$4,830', change: '+3.1%', icon: TrendingUp, color: 'from-purple-500 to-pink-500' },
-    { title: 'Total Deductions', value: '$42,000', change: '-1.2%', icon: Calculator, color: 'from-orange-500 to-red-500' }
+    { title: 'Avg. Gross Salary', value: '$4,830', change: '+3.1%', icon: TrendingUp, color: 'from-purple-500 to-pink-500' },
+    { title: 'Total PF Deductions', value: '$42,000', change: '-1.2%', icon: Calculator, color: 'from-orange-500 to-red-500' }
   ];
 
   const getStatusColor = (status) => {
@@ -48,13 +64,70 @@ const Payroll = () => {
     }
   };
 
-  
+
+
+  // Filtering and sorting logic
+  const filteredData = payrollData
+    .filter((emp) =>
+      emp.name.toLowerCase().includes(filters.search.toLowerCase()) &&
+      (!filters.department || emp.department === filters.department) &&
+      (!filters.status || emp.status === filters.status)
+    )
+    .sort((a, b) => {
+      if (sortConfig.key) {
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+        return sortConfig.direction === 'asc'
+          ? aValue > bValue ? 1 : -1
+          : aValue < bValue ? 1 : -1;
+      }
+      return 0;
+    });
+
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  const handleSort = (key) => {
+    setSortConfig({
+      key,
+      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+    });
+  };
+
+  const handleFilterChange = (e) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value });
+    setCurrentPage(1);
+  };
+
+  const exportToCSV = () => {
+    const headers = ['ID,Name,Department,Gross Salary,PF Deduction,Net Salary,Status'];
+    const rows = paginatedData.map(emp =>
+      `${emp.id},${emp.name},${emp.department},${emp.grossSalary},${emp.deductions.pf},${emp.netSalary},${emp.status}`
+    );
+    const csvContent = [...headers, ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Payroll_${selectedMonth}.csv`;
+    link.click();
+  };
+
+  const handleProcessPayroll = () => {
+    alert(`Processing payroll for ${selectedMonth}...`);
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
+    
+
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Payroll Management</h1>
-          <p className="text-gray-600 mt-1">Manage employee salaries, deductions, and payroll processing</p>
+          <p className="text-gray-600 mt-1">Manage employee deductions and payroll processing</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -66,10 +139,16 @@ const Payroll = () => {
               className="px-4 py-2 bg-white/70 backdrop-blur-md border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
-          <button className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all">Process Payroll</button>
+          <button
+            onClick={handleProcessPayroll}
+            className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all"
+          >
+            Process Payroll
+          </button>
         </div>
       </div>
 
+      {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {summaryStats.map(({ title, value, change, icon: Icon, color }, idx) => (
           <div key={idx} className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:shadow-xl">
@@ -85,14 +164,51 @@ const Payroll = () => {
         ))}
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 bg-white/70 p-4 rounded-xl">
+        <input
+          type="text"
+          name="search"
+          placeholder="Search by name..."
+          value={filters.search}
+          onChange={handleFilterChange}
+          className="px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+        <select
+          name="department"
+          value={filters.department}
+          onChange={handleFilterChange}
+          className="px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          <option value="">All Departments</option>
+          <option value="Engineering">Engineering</option>
+          <option value="Marketing">Marketing</option>
+          <option value="Design">Design</option>
+        </select>
+        <select
+          name="status"
+          value={filters.status}
+          onChange={handleFilterChange}
+          className="px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          <option value="">All Statuses</option>
+          <option value="Processed">Processed</option>
+          <option value="Pending">Pending</option>
+          <option value="Failed">Failed</option>
+        </select>
+      </div>
+
+      {/* Payroll Table */}
       <div className="bg-white/70 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">
         <div className="p-6 border-b border-gray-200 flex justify-between items-center flex-wrap gap-4">
           <h2 className="text-xl font-bold text-gray-900">Monthly Payroll Details</h2>
           <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:shadow-lg">
-              <FileSpreadsheet size={16} /> Export Excel
+            <button
+              onClick={exportToCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:shadow-lg"
+            >
+              <FileSpreadsheet size={16} /> Export CSV
             </button>
-            <button className="px-4 py-2 bg-white/50 border border-gray-200 rounded-xl hover:bg-white/70">Filter</button>
           </div>
         </div>
 
@@ -100,55 +216,89 @@ const Payroll = () => {
           <table className="w-full text-sm">
             <thead className="bg-gray-50/50">
               <tr>
-                {["Employee", "Basic Salary", "Gross Salary", "Deductions", "Tax", "Net Salary", "Leave", "Status"].map((col, idx) => (
-                  <th key={idx} className="px-6 py-4 text-left font-medium text-gray-500 uppercase tracking-wider">{col}</th>
+                {["Employee", "Gross Salary", "PF Deduction", "Net Salary", "Status", "Actions"].map((col, idx) => (
+                  <th
+                    key={idx}
+                    onClick={() => col === "Employee" ? handleSort('name') : col === "Gross Salary" ? handleSort('grossSalary') : col === "Net Salary" ? handleSort('netSalary') : null}
+                    className={`px-6 py-4 text-left font-medium text-gray-500 uppercase tracking-wider ${['Employee', 'Gross Salary', 'Net Salary'].includes(col) ? 'cursor-pointer' : ''}`}
+                  >
+                    {col} {sortConfig.key === (col === "Employee" ? 'name' : col === "Gross Salary" ? 'grossSalary' : 'netSalary') && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {payrollData.map((emp) => (
+              {paginatedData.map((emp) => (
                 <tr key={emp.id} className="hover:bg-white/30">
                   <td className="px-6 py-4">
                     <div className="font-medium text-gray-900">{emp.name}</div>
                     <div className="text-gray-500">{emp.id} • {emp.department}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-gray-900 font-medium">${emp.basicSalary.toLocaleString()}</div>
-                    <div className="text-gray-500 text-xs">Monthly</div>
+                    <div className="font-medium">${emp.grossSalary.toLocaleString()}</div>
+                    <div className="text-gray-500 text-xs">Base</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-green-600 font-medium">${emp.grossSalary.toLocaleString()}</div>
-                    <div className="text-gray-500 text-xs">+${emp.allowances + emp.bonus + emp.overtime} (extras)</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-red-600 font-medium">${emp.deductions.toLocaleString()}</div>
-                    <div className="text-gray-500 text-xs">Various deductions</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-orange-600 font-medium">${emp.tax.toLocaleString()}</div>
-                    <div className="text-gray-500 text-xs">Income tax</div>
+                    <div className="text-red-600 font-medium">${emp.deductions.pf.toLocaleString()}</div>
+                    <div className="text-gray-500 text-xs">Provident Fund</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="font-bold text-indigo-600">${emp.netSalary.toLocaleString()}</div>
                     <div className="text-gray-500 text-xs">Take-home</div>
                   </td>
-                  <td className="px-6 py-4 text-xs space-y-1">
-                    <div className="text-green-600">Paid: {emp.paidLeave} days</div>
-                    <div className="text-red-600">Unpaid: {emp.unpaidLeave} days</div>
-                  </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(emp.status)}`}>{emp.status}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => setSelectedEmployee(emp)}
+                      className="text-indigo-600 hover:underline"
+                    >
+                      View Payslip
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
+        <div className="flex justify-between items-center p-4">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(currentPage - 1)}
+            className="px-4 py-2 bg-indigo-500 text-white rounded-xl disabled:bg-gray-300"
+          >
+            Previous
+          </button>
+          <span>Page {currentPage} of {totalPages}</span>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(currentPage + 1)}
+            className="px-4 py-2 bg-indigo-500 text-white rounded-xl disabled:bg-gray-300"
+          >
+            Next
+          </button>
+        </div>
       </div>
 
+      {selectedEmployee && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl max-w-lg w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <PayslipGenerator employee={selectedEmployee} selectedMonth={selectedMonth} />
+              <button
+                onClick={() => setSelectedEmployee(null)}
+                className="mt-4 px-4 py-2 bg-red-500 text-white rounded-xl hover:shadow-lg w-full"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
-  
-export default Payroll;
 
+export default Payroll;

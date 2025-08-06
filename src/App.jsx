@@ -16,7 +16,6 @@ import PayslipForm from "./form/PayslipForm";
 import LeaveApplication from "./pages/LeaveManagement/LeaveApplication";
 import EmployeeLogin from "./pages/Login/EmployeeLogin";
 import AdminLogin from "./pages/Login/AdminLogin";
-
 import IdCardForm from "./form/IdCardForm";
 import UserProfile from "./header/userProfile";
 import EmployeePayslip from "./pages/PayslipManagement/EmployeePayslip";
@@ -24,6 +23,10 @@ import Settings from "./pages/settings/Settings";
 import VisitingCard from "./pages/Cards/VisitingCard";
 import LeaveDashboard from "./pages/LeaveManagement/LeaveDashboard";
 import AddEmployeeReview from "./pages/PerformanceManagement/AddEmployeeReview";
+import IdCard from "./pages/Cards/IdCard";
+import EmployeeAttendance from "./pages/AttendanceManagement/EmployeeAttendance";
+import PayslipGenerator from "./pages/PayslipManagement/PaySlipGenerator";
+import GeneratePayroll from "./pages/PayrollManagement/GeneratePayroll";
 
 const App = () => {
   return (
@@ -31,7 +34,6 @@ const App = () => {
       <Routes>
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/employee-login" element={<EmployeeLogin />} />
-        
       </Routes>
       <AppLayout>
         <Routes>
@@ -39,6 +41,9 @@ const App = () => {
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/attendance" element={<Attendance />} />
           <Route path="/admin/payroll" element={<Payroll />} />
+          <Route path='/admin/payslip-generator' element={<PayslipGenerator/>} />
+               <Route path="/admin/generate-payroll" element={<GeneratePayroll />} />
+        
           <Route
             path="/admin/add-performance"
             element={<AddEmployeeReview />}
@@ -46,6 +51,7 @@ const App = () => {
 
           <Route path="/admin/performance" element={<Performance />} />
           <Route path="/admin/payslip" element={<Payslip />} />
+          <Route path='/admin/payslip-generator' element={<PayslipGenerator/>} />
           <Route path="/admin/calendar" element={<HolidayCalendar />} />
           <Route path="/admin/visitingcards" element={<VisitingCard />} />
           <Route path="/admin/employees" element={<Employee />} />
@@ -66,15 +72,12 @@ const App = () => {
           <Route path="/employee/employee-attendance" element={<EmployeeAttendance />} />
 
           <Route path="/settings" element={<Settings />} />
-          <Route path="/emp-dashboard" element={<EmployeeDashboard />} />
 
           <Route
             path="/employee/leave-dashboard"
             element={<LeaveDashboard />}
           />
-         
         </Routes>
-        
       </AppLayout>
     </BrowserRouter>
   );
