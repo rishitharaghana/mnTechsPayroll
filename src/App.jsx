@@ -18,25 +18,31 @@ import EmployeeLogin from "./pages/Login/EmployeeLogin";
 import AdminLogin from "./pages/Login/AdminLogin";
 import IdCard from "./pages/IdCards/IdCard";
 import IdCardForm from "./form/IdCardForm";
-import UserProfile from './header/userProfile'
+import UserProfile from "./header/userProfile";
 import EmployeePayslip from "./pages/PayslipManagement/EmployeePayslip";
 import Settings from "./pages/settings/Settings";
 import VisitingCard from "./pages/Cards/VisitingCard";
 import LeaveDashboard from "./pages/LeaveManagement/LeaveDashboard";
+import AddEmployeeReview from "./pages/PerformanceManagement/AddEmployeeReview";
 
 const App = () => {
   return (
     <BrowserRouter>
-    <Routes >
-      <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/employee-login" element={<EmployeeLogin />} />
-    </Routes>
+      <Routes>
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/employee-login" element={<EmployeeLogin />} />
+      </Routes>
       <AppLayout>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/attendance" element={<Attendance />} />
           <Route path="/admin/payroll" element={<Payroll />} />
+          <Route
+            path="/admin/add-performance"
+            element={<AddEmployeeReview />}
+          />
+
           <Route path="/admin/performance" element={<Performance />} />
           <Route path="/admin/payslip" element={<Payslip />} />
           <Route path="/admin/calendar" element={<HolidayCalendar />} />
@@ -48,19 +54,21 @@ const App = () => {
           />
           <Route path="/admin/payslip/payslip-form" element={<PayslipForm />} />
           <Route path="/admin/leave-tracker" element={<LeaveTracker />} />
-          <Route path="/employee/leave-application" element={<LeaveApplication />} />
+          <Route
+            path="/employee/leave-application"
+            element={<LeaveApplication />}
+          />
           <Route path="/idcard" element={<IdCard />} />
-             <Route path="/idcard/idcard-form" element={<IdCardForm />} />
-             <Route path='/userprofile' element={<UserProfile/>} />
-                <Route path='/employee-payslip' element={<EmployeePayslip/>} />
+          <Route path="/idcard/idcard-form" element={<IdCardForm />} />
+          <Route path="/userprofile" element={<UserProfile />} />
+          <Route path="/employee-payslip" element={<EmployeePayslip />} />
 
           <Route path="/settings" element={<Settings />} />
 
-                   <Route path='/employee/leave-dashboard' element={<LeaveDashboard/>} />
-
-             
-
-
+          <Route
+            path="/employee/leave-dashboard"
+            element={<LeaveDashboard />}
+          />
         </Routes>
       </AppLayout>
     </BrowserRouter>
