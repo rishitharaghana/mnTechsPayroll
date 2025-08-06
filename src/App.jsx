@@ -24,6 +24,8 @@ import Settings from "./pages/settings/Settings";
 import VisitingCard from "./pages/Cards/VisitingCard";
 import LeaveDashboard from "./pages/LeaveManagement/LeaveDashboard";
 import AddEmployeeReview from "./pages/PerformanceManagement/AddEmployeeReview";
+import EmployeeDashboard from "./Components/dashboard/EmployeeDashboard";
+
 
 const App = () => {
   return (
@@ -31,6 +33,7 @@ const App = () => {
       <Routes>
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/employee-login" element={<EmployeeLogin />} />
+        
       </Routes>
       <AppLayout>
         <Routes>
@@ -64,12 +67,15 @@ const App = () => {
           <Route path="/employee-payslip" element={<EmployeePayslip />} />
 
           <Route path="/settings" element={<Settings />} />
+          <Route path="/emp-dashboard" element={<EmployeeDashboard />} />
 
           <Route
             path="/employee/leave-dashboard"
             element={<LeaveDashboard />}
           />
+         
         </Routes>
+        
       </AppLayout>
     </BrowserRouter>
   );
