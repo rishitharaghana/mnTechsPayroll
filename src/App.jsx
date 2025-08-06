@@ -22,6 +22,7 @@ import UserProfile from './header/userProfile'
 import EmployeePayslip from "./pages/PayslipManagement/EmployeePayslip";
 import Settings from "./pages/settings/Settings";
 import VisitingCard from "./pages/Cards/VisitingCard";
+import LeaveDashboard from "./pages/LeaveManagement/LeaveDashboard";
 
 const App = () => {
   return (
@@ -55,6 +56,7 @@ const App = () => {
 
           <Route path="/settings" element={<Settings />} />
 
+                   <Route path='/employee/leave-dashboard' element={<LeaveDashboard/>} />
 
              
 
