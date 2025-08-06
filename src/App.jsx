@@ -16,7 +16,7 @@ import PayslipForm from "./form/PayslipForm";
 import LeaveApplication from "./pages/LeaveManagement/LeaveApplication";
 import EmployeeLogin from "./pages/Login/EmployeeLogin";
 import AdminLogin from "./pages/Login/AdminLogin";
-import IdCard from "./pages/IdCards/IdCard";
+
 import IdCardForm from "./form/IdCardForm";
 import UserProfile from "./header/userProfile";
 import EmployeePayslip from "./pages/PayslipManagement/EmployeePayslip";
@@ -24,8 +24,6 @@ import Settings from "./pages/settings/Settings";
 import VisitingCard from "./pages/Cards/VisitingCard";
 import LeaveDashboard from "./pages/LeaveManagement/LeaveDashboard";
 import AddEmployeeReview from "./pages/PerformanceManagement/AddEmployeeReview";
-import EmployeeDashboard from "./Components/dashboard/EmployeeDashboard";
-
 
 const App = () => {
   return (
@@ -65,6 +63,7 @@ const App = () => {
           <Route path="/idcard/idcard-form" element={<IdCardForm />} />
           <Route path="/userprofile" element={<UserProfile />} />
           <Route path="/employee-payslip" element={<EmployeePayslip />} />
+          <Route path="/employee/employee-attendance" element={<EmployeeAttendance />} />
 
           <Route path="/settings" element={<Settings />} />
           <Route path="/emp-dashboard" element={<EmployeeDashboard />} />

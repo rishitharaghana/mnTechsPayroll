@@ -1,9 +1,8 @@
 // Settings.jsx
 import React, { useState } from 'react';
 import SettingsNav from '../../pages/settings/SettingsNav';
-import ProfileSettings from '../../pages/settings/SettingsProfile';
-import SystemSettings from '../../pages/settings/SettingsSystem';
-import SaveButton from '../../pages/settings/SaveButton';
+import SettingsProfile from '../../pages/settings/SettingsProfile';
+import SettingsSystem from '../../pages/settings/SettingsSystem'; 
 
 const Settings = () => {
   const [activeSection, setActiveSection] = useState('profile');
@@ -33,10 +32,7 @@ const Settings = () => {
     },
   });
 
-  const handleSave = () => {
-    // Save settings logic here (e.g., API call)
-    alert('Settings saved successfully!');
-  };
+
 
   return (
     <div className="space-y-6">
@@ -46,7 +42,7 @@ const Settings = () => {
         <p className="text-gray-600 mt-1">Manage your account and system preferences</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Settings Navigation */}
         <SettingsNav activeSection={activeSection} setActiveSection={setActiveSection} />
 
@@ -54,12 +50,11 @@ const Settings = () => {
         <div className="lg:col-span-3">
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             {activeSection === 'profile' && (
-              <ProfileSettings settings={settings} setSettings={setSettings} />
+              <SettingsProfile settings={settings} setSettings={setSettings} />
             )}
             {activeSection === 'system' && (
-              <SystemSettings settings={settings} setSettings={setSettings} />
+              <SettingsSystem settings={settings} setSettings={setSettings} />
             )}
-            <SaveButton onSave={handleSave} />
           </div>
         </div>
       </div>
@@ -67,4 +62,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default Settings;
