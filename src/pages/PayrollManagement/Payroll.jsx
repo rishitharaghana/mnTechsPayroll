@@ -48,17 +48,7 @@ const Payroll = () => {
     }
   };
 
-  const renderProgress = (label, value, width, color) => (
-    <div className="space-y-1">
-      <div className="flex justify-between text-sm text-gray-600">
-        <span>{label}</span><span className="font-semibold text-gray-900">{value}</span>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
-        <div className={`h-2 rounded-full bg-gradient-to-r ${color}`} style={{ width }}></div>
-      </div>
-    </div>
-  );
-
+  
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

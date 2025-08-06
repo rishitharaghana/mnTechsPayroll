@@ -11,7 +11,7 @@ const DatePicker = ({
   onSingleDateChange,
   labelFrom = 'From Month',
   labelTo = 'To Month',
-  labelSingle = 'Select Date',
+  labelSingle = '',
 }) => {
   const handleFromChange = useCallback(
     (e) => onFromDateChange(e.target.value),
