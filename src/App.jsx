@@ -24,6 +24,7 @@ import Settings from "./pages/settings/Settings";
 import VisitingCard from "./pages/Cards/VisitingCard";
 import LeaveDashboard from "./pages/LeaveManagement/LeaveDashboard";
 import AddEmployeeReview from "./pages/PerformanceManagement/AddEmployeeReview";
+import EmployeeDashboard from "./Components/dashboard/EmployeeDashboard";
 
 const App = () => {
   return (
