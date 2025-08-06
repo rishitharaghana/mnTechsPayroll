@@ -23,7 +23,7 @@ const AdminLogin = () => {
     if (admin) {
       // Add your login function here
       // login({ id: admin.id, role: admin.role, name: admin.name });
-      navigate('/dashboard');
+      navigate('/admin/dashboard');
     } else {
       setError('Invalid Admin ID or Password');
     }
