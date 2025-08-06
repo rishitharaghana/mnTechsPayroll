@@ -22,6 +22,7 @@ import IdCardForm from "./form/IdCardForm";
 import UserProfile from './header/userProfile'
 import EmployeePayslip from "./pages/PayslipManagement/EmployeePayslip";
 // import DatePicker from "./Components/ui/date/DatePicker";
+import Settings from "./pages/settings/Settings";
 
 const App = () => {
   return (
@@ -53,6 +54,8 @@ const App = () => {
              <Route path='/userprofile' element={<UserProfile/>} />
                 <Route path='/employee-payslip' element={<EmployeePayslip/>} />
                  {/* <Route path='/date' element={<DatePicker/>} /> */}
+
+          <Route path="/settings" element={<Settings />} />
 
 
              
