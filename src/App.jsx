@@ -9,7 +9,6 @@ import Payroll from "./pages/PayrollManagement/Payroll";
 import Performance from "./pages/PerformanceManagement/Performance";
 import Payslip from "./pages/PayslipManagement/Payslip";
 import HolidayCalendar from "./pages/HolidayCalendar/Calendar";
-import Cards from "./pages/Cards/Cards";
 import Employee from "./pages/EmployeeManagement/Employee";
 import LeaveTracker from "./pages/LeaveManagement/LeaveTracker";
 import AddEmployee from "./pages/EmployeeManagement/AddEmployee";
@@ -21,8 +20,8 @@ import IdCard from "./pages/IdCards/IdCard";
 import IdCardForm from "./form/IdCardForm";
 import UserProfile from './header/userProfile'
 import EmployeePayslip from "./pages/PayslipManagement/EmployeePayslip";
-// import DatePicker from "./Components/ui/date/DatePicker";
 import Settings from "./pages/settings/Settings";
+import VisitingCard from "./pages/Cards/VisitingCard";
 
 const App = () => {
   return (
@@ -40,7 +39,7 @@ const App = () => {
           <Route path="/admin/performance" element={<Performance />} />
           <Route path="/admin/payslip" element={<Payslip />} />
           <Route path="/admin/calendar" element={<HolidayCalendar />} />
-          <Route path="/admin/visitingcards" element={<Cards />} />
+          <Route path="/admin/visitingcards" element={<VisitingCard />} />
           <Route path="/admin/employees" element={<Employee />} />
           <Route
             path="/admin/employees/add-employee"
@@ -53,7 +52,6 @@ const App = () => {
              <Route path="/idcard/idcard-form" element={<IdCardForm />} />
              <Route path='/userprofile' element={<UserProfile/>} />
                 <Route path='/employee-payslip' element={<EmployeePayslip/>} />
-                 {/* <Route path='/date' element={<DatePicker/>} /> */}
 
           <Route path="/settings" element={<Settings />} />
 

@@ -156,23 +156,6 @@ const Payroll = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Salary Breakdown</h2>
-          {renderProgress("Basic Salaries", "$185,000", "60%", "from-blue-500 to-cyan-500")}
-          {renderProgress("Allowances", "$12,000", "20%", "from-green-500 to-emerald-500")}
-          {renderProgress("Bonuses", "$4,500", "15%", "from-purple-500 to-pink-500")}
-          {renderProgress("Overtime", "$2,900", "10%", "from-orange-500 to-red-500")}
-        </div>
-
-        <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Deductions Overview</h2>
-          {renderProgress("Income Tax", "$42,000", "70%", "from-red-500 to-pink-500")}
-          {renderProgress("Insurance", "$8,000", "20%", "from-orange-500 to-red-500")}
-          {renderProgress("Retirement Fund", "$6,000", "15%", "from-yellow-500 to-orange-500")}
-          {renderProgress("Other Deductions", "$3,000", "10%", "from-gray-500 to-gray-600")}
-        </div>
-      </div>
     </div>
   );
 };

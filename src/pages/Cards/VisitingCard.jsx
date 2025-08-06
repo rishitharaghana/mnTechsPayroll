@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CreditCard, Download, Eye, User, Mail, Phone, MapPin, Building } from 'lucide-react';
 
-const Cards = () => {
+const VisitingCard = () => {
   const [selectedEmployee, setSelectedEmployee] = useState('EMP001');
   const [cardStyle, setCardStyle] = useState('modern');
   const [showPreview, setShowPreview] = useState(false);
@@ -298,4 +298,4 @@ const Cards = () => {
   );
 };
 
-export default Cards;
+export default VisitingCard;

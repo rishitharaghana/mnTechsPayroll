@@ -68,7 +68,6 @@ const HolidayCalendar = () => {
     const firstDay = getFirstDayOfMonth(currentDate);
     const days = [];
 
-    // Empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
       days.push(
         <div key={`empty-${i}`} className="h-20 bg-gray-50 rounded-lg"></div>
