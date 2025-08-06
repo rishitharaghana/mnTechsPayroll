@@ -21,7 +21,7 @@ const SettingsNav = ({ activeSection, setActiveSection }) => {
                 className={`w-2xs m-0 flex items-center space-x-3 px-2 py-2 rounded-lg transition-colors duration-200 ${
                   activeSection === section.id
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    : 'text-gray-700 bg-gray-100'
                 }`}
                 aria-current={activeSection === section.id ? 'page' : undefined}
               >
