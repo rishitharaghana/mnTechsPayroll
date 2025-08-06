@@ -20,6 +20,8 @@ import AdminLogin from "./pages/Login/AdminLogin";
 import IdCard from "./pages/IdCards/IdCard";
 import IdCardForm from "./form/IdCardForm";
 import UserProfile from './header/userProfile'
+import EmployeePayslip from "./pages/PayslipManagement/EmployeePayslip";
+// import DatePicker from "./Components/ui/date/DatePicker";
 
 const App = () => {
   return (
@@ -49,6 +51,11 @@ const App = () => {
           <Route path="/idcard" element={<IdCard />} />
              <Route path="/idcard/idcard-form" element={<IdCardForm />} />
              <Route path='/userprofile' element={<UserProfile/>} />
+                <Route path='/employee-payslip' element={<EmployeePayslip/>} />
+                 {/* <Route path='/date' element={<DatePicker/>} /> */}
+
+
+             
 
 
         </Routes>
