@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import PageMeta from '../../Components/common/PageMeta';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 
 const GeneratePayroll = () => {
   const [payrollEntries, setPayrollEntries] = useState([]);
@@ -51,6 +53,15 @@ const GeneratePayroll = () => {
   return (
     <div className="space-y-8 bg-slate-50 min-h-screen p-6">
       {/* Header */}
+      <div className="flex justify-end">
+        <PageMeta title="Generate Payroll" description="Create and manage payroll entries for employees." />
+        <PageBreadcrumb
+          items={[
+            { label: 'Home', link: '/' },
+            { label: 'Generate Payroll', link: '/admin/generate-payroll' },
+          ]}
+        />
+      </div>
       <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <h1 className="text-3xl font-bold text-white">💼 Generate Payroll</h1>
       </div>

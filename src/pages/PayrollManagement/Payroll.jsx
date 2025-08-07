@@ -8,6 +8,8 @@ import {
   FileSpreadsheet,
 } from 'lucide-react';
 import PayslipGenerator from '../PayslipManagement/PaySlipGenerator';
+import PageMeta from '../../Components/common/PageMeta';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 
 const Payroll = ({ employees = [] }) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
@@ -111,6 +113,15 @@ const Payroll = ({ employees = [] }) => {
   return (
     <div className="space-y-8 bg-slate-50 min-h-screen p-6">
       {/* Header */}
+      <div className="flex justify-end">
+        <PageMeta title="Payroll Management" description="Manage employee payroll and deductions." />
+        <PageBreadcrumb
+          items={[
+            { label: 'Home', link: '/' },
+            { label: 'Payroll', link: '/admin/payroll' },
+          ]}
+        />
+      </div>
       <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
