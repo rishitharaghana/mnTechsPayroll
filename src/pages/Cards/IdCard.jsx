@@ -1,6 +1,8 @@
 import React from 'react';
 import { Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import PageMeta from '../../Components/common/PageMeta';
 
 const IdCard = () => {
   const navigate = useNavigate();
@@ -28,6 +30,15 @@ const IdCard = () => {
 
   return (
     <div className="p-6 bg-slate-50 min-h-screen">
+      <div className="flex justify-end">
+        <PageMeta title="ID Cards" description="Manage employee ID cards" />
+        <PageBreadcrumb 
+          items={[
+            { label: 'Home', link: '/' },
+            { label: 'ID Cards', link: '/idcard' },
+          ]}  
+        />
+      </div>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">ID Cards</h1>

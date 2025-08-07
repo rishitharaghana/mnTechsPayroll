@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import DatePicker from '../../Components/ui/date/DatePicker';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import PageMeta from '../../Components/common/PageMeta';
 
 const steps = ['Employee Info', 'Performance', 'Review'];
 
@@ -40,6 +42,16 @@ const AddEmployeeReview = () => {
   };
 
   return (
+<div>
+    <div className="flex justify-end">
+        <PageMeta title="Add Employee Review" description="Add a new employee performance review" />
+        <PageBreadcrumb
+          items={[
+            { label: 'Home', link: '/' },
+            { label: 'Add Employee Review', link: '/admin/add-performance' },
+          ]}
+        />
+      </div>
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <style>
         {`
@@ -353,6 +365,7 @@ const AddEmployeeReview = () => {
           </div>
         </form>
       </div>
+    </div>
     </div>
   );
 };

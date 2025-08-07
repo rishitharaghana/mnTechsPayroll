@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Clock, User, ChevronRight, Users } from 'lucide-react';
+import { Home, Clock, User, ChevronRight, Users, Calendar, CreditCard, FileChartColumnIncreasing,
+     TrendingUp, RefreshCcw, IdCard, IdCardLanyard, BookText } from 'lucide-react';
 
 const PageBreadcrumb = ({ items = [] }) => {
   const iconMap = {
@@ -8,6 +9,17 @@ const PageBreadcrumb = ({ items = [] }) => {
     'Attendance': <Clock className="h-4 w-4" />,
     'Employees': <Users className="h-4 w-4" />,
     'AddEmployee': <User className="h-4 w-4" />,
+    'LeaveTracker': <Calendar className="h-4 w-4" />,
+    'GeneratePayroll': <CreditCard className="h-4 w-4" />,
+    'Payroll': <CreditCard className="h-4 w-4" />,
+    'Payslip': <FileChartColumnIncreasing className="h-4 w-4" />,
+    'Calendar': <Calendar className="h-4 w-4" />,
+    'Performance': <TrendingUp className="h-4 w-4" />,
+    'Add Employee Review': <RefreshCcw className="h-4 w-4" />,
+    'Visiting Card': <IdCard className="h-4 w-4" />,
+    'ID Cards': <IdCardLanyard className="h-4 w-4" />,
+    'Generate ID Card': <IdCardLanyard className="h-4 w-4" />,
+    'IdCardForm': <BookText className="h-4 w-4" />,
   };
 
   return (
@@ -20,13 +32,18 @@ const PageBreadcrumb = ({ items = [] }) => {
         // Fallback to a default icon or null if label is not in iconMap
         const icon = iconMap[item.label] || <Home className="h-4 w-4 text-gray-400" />;
 
+        // Debugging: Log to check if icon is correctly mapped
+        if (!iconMap[item.label]) {
+          console.log(`Icon not found for label: ${item.label}`);
+        }
+
         return (
           <div key={index} className="flex gap-2 items-center">
             {index > 0 && <ChevronRight className="h-4 w-4 mx-1 text-slate-700" />}
             {item.link ? (
               <Link
                 to={item.link}
-                className={`flex items-center transition-colors duration-200 ${textColor}`}
+                className={`flex items-center hover:text-blue-600 transition-colors duration-200 ${textColor}`}
                 aria-current={isActive ? 'page' : undefined}
               >
                 {React.cloneElement(icon, { className: `h-4 w-4 ${iconColor}` })}

@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Clock, CheckCircle, XCircle, User, UserCheck, Calendar } from 'lucide-react';
 import DatePicker from '../../Components/ui/date/DatePicker';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import PageMeta from '../../Components/common/PageMeta';
 
 const leaveData = [
   {
@@ -112,6 +114,15 @@ const LeaveTracker = () => {
 
   return (
     <div className="p-6 space-y-6 bg-gray-100 min-h-screen">
+      <div className="flex justify-end">
+        <PageMeta title="Leave Tracker" description="Manage and track employee leave requests" />
+        <PageBreadcrumb
+          items={[
+            { label: 'Home', link: '/' },
+            { label: 'Leave Tracker', link: '/admin/leave-tracker' },
+          ]}
+        />
+      </div>
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
