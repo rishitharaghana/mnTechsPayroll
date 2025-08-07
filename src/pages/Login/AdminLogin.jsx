@@ -9,7 +9,6 @@ const AdminLogin = () => {
 
   const navigate = useNavigate();
 
-  // Mock admin credentials
   const mockAdmins = [
     { id: 'ADMIN001', name: 'Admin One', password: 'adminpass123', role: 'admin' },
     { id: 'ADMIN002', name: 'Admin Two', password: 'adminpass123', role: 'admin' }
@@ -21,8 +20,6 @@ const AdminLogin = () => {
       (admin) => admin.id === adminId && admin.password === password
     );
     if (admin) {
-      // Add your login function here
-      // login({ id: admin.id, role: admin.role, name: admin.name });
       navigate('/admin/dashboard');
     } else {
       setError('Invalid Admin ID or Password');
@@ -36,13 +33,13 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-      <div className="bg-white/70 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-lg w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-teal-100 to-emerald-200 flex items-center justify-center px-4">
+      <div className="bg-white/70 backdrop-blur-md rounded-2xl p-8 border border-white/30 shadow-2xl w-full max-w-md">
+        <h2 className="text-3xl font-extrabold text-center mb-6 bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
           Admin Login
         </h2>
         {error && (
-          <div className="mb-4 text-center text-sm text-red-600 bg-red-100/50 rounded-lg p-2">
+          <div className="mb-4 text-center text-sm text-red-700 bg-red-100/70 rounded-lg p-2">
             {error}
           </div>
         )}
@@ -56,7 +53,7 @@ const AdminLogin = () => {
                 value={adminId}
                 onChange={(e) => setAdminId(e.target.value)}
                 placeholder="ADMIN001"
-                className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 required
               />
             </div>
@@ -70,14 +67,14 @@ const AdminLogin = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 required
               />
             </div>
           </div>
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition"
+            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-3 rounded-xl font-semibold hover:shadow-xl transition"
           >
             Login as Admin
           </button>
@@ -86,7 +83,7 @@ const AdminLogin = () => {
           <a
             href="#"
             onClick={handleForgotPassword}
-            className="text-sm text-blue-600 hover:text-blue-800 flex items-center justify-center space-x-2"
+            className="text-sm text-emerald-600 hover:text-teal-700 flex items-center justify-center space-x-2"
           >
             <Mail size={16} />
             <span>Forgot Password?</span>
