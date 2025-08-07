@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Clock, CheckCircle, XCircle, Users } from 'lucide-react';
 import DatePicker from '../../Components/ui/date/DatePicker';
+import PageMeta from '../../Components/common/PageMeta';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 
 const Attendance = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -64,7 +66,7 @@ const Attendance = () => {
       value: '198',
       total: '248',
       percentage: '80%',
-      color: 'bg-teal-600',
+      color: 'bg-gradient-to-r from-teal-600 to-slate-700',
       icon: CheckCircle,
     },
     {
@@ -72,7 +74,7 @@ const Attendance = () => {
       value: '12',
       total: '248',
       percentage: '5%',
-      color: 'bg-slate-700',
+      color: 'bg-gradient-to-r from-teal-600 to-slate-700',
       icon: XCircle,
     },
     {
@@ -80,7 +82,7 @@ const Attendance = () => {
       value: '8',
       total: '248',
       percentage: '3%',
-      color: 'bg-teal-600',
+      color: 'bg-gradient-to-r from-teal-600 to-slate-700',
       icon: Clock,
     },
     {
@@ -88,7 +90,7 @@ const Attendance = () => {
       value: '30',
       total: '248',
       percentage: '12%',
-      color: 'bg-slate-700',
+      color: 'bg-gradient-to-r from-teal-600 to-slate-700',
       icon: Users,
     },
   ];
@@ -109,11 +111,20 @@ const Attendance = () => {
   return (
     <div className="space-y-8 bg-slate-50 min-h-screen p-6">
       {/* Header */}
-      <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="flex justify-end">
+        <PageMeta title="Attendance Management" description="Track and manage employee attendance efficiently." />
+        <PageBreadcrumb
+          items={[
+            { label: 'Home', link: '/' },
+            { label: 'Attendance', link: '/admin/attendance' },
+          ]}
+        />
+      </div>
+      <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800">Attendance Tracking</h1>
-            <p className="text-slate-500 text-lg mt-1">Monitor employee attendance and working hours</p>
+            <h1 className="text-3xl font-bold text-white">Attendance Tracking</h1>
+            <p className="text-slate-200 text-lg mt-1">Monitor employee attendance and working hours</p>
           </div>
           <div className="flex items-center gap-2">
             <DatePicker
@@ -121,7 +132,7 @@ const Attendance = () => {
               singleDate={selectedDate}
               onSingleDateChange={setSelectedDate}
               labelSingle="Select Date"
-              className="px-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 text-slate-900"
+              className="px-4 py-2 bg-white/90 border border-slate-200/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 text-slate-900"
             />
           </div>
         </div>
@@ -132,7 +143,7 @@ const Attendance = () => {
         {stats.map(({ title, value, total, percentage, color, icon: Icon }, index) => (
           <div
             key={index}
-            className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
+            className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
           >
             <div className="flex items-center justify-between mb-4">
               <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center`}>
@@ -140,7 +151,7 @@ const Attendance = () => {
               </div>
               <span className="text-2xl font-bold text-slate-900">{percentage}</span>
             </div>
-            <h3 className="text-slate-500 text-sm font-medium mb-1">{title}</h3>
+            <h3 className="text-slate-600 text-sm font-medium mb-1">{title}</h3>
             <p className="text-xl font-bold text-slate-900">
               {value} <span className="text-sm text-slate-500">/ {total}</span>
             </p>
@@ -149,46 +160,64 @@ const Attendance = () => {
       </div>
 
       {/* Attendance Table */}
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
-        <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+        <div className="p-6 border-b border-slate-200/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-xl font-bold text-slate-900">Today's Attendance</h2>
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-slate-600">
               Date: {new Date(selectedDate).toLocaleDateString()}
             </span>
-            <button className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105">
+            <button className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105">
               Export Report
             </button>
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed text-sm">
-            <thead className="bg-slate-50">
+          <table className="w-full table-fixed text-sm" aria-label="Employee Attendance Table">
+            <thead className="bg-gradient-to-r from-teal-600 to-slate-700">
               <tr>
-                <th className="w-1/4 px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="w-1/4 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+                >
                   Employee
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+                >
                   Check In
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+                >
                   Check Out
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+                >
                   Working Hours
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+                >
                   Status
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
+                >
                   Location
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-slate-200/50">
               {attendanceData.map(({ id, name, checkIn, checkOut, workingHours, status, location }) => (
-                <tr key={id} className="hover:bg-slate-50 transition-colors duration-200">
+                <tr key={id} className="hover:bg-slate-100/80 transition-colors duration-200">
                   <td className="px-4 py-3">
                     <div className="text-sm font-medium text-slate-900">{name}</div>
                     <div className="text-xs text-slate-500">{id}</div>
@@ -230,7 +259,7 @@ const Attendance = () => {
       </div>
 
       {/* Weekly Attendance Overview */}
-      <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <h2 className="text-xl font-bold text-slate-900 mb-4">Weekly Attendance Overview</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
@@ -240,7 +269,7 @@ const Attendance = () => {
             return (
               <div
                 key={day}
-                className="bg-slate-50 p-4 rounded-lg text-center hover:shadow-md hover:scale-105 transition-all duration-300"
+                className="bg-white/90 p-4 rounded-lg text-center hover:shadow-md hover:scale-105 transition-all duration-300"
               >
                 <div className="text-sm font-medium text-slate-700 mb-2">{day}</div>
                 <div className="relative w-16 h-16 mx-auto">
