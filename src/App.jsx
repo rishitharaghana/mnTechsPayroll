@@ -29,6 +29,7 @@ import GeneratePayroll from './pages/PayrollManagement/GeneratePayroll';
 import ViewIdCard from './pages/Cards/ViewIdCard';
 import EmployeeDashboard from './Components/dashboard/EmployeeDashboard';
 import CalendarIntegration from './pages/HolidayCalendar/CalendarIntegration';
+import { PayrollHistory } from './pages/PayrollManagement/PayrollHistory';
 
 const App = () => {
   return (
@@ -65,6 +66,7 @@ const App = () => {
             <Route path="/settings" element={<Settings />} />
             <Route path="/employee/leave-dashboard" element={<LeaveDashboard />} />
             <Route path="/emp-dashboard" element={<EmployeeDashboard />} />
+             <Route path="/pay-history" element={<PayrollHistory/>} />
           </Routes>
         </AppLayout>
       </BrowserRouter>
