@@ -31,6 +31,7 @@ const IdCardForm = () => {
         <PageMeta title="Generate ID Card" description="Create and manage employee ID cards." />
         <PageBreadcrumb items={[
           { label: 'Home', link: '/' },
+          { label: 'ID Cards', link: '/idcard' },
           { label: 'Generate ID Card', link: '/idcard/idcard-form' },
         ]} />
       </div>

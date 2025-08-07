@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Home, Clock, User, ChevronRight, Users, Calendar, CreditCard, FileChartColumnIncreasing,
-     TrendingUp, RefreshCcw, IdCard, IdCardLanyard, BookText } from 'lucide-react';
+     TrendingUp, RefreshCcw, IdCard, IdCardLanyard, BookText, CalendarDays, HandCoins, Target } from 'lucide-react';
 
 const PageBreadcrumb = ({ items = [] }) => {
   const iconMap = {
@@ -9,13 +9,13 @@ const PageBreadcrumb = ({ items = [] }) => {
     'Attendance': <Clock className="h-4 w-4" />,
     'Employees': <Users className="h-4 w-4" />,
     'AddEmployee': <User className="h-4 w-4" />,
-    'LeaveTracker': <Calendar className="h-4 w-4" />,
-    'GeneratePayroll': <CreditCard className="h-4 w-4" />,
+    'Leave Tracker': <CalendarDays className="h-4 w-4" />,
+    'Generate Payroll': <HandCoins className="h-4 w-4" />,
     'Payroll': <CreditCard className="h-4 w-4" />,
     'Payslip': <FileChartColumnIncreasing className="h-4 w-4" />,
     'Calendar': <Calendar className="h-4 w-4" />,
     'Performance': <TrendingUp className="h-4 w-4" />,
-    'Add Employee Review': <RefreshCcw className="h-4 w-4" />,
+    'Add Employee Review': <Target className="h-4 w-4" />,
     'Visiting Card': <IdCard className="h-4 w-4" />,
     'ID Cards': <IdCardLanyard className="h-4 w-4" />,
     'Generate ID Card': <IdCardLanyard className="h-4 w-4" />,
