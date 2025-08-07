@@ -37,22 +37,13 @@ const Payroll = ({ employees = [] }) => {
       status: 'Pending'
     }
   ]);
-  const [newEmployee, setNewEmployee] = useState({
-    name: '',
-    department: '',
-    grossSalary: 0,
-    deductions: { pf: 0 },
-    netSalary: 0,
-    paymentMethod: 'Direct Deposit',
-    bankDetails: { accountNumber: '', bankName: '' }
-  });
   const itemsPerPage = 5;
 
   const summaryStats = [
-    { title: 'Total Payroll', value: '$159,400', change: '+5.2%', icon: DollarSign, color: 'from-green-500 to-emerald-500' },
-    { title: 'Employees Paid', value: '248', change: '+2', icon: Users, color: 'from-blue-500 to-cyan-500' },
-    { title: 'Avg. Gross Salary', value: '$4,830', change: '+3.1%', icon: TrendingUp, color: 'from-purple-500 to-pink-500' },
-    { title: 'Total PF Deductions', value: '$42,000', change: '-1.2%', icon: Calculator, color: 'from-orange-500 to-red-500' }
+    { title: 'Total Payroll', value: '$159,400', change: '+5.2%', icon: DollarSign, color: 'bg-teal-600' },
+    { title: 'Employees Paid', value: '248', change: '+2', icon: Users, color: 'bg-slate-700' },
+    { title: 'Avg. Gross Salary', value: '$4,830', change: '+3.1%', icon: TrendingUp, color: 'bg-teal-600' },
+    { title: 'Total PF Deductions', value: '$42,000', change: '-1.2%', icon: Calculator, color: 'bg-slate-700' }
   ];
 
   const getStatusColor = (status) => {
@@ -60,11 +51,9 @@ const Payroll = ({ employees = [] }) => {
       case 'Processed': return 'bg-green-100 text-green-800';
       case 'Pending': return 'bg-yellow-100 text-yellow-800';
       case 'Failed': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-slate-100 text-slate-800';
     }
   };
-
-
 
   // Filtering and sorting logic
   const filteredData = payrollData
@@ -120,131 +109,136 @@ const Payroll = ({ employees = [] }) => {
   };
 
   return (
-    <div className="space-y-6 p-4">
-    
-
+    <div className="space-y-8 bg-slate-50 min-h-screen p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Payroll Management</h1>
-          <p className="text-gray-600 mt-1">Manage employee deductions and payroll processing</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Calendar size={20} className="text-gray-400" />
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-4 py-2 bg-white/70 backdrop-blur-md border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+      <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800">Payroll Management</h1>
+            <p className="text-slate-500 text-lg mt-1">Manage employee deductions and payroll processing</p>
           </div>
-          <button
-            onClick={handleProcessPayroll}
-            className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all"
-          >
-            Process Payroll
-          </button>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Calendar size={20} className="text-slate-400" />
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="px-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
+              />
+            </div>
+            <button
+              onClick={handleProcessPayroll}
+              className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105"
+            >
+              Process Payroll
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {summaryStats.map(({ title, value, change, icon: Icon, color }, idx) => (
-          <div key={idx} className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:shadow-xl">
-            <div className="flex justify-between mb-4">
-              <div className={`w-12 h-12 bg-gradient-to-r ${color} rounded-xl flex items-center justify-center`}>
+          <div
+            key={idx}
+            className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center`}>
                 <Icon className="text-white" size={24} />
               </div>
-              <span className={`text-sm font-medium ${change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>{change}</span>
+              <span className={`text-sm font-medium ${change.startsWith('+') ? 'text-emerald-600' : 'text-red-600'}`}>
+                {change}
+              </span>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">{title}</h3>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
+            <h3 className="text-slate-500 text-sm font-medium mb-1">{title}</h3>
+            <p className="text-2xl font-bold text-slate-900">{value}</p>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 bg-white/70 p-4 rounded-xl">
-        <input
-          type="text"
-          name="search"
-          placeholder="Search by name..."
-          value={filters.search}
-          onChange={handleFilterChange}
-          className="px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-        <select
-          name="department"
-          value={filters.department}
-          onChange={handleFilterChange}
-          className="px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="">All Departments</option>
-          <option value="Engineering">Engineering</option>
-          <option value="Marketing">Marketing</option>
-          <option value="Design">Design</option>
-        </select>
-        <select
-          name="status"
-          value={filters.status}
-          onChange={handleFilterChange}
-          className="px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="">All Statuses</option>
-          <option value="Processed">Processed</option>
-          <option value="Pending">Pending</option>
-          <option value="Failed">Failed</option>
-        </select>
+      <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <input
+            type="text"
+            name="search"
+            placeholder="Search by name..."
+            value={filters.search}
+            onChange={handleFilterChange}
+            className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
+          />
+          <select
+            name="department"
+            value={filters.department}
+            onChange={handleFilterChange}
+            className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
+          >
+            <option value="">All Departments</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Design">Design</option>
+          </select>
+          <select
+            name="status"
+            value={filters.status}
+            onChange={handleFilterChange}
+            className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
+          >
+            <option value="">All Statuses</option>
+            <option value="Processed">Processed</option>
+            <option value="Pending">Pending</option>
+            <option value="Failed">Failed</option>
+          </select>
+        </div>
       </div>
 
       {/* Payroll Table */}
-      <div className="bg-white/70 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">
-        <div className="p-6 border-b border-gray-200 flex justify-between items-center flex-wrap gap-4">
-          <h2 className="text-xl font-bold text-gray-900">Monthly Payroll Details</h2>
-          <div className="flex gap-2">
-            <button
-              onClick={exportToCSV}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:shadow-lg"
-            >
-              <FileSpreadsheet size={16} /> Export CSV
-            </button>
-          </div>
+      <div className="bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300">
+        <div className="flex justify-between items-center flex-wrap gap-4 p-6 border-b border-slate-200">
+          <h2 className="text-xl font-bold text-slate-900">Monthly Payroll Details</h2>
+          <button
+            onClick={exportToCSV}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 transition-transform duration-300 transform hover:scale-105"
+          >
+            <FileSpreadsheet size={16} /> Export CSV
+          </button>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50/50">
+            <thead className="bg-slate-50">
               <tr>
                 {["Employee", "Gross Salary", "PF Deduction", "Net Salary", "Status", "Actions"].map((col, idx) => (
                   <th
                     key={idx}
                     onClick={() => col === "Employee" ? handleSort('name') : col === "Gross Salary" ? handleSort('grossSalary') : col === "Net Salary" ? handleSort('netSalary') : null}
-                    className={`px-6 py-4 text-left font-medium text-gray-500 uppercase tracking-wider ${['Employee', 'Gross Salary', 'Net Salary'].includes(col) ? 'cursor-pointer' : ''}`}
+                    className={`px-6 py-4 text-left font-medium text-slate-500 uppercase tracking-wider ${['Employee', 'Gross Salary', 'Net Salary'].includes(col) ? 'cursor-pointer hover:text-slate-700' : ''}`}
                   >
                     {col} {sortConfig.key === (col === "Employee" ? 'name' : col === "Gross Salary" ? 'grossSalary' : 'netSalary') && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-200">
               {paginatedData.map((emp) => (
-                <tr key={emp.id} className="hover:bg-white/30">
+                <tr key={emp.id} className="hover:bg-slate-50 transition-colors duration-200">
                   <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">{emp.name}</div>
-                    <div className="text-gray-500">{emp.id} • {emp.department}</div>
+                    <div className="font-medium text-slate-900">{emp.name}</div>
+                    <div className="text-slate-500 text-xs">{emp.id} • {emp.department}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="font-medium">${emp.grossSalary.toLocaleString()}</div>
-                    <div className="text-gray-500 text-xs">Base</div>
+                    <div className="font-medium text-slate-900">${emp.grossSalary.toLocaleString()}</div>
+                    <div className="text-slate-500 text-xs">Base</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-red-600 font-medium">${emp.deductions.pf.toLocaleString()}</div>
-                    <div className="text-gray-500 text-xs">Provident Fund</div>
+                    <div className="text-slate-500 text-xs">Provident Fund</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="font-bold text-indigo-600">${emp.netSalary.toLocaleString()}</div>
-                    <div className="text-gray-500 text-xs">Take-home</div>
+                    <div className="font-bold text-teal-600">${emp.netSalary.toLocaleString()}</div>
+                    <div className="text-slate-500 text-xs">Take-home</div>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(emp.status)}`}>{emp.status}</span>
@@ -252,7 +246,7 @@ const Payroll = ({ employees = [] }) => {
                   <td className="px-6 py-4">
                     <button
                       onClick={() => setSelectedEmployee(emp)}
-                      className="text-indigo-600 hover:underline"
+                      className="text-teal-600 hover:text-teal-500 font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-teal-400"
                     >
                       View Payslip
                     </button>
@@ -267,15 +261,15 @@ const Payroll = ({ employees = [] }) => {
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(currentPage - 1)}
-            className="px-4 py-2 bg-indigo-500 text-white rounded-xl disabled:bg-gray-300"
+            className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:bg-slate-300 disabled:cursor-not-allowed transition-transform duration-300 transform hover:scale-105"
           >
             Previous
           </button>
-          <span>Page {currentPage} of {totalPages}</span>
+          <span className="text-slate-500">Page {currentPage} of {totalPages}</span>
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(currentPage + 1)}
-            className="px-4 py-2 bg-indigo-500 text-white rounded-xl disabled:bg-gray-300"
+            className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:bg-slate-300 disabled:cursor-not-allowed transition-transform duration-300 transform hover:scale-105"
           >
             Next
           </button>
@@ -284,16 +278,14 @@ const Payroll = ({ employees = [] }) => {
 
       {selectedEmployee && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl max-w-lg w-full max-h-[80vh] overflow-y-auto">
-            <div className="p-6">
-              <PayslipGenerator employee={selectedEmployee} selectedMonth={selectedMonth} />
-              <button
-                onClick={() => setSelectedEmployee(null)}
-                className="mt-4 px-4 py-2 bg-red-500 text-white rounded-xl hover:shadow-lg w-full"
-              >
-                Close
-              </button>
-            </div>
+          <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm max-w-lg w-full max-h-[80vh] overflow-y-auto">
+            <PayslipGenerator employee={selectedEmployee} selectedMonth={selectedMonth} />
+            <button
+              onClick={() => setSelectedEmployee(null)}
+              className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 w-full transition-transform duration-300 transform hover:scale-105"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

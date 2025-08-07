@@ -64,7 +64,7 @@ const Attendance = () => {
       value: '198',
       total: '248',
       percentage: '80%',
-      color: 'from-green-500 to-emerald-500',
+      color: 'bg-teal-600',
       icon: CheckCircle,
     },
     {
@@ -72,7 +72,7 @@ const Attendance = () => {
       value: '12',
       total: '248',
       percentage: '5%',
-      color: 'from-red-500 to-pink-500',
+      color: 'bg-slate-700',
       icon: XCircle,
     },
     {
@@ -80,7 +80,7 @@ const Attendance = () => {
       value: '8',
       total: '248',
       percentage: '3%',
-      color: 'from-yellow-500 to-orange-500',
+      color: 'bg-teal-600',
       icon: Clock,
     },
     {
@@ -88,7 +88,7 @@ const Attendance = () => {
       value: '30',
       total: '248',
       percentage: '12%',
-      color: 'from-blue-500 to-cyan-500',
+      color: 'bg-slate-700',
       icon: Users,
     },
   ];
@@ -98,32 +98,33 @@ const Attendance = () => {
       Present: 'bg-green-100 text-green-800',
       Absent: 'bg-red-100 text-red-800',
       Late: 'bg-yellow-100 text-yellow-800',
-    }[status] || 'bg-gray-100 text-gray-800');
+    }[status] || 'bg-slate-100 text-slate-800');
 
   const getLocationColor = (location) =>
     ({
       Office: 'bg-blue-100 text-blue-800',
       Remote: 'bg-purple-100 text-purple-800',
-    }[location] || 'bg-gray-100 text-gray-800');
+    }[location] || 'bg-slate-100 text-slate-800');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 bg-slate-50 min-h-screen p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Attendance Tracking
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Monitor employee attendance and working hours
-          </p>
+      <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800">Attendance Tracking</h1>
+            <p className="text-slate-500 text-lg mt-1">Monitor employee attendance and working hours</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <DatePicker
+              type="date"
+              singleDate={selectedDate}
+              onSingleDateChange={setSelectedDate}
+              labelSingle="Select Date"
+              className="px-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 text-slate-900"
+            />
+          </div>
         </div>
-        <DatePicker
-          type="date"
-          singleDate={selectedDate}
-          onSingleDateChange={setSelectedDate}
-          labelSingle="Select Date"
-        />
       </div>
 
       {/* Stats */}
@@ -131,83 +132,81 @@ const Attendance = () => {
         {stats.map(({ title, value, total, percentage, color, icon: Icon }, index) => (
           <div
             key={index}
-            className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:shadow-xl transition"
+            className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
           >
             <div className="flex items-center justify-between mb-4">
-              <div
-                className={`w-12 h-12 bg-gradient-to-r ${color} rounded-xl flex items-center justify-center`}
-              >
+              <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center`}>
                 <Icon className="text-white" size={24} />
               </div>
-              <span className="text-2xl font-bold text-gray-900">{percentage}</span>
+              <span className="text-2xl font-bold text-slate-900">{percentage}</span>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">{title}</h3>
-            <p className="text-xl font-bold text-gray-900">
-              {value} <span className="text-sm text-gray-500">/ {total}</span>
+            <h3 className="text-slate-500 text-sm font-medium mb-1">{title}</h3>
+            <p className="text-xl font-bold text-slate-900">
+              {value} <span className="text-sm text-slate-500">/ {total}</span>
             </p>
           </div>
         ))}
       </div>
 
       {/* Attendance Table */}
-      <div className="bg-white/70 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">
-        <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-xl font-bold text-gray-900">Today's Attendance</h2>
+      <div className="bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+        <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h2 className="text-xl font-bold text-slate-900">Today's Attendance</h2>
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-slate-500">
               Date: {new Date(selectedDate).toLocaleDateString()}
             </span>
-            <button className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl hover:shadow-lg">
+            <button className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105">
               Export Report
             </button>
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed">
-            <thead className="bg-gray-50/50">
+          <table className="w-full table-fixed text-sm">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="w-1/4 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-1/4 px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Employee
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Check In
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Check Out
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Working Hours
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Location
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-200">
               {attendanceData.map(({ id, name, checkIn, checkOut, workingHours, status, location }) => (
-                <tr key={id} className="hover:bg-white/30 transition">
+                <tr key={id} className="hover:bg-slate-50 transition-colors duration-200">
                   <td className="px-4 py-3">
-                    <div className="text-sm font-medium text-gray-900">{name}</div>
-                    <div className="text-xs text-gray-500">{id}</div>
+                    <div className="text-sm font-medium text-slate-900">{name}</div>
+                    <div className="text-xs text-slate-500">{id}</div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center space-x-2">
-                      <Clock size={14} className="text-gray-400" />
-                      <span className="text-sm text-gray-900">{checkIn}</span>
+                      <Clock size={14} className="text-slate-400" />
+                      <span className="text-sm text-slate-900">{checkIn}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center space-x-2">
-                      <Clock size={14} className="text-gray-400" />
-                      <span className="text-sm text-gray-900">{checkOut}</span>
+                      <Clock size={14} className="text-slate-400" />
+                      <span className="text-sm text-slate-900">{checkOut}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-sm text-gray-900">{workingHours}</span>
+                    <span className="text-sm text-teal-600 font-medium">{workingHours}</span>
                   </td>
                   <td className="px-4 py-3">
                     <span
@@ -231,10 +230,8 @@ const Attendance = () => {
       </div>
 
       {/* Weekly Attendance Overview */}
-      <div className="bg-white rounded-lg p-6 shadow-md border border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          Weekly Attendance Overview
-        </h2>
+      <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+        <h2 className="text-xl font-bold text-slate-900 mb-4">Weekly Attendance Overview</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
             const value = Math.floor(Math.random() * 20 + 180);
@@ -243,15 +240,15 @@ const Attendance = () => {
             return (
               <div
                 key={day}
-                className="bg-teal-50 p-4 rounded-md text-center hover:shadow-lg hover:scale-105 transition-all duration-300"
+                className="bg-slate-50 p-4 rounded-lg text-center hover:shadow-md hover:scale-105 transition-all duration-300"
               >
-                <div className="text-sm font-medium text-gray-700 mb-2">{day}</div>
+                <div className="text-sm font-medium text-slate-700 mb-2">{day}</div>
                 <div className="relative w-16 h-16 mx-auto">
                   <svg className="w-full h-full" viewBox="0 0 36 36">
                     <path
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                       fill="none"
-                      stroke="#e5e7eb"
+                      stroke="#e2e8f0"
                       strokeWidth="3"
                     />
                     <path
@@ -262,11 +259,11 @@ const Attendance = () => {
                       strokeDasharray={`${percentage}, 100`}
                     />
                   </svg>
-                  <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-gray-800">
+                  <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-slate-800">
                     {Math.round(percentage)}%
                   </div>
                 </div>
-                <div className="text-xs text-gray-600 mt-2">{value}/248</div>
+                <div className="text-xs text-slate-500 mt-2">{value}/248</div>
               </div>
             );
           })}

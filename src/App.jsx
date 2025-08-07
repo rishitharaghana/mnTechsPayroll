@@ -42,7 +42,7 @@ const App = () => {
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/attendance" element={<Attendance />} />
           <Route path="/admin/payroll" element={<Payroll />} />
-          <Route path='/admin/payslip-generator' element={<PayslipGenerator/>} />
+          <Route path='/admin/payslip-generator/:id' element={<PayslipGenerator/>} />
                <Route path="/admin/generate-payroll" element={<GeneratePayroll />} />
         
           <Route
@@ -52,7 +52,6 @@ const App = () => {
 
           <Route path="/admin/performance" element={<Performance />} />
           <Route path="/admin/payslip" element={<Payslip />} />
-          <Route path='/admin/payslip-generator' element={<PayslipGenerator/>} />
           <Route path="/admin/calendar" element={<HolidayCalendar />} />
           <Route path="/admin/visitingcards" element={<VisitingCard />} />
           <Route path="/admin/employees" element={<Employee />} />
