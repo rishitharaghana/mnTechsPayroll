@@ -43,7 +43,7 @@ const PageBreadcrumb = ({ items = [] }) => {
             {item.link ? (
               <Link
                 to={item.link}
-                className={`flex items-center hover:text-blue-600 transition-colors duration-200 ${textColor}`}
+                className={`flex items-center transition-colors duration-200 ${textColor}`}
                 aria-current={isActive ? 'page' : undefined}
               >
                 {React.cloneElement(icon, { className: `h-4 w-4 ${iconColor}` })}
