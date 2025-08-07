@@ -11,6 +11,7 @@ import {
   PiggyBank,
   Shield,
 } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 
 const stats = [
   {
@@ -51,15 +52,16 @@ const recentActivities = [
 ];
 
 const quickActions = [
-  { label: 'Add Employee', icon: Users, color: 'bg-teal-600 hover:bg-teal-500', focusRing: 'focus:ring-teal-400' },
-  { label: 'Generate Payslip', icon: FileText, color: 'bg-slate-700 hover:bg-slate-600', focusRing: 'focus:ring-slate-500' },
-  { label: 'Track Time', icon: Clock, color: 'bg-teal-600 hover:bg-teal-500', focusRing: 'focus:ring-teal-400' },
-  { label: 'View Calendar', icon: Calendar, color: 'bg-slate-700 hover:bg-slate-600', focusRing: 'focus:ring-slate-500' },
-  { label: 'Manage Loans', icon: DollarSign, color: 'bg-teal-600 hover:bg-teal-500', focusRing: 'focus:ring-teal-400' },
-  { label: 'ESI Records', icon: Shield, color: 'bg-slate-700 hover:bg-slate-600', focusRing: 'focus:ring-slate-500' },
-  { label: 'PF Management', icon: PiggyBank, color: 'bg-teal-600 hover:bg-teal-500', focusRing: 'focus:ring-teal-400' },
-  { label: 'Performance', icon: TrendingUp, color: 'bg-slate-700 hover:bg-slate-600', focusRing: 'focus:ring-slate-500' },
+  { label: 'Add Employee', icon: Users, color: 'bg-teal-600 hover:bg-teal-500', focusRing: 'focus:ring-teal-400', to: '/admin/employees/add-employee' },
+  { label: 'Generate Payslip', icon: FileText, color: 'bg-slate-700 hover:bg-slate-600', focusRing: 'focus:ring-slate-500', to: '/admin/payslip/payslip-form' },
+  { label: 'Track Time', icon: Clock, color: 'bg-teal-600 hover:bg-teal-500', focusRing: 'focus:ring-teal-400', to: '/admin/time-tracking' },
+  { label: 'View Calendar', icon: Calendar, color: 'bg-slate-700 hover:bg-slate-600', focusRing: 'focus:ring-slate-500', to: '/admin/calendar' },
+  { label: 'Manage Loans', icon: DollarSign, color: 'bg-teal-600 hover:bg-teal-500', focusRing: 'focus:ring-teal-400', to: '/admin/loans' },
+  { label: 'ESI Records', icon: Shield, color: 'bg-slate-700 hover:bg-slate-600', focusRing: 'focus:ring-slate-500', to: '/admin/esi' },
+  { label: 'PF Management', icon: PiggyBank, color: 'bg-teal-600 hover:bg-teal-500', focusRing: 'focus:ring-teal-400', to: '/admin/pf' },
+  { label: 'Performance', icon: TrendingUp, color: 'bg-slate-700 hover:bg-slate-600', focusRing: 'focus:ring-slate-500', to: '/admin/performance' },
 ];
+
 
 const Dashboard = () => {
   return (
@@ -102,6 +104,10 @@ const Dashboard = () => {
         })}
       </div>
 
+
+
+      
+
       {/* Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Activities */}
@@ -130,7 +136,7 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+        {/* <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
           <h2 className="text-xl font-bold text-slate-900 mb-6">Quick Actions</h2>
           <div className="grid grid-cols-2 gap-4">
             {quickActions.map((action, index) => {
@@ -146,7 +152,28 @@ const Dashboard = () => {
               );
             })}
           </div>
-        </div>
+        </div> */}
+   
+
+<div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+  <h2 className="text-xl font-bold text-slate-900 mb-6">Quick Actions</h2>
+  <div className="grid grid-cols-2 gap-4">
+    {quickActions.map((action, index) => {
+      const Icon = action.icon;
+      return (
+        <NavLink
+          key={index}
+          to={action.to}
+          className={`p-4 ${action.color} rounded-lg text-white transition-transform duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${action.focusRing} flex flex-col items-center`}
+        >
+          <Icon className="mb-2" size={24} />
+          <span className="text-sm font-medium text-center">{action.label}</span>
+        </NavLink>
+      );
+    })}
+  </div>
+</div>
+
       </div>
 
       {/* Performance */}
