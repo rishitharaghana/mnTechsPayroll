@@ -28,6 +28,8 @@ import EmployeeAttendance from "./pages/AttendanceManagement/EmployeeAttendance"
 import PayslipGenerator from "./pages/PayslipManagement/PaySlipGenerator";
 import GeneratePayroll from "./pages/PayrollManagement/GeneratePayroll";
 import ViewIdCard from "./pages/Cards/ViewIdCard";
+import EmployeeDashboard from "./Components/dashboard/EmployeeDashboard";
+
 
 const App = () => {
   return (
@@ -77,6 +79,10 @@ const App = () => {
           <Route
             path="/employee/leave-dashboard"
             element={<LeaveDashboard />}
+          />
+           <Route
+            path="/emp-dashboard"
+            element={<EmployeeDashboard />}
           />
         </Routes>
       </AppLayout>
