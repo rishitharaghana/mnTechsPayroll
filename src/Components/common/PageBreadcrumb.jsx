@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Clock, UserCheck, Settings, ChevronsRight } from 'lucide-react';
+import { Home, Clock, UserCheck, Settings, ChevronRight } from 'lucide-react';
 
 const PageBreadcrumb = ({ items }) => {
   const iconMap = {
@@ -19,7 +19,7 @@ const PageBreadcrumb = ({ items }) => {
 
         return (
           <div key={index} className="flex gap-2 items-center">
-            {index > 0 && <ChevronsRight className="h-4 w-4 mx-1 text-slate-700" />}
+            {index > 0 && <ChevronRight className="h-4 w-4 mx-1 text-slate-700" />}
             {item.link ? (
               <Link
                 to={item.link}
