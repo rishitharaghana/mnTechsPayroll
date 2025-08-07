@@ -12,97 +12,39 @@ import {
   LogOut,
   CalendarClock,
 } from "lucide-react";
-import React, { useState } from "react"; // Added useState for activeTab
+import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 
 const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
-  const [activeTab, setActiveTab] = useState(""); // State to track active tab
+  const [activeTab, setActiveTab] = useState("");
 
   const menuItems = [
-    {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: TrendingUp,
-      path: "/admin/dashboard",
-    },
-    {
-      id: "employees",
-      label: "Employees",
-      icon: Users,
-      path: "/admin/employees",
-    },
-    {
-      id: "attendance",
-      label: "Attendance",
-      icon: Clock,
-      path: "/admin/attendance",
-    },
-    {
-      id: "leave-tracker",
-      label: "Leave Management",
-      icon: CalendarClock,
-      path: "/admin/leave-tracker",
-    },
+    { id: "dashboard", label: "Dashboard", icon: TrendingUp, path: "/admin/dashboard" },
+    { id: "employees", label: "Employees", icon: Users, path: "/admin/employees" },
+    { id: "attendance", label: "Attendance", icon: Clock, path: "/admin/attendance" },
+    { id: "leave-tracker", label: "Leave Management", icon: CalendarClock, path: "/admin/leave-tracker" },
     {
       id: "payroll",
       label: "Payroll",
       icon: CreditCard,
       children: [
-        {
-          id: "view-payroll",
-          label: "View Payroll",
-          path: "/admin/payroll",
-        },
-        {
-          id: "generate-payroll",
-          label: "Generate Payroll",
-          path: "/admin/generate-payroll",
-        },
+        { id: "view-payroll", label: "View Payroll", path: "/admin/payroll" },
+        { id: "generate-payroll", label: "Generate Payroll", path: "/admin/generate-payroll" },
       ],
     },
-
-    {
-      id: "payslips",
-      label: "Payslips",
-      icon: FileText,
-      path: "/admin/payslip",
-    },
-    {
-      id: "calendar",
-      label: "Calendar",
-      icon: Calendar,
-      path: "/admin/calendar",
-    },
+    { id: "payslips", label: "Payslips", icon: FileText, path: "/admin/payslip" },
+    { id: "calendar", label: "Calendar", icon: Calendar, path: "/admin/calendar" },
     {
       id: "performance",
       label: "Performance",
       icon: TrendingUp,
       children: [
-        {
-          id: "view-performance",
-          label: "View Performance",
-          path: "/admin/performance",
-        },
-        {
-          id: "add-performance",
-          label: "Add Employee Review",
-          path: "/admin/add-performance",
-        },
+        { id: "view-performance", label: "View Performance", path: "/admin/performance" },
+        { id: "add-performance", label: "Add Employee Review", path: "/admin/add-performance" },
       ],
     },
-
-    {
-      id: "visitingcards",
-      label: "Visiting Cards",
-      icon: MapPin,
-      path: "/admin/visitingcards",
-    },
-    {
-      id: "idcard",
-      label: "ID Card",
-      icon: CreditCard,
-      path: "/idcard",
-    },
+    { id: "visitingcards", label: "Visiting Cards", icon: MapPin, path: "/admin/visitingcards" },
+    { id: "idcard", label: "ID Card", icon: CreditCard, path: "/idcard" },
   ];
 
   const settingsItems = [
@@ -114,8 +56,9 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       <aside
         className={`${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white/80 backdrop-blur-md border-r border-white/20 transition-transform duration-300 ease-in-out flex flex-col`}
+        } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white text-gray-800 border-r border-white/20 transition-transform duration-300 ease-in-out flex flex-col`}
       >
+        {/* Main Navigation */}
         <nav className="flex-1 p-4 space-y-2 mt-4">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -126,13 +69,11 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                 <div key={item.id}>
                   <button
                     type="button"
-                    onClick={() =>
-                      setActiveTab((prev) => (prev === item.id ? "" : item.id))
-                    }
+                    onClick={() => setActiveTab((prev) => (prev === item.id ? "" : item.id))}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
                       isActive
-                        ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg transform scale-105"
-                        : "text-gray-700 hover:bg-white/50 hover:backdrop-blur-sm"
+                        ? "bg-teal-600 text-white shadow-md"
+                        : "hover:bg-slate-700 hover:text-white"
                     }`}
                   >
                     <div className="flex items-center space-x-3">
@@ -147,14 +88,12 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                         <NavLink
                           key={child.id}
                           to={child.path}
-                          onClick={() => {
-                            setIsMobileMenuOpen(false);
-                          }}
+                          onClick={() => setIsMobileMenuOpen(false)}
                           className={({ isActive }) =>
                             `block px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
                               isActive
-                                ? "bg-indigo-100 text-indigo-700"
-                                : "text-gray-700 hover:bg-gray-100"
+                                ? "bg-teal-100 text-teal-800"
+                                : "hover:bg-slate-100 text-gray-700"
                             }`
                           }
                         >
@@ -178,8 +117,8 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                 className={({ isActive }) =>
                   `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                     isActive || activeTab === item.id
-                      ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg transform scale-105"
-                      : "text-gray-700 hover:bg-white/50 hover:backdrop-blur-sm"
+                      ? "bg-teal-600 text-white shadow-md"
+                      : "hover:bg-slate-700 hover:text-white"
                   }`
                 }
               >
@@ -189,6 +128,8 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
             );
           })}
         </nav>
+
+        {/* Settings & Logout */}
         <div className="p-4 border-t border-gray-200">
           <div className="mb-3">
             <NavLink
@@ -200,8 +141,8 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
               className={({ isActive }) =>
                 `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                   isActive || activeTab === "settings"
-                    ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg transform scale-105"
-                    : "text-gray-700 hover:bg-white/50 hover:backdrop-blur-sm"
+                    ? "bg-teal-600 text-white shadow-md"
+                    : "hover:bg-slate-700 hover:text-white"
                 }`
               }
             >
@@ -209,6 +150,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
               <span className="font-medium">Settings</span>
             </NavLink>
           </div>
+
           {activeTab === "settings" && (
             <div className="space-y-1 ml-4">
               {settingsItems.map((item) => {
@@ -243,7 +185,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
         </div>
       </aside>
 
-      {/* Overlay for mobile */}
+      {/* Overlay on mobile */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 lg:hidden"
