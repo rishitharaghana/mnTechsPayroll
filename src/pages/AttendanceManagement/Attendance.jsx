@@ -109,7 +109,7 @@ const Attendance = () => {
     }[location] || 'bg-slate-100 text-slate-800');
 
   return (
-    <div className="space-y-8 bg-slate-50 min-h-screen p-6">
+    <div className="space-y-2 bg-slate-50 min-h-screen p-6">
       {/* Header */}
       <div className="flex justify-end">
         <PageMeta title="Attendance Management" description="Track and manage employee attendance efficiently." />
