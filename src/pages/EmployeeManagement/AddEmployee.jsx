@@ -2,6 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FormInput from '../../form/FormInput';
 import DatePicker from '../../Components/ui/date/DatePicker';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import PageMeta from '../../Components/common/PageMeta';
 
 const AddEmployee = () => {
   const navigate = useNavigate();
@@ -41,6 +43,16 @@ const AddEmployee = () => {
 
   return (
     <div className="max-w-3xl mx-auto mt-10 bg-white p-8 rounded-2xl shadow-lg">
+      <div className="flex justify-end">
+        <PageMeta title="Add Employee" description="Add a new employee to the system." />
+        <PageBreadcrumb
+          items={[
+            { label: 'Home', link: '/' },
+            { label: 'Employees', link: '/admin/employees' },
+            { label: 'Add Employee', link: '/admin/employees/add-employee' },
+          ]}
+        />
+      </div>
       <h2 className="text-2xl font-bold mb-6 text-indigo-700">Add New Employee</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -8,6 +8,8 @@ import {
   UserPlus,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import PageMeta from "../../Components/common/PageMeta";
+import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 
 const Employee = () => {
   const [employees, setEmployees] = useState([
@@ -43,6 +45,18 @@ const Employee = () => {
 
   return (
     <div className="p-6">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+        items={[
+          { label: "Home", link: "/" },
+          { label: "Employees", link: "/admin/employees" },
+        ]}
+      />
+      {/* Page Meta */}
+      <PageMeta title="Employee Management" description="Manage your employees efficiently." />
+      {/* Breadcrumb */} 
+      </div>
+
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
