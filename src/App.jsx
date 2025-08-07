@@ -2,21 +2,20 @@ import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-// Layout
+
 import AppLayout from './layout/AppLayout';
 
-// Auth Pages
-import AdminLogin from './pages/Login/AdminLogin';
-import EmployeeLogin from './pages/Login/EmployeeLogin';
 
-// Dashboard & Common
+import AdminLogin from './pages/Login/AdminLogin';
+
+
+
 import Home from './pages/HomePage/home';
 import Dashboard from './Components/dashboard/Dashboard';
 import EmployeeDashboard from './Components/dashboard/EmployeeDashboard';
 import UserProfile from './header/userProfile';
 import Settings from './pages/settings/Settings';
 
-// Employee Management
 import Employee from './pages/EmployeeManagement/Employee';
 import AddEmployee from './pages/EmployeeManagement/AddEmployee';
 
@@ -50,6 +49,8 @@ import VisitingCard from './pages/Cards/VisitingCard';
 
 // Calendar
 import CalendarIntegration from './pages/HolidayCalendar/CalendarIntegration';
+import TimeTracking from './pages/timetracking/TimeTracking';
+import AdminForm from './pages/Login/AdminForm';
 
 const App = () => {
   return (
@@ -58,7 +59,7 @@ const App = () => {
         <Routes>
           {/* ❌ Public Routes (no layout) */}
           <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/employee-login" element={<EmployeeLogin />} />
+          
 
           {/* ✅ Protected Routes inside AppLayout */}
           <Route element={<AppLayout />}>
@@ -103,6 +104,10 @@ const App = () => {
 
             {/* Calendar */}
             <Route path="/admin/calendar" element={<CalendarIntegration />} />
+                        <Route path="/admin/time-tracking" element={<TimeTracking />} />
+                                                <Route path="/admin/admin-form" element={<AdminForm />} />
+
+
           </Route>
         </Routes>
       </BrowserRouter>
