@@ -70,7 +70,7 @@ const Dashboard = () => {
       <div className="bg-white rounded-lg border border-slate-200 p-8 shadow-sm">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">Welcome back, Chief Executive!</h1>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2">Welcome back, Admin!</h1>
             <p className="text-slate-500 text-lg">Here's what's happening with your organization today.</p>
           </div>
           <div className="mt-4 md:mt-0 text-right">

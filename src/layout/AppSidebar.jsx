@@ -30,6 +30,8 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       children: [
         { id: "view-payroll", label: "View Payroll", path: "/admin/payroll" },
         { id: "generate-payroll", label: "Generate Payroll", path: "/admin/generate-payroll" },
+                { id: "payroll history", label: "View Payroll History", path: "/pay-history" },
+
       ],
     },
     { id: "payslips", label: "Payslips", icon: FileText, path: "/admin/payslip" },

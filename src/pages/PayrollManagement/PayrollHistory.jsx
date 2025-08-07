@@ -36,7 +36,7 @@ const mockPayrollRecords = [
   },
 ];
 
-export const PayrollHistory = () => {
+const PayrollHistory = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [payrollRecords] = useState(mockPayrollRecords);
 
@@ -234,3 +234,5 @@ export const PayrollHistory = () => {
     </div>
   );
 };
+
+export default PayrollHistory;

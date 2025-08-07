@@ -123,7 +123,6 @@ const LeaveTracker = () => {
           ]}
         />
       </div>
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-slate-700 bg-clip-text text-transparent">
@@ -142,7 +141,6 @@ const LeaveTracker = () => {
         />
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {summary.map((item, i) => (
           <div
@@ -169,7 +167,6 @@ const LeaveTracker = () => {
         ))}
       </div>
 
-      {/* Leave Requests List */}
       <div className="bg-white/70 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">
         <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-xl font-bold text-gray-900">Leave Requests</h2>

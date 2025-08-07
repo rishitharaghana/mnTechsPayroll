@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import AppHeader from "./AppHeader";
 import AppSidebar from "./AppSidebar";
+import { Outlet } from "react-router-dom";
 
 const AppLayout = ({ children }) => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -20,6 +21,7 @@ const AppLayout = ({ children }) => {
           setIsMobileMenuOpen={setIsMobileMenuOpen}
         />
         <main className="flex-1 p-4 lg:p-8">
+           <Outlet /> 
           <div className="max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
