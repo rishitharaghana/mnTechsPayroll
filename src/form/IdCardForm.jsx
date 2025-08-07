@@ -7,6 +7,8 @@ const IdCardForm = () => {
     employee: '',
     empId: '',
     designation: '',
+    bloodGroup: '',
+    mobile: '',
     photo: '',
   });
 
@@ -53,6 +55,28 @@ const IdCardForm = () => {
             type="text"
             name="designation"
             value={formData.designation}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Blood Group</label>
+          <input
+            type="text"
+            name="bloodGroup"
+            value={formData.bloodGroup}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Mobile Number</label>
+          <input
+            type="text"
+            name="mobile"
+            value={formData.mobile}
             onChange={handleChange}
             className="w-full p-2 border rounded"
             required

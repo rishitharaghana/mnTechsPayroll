@@ -27,6 +27,7 @@ import IdCard from "./pages/Cards/IdCard";
 import EmployeeAttendance from "./pages/AttendanceManagement/EmployeeAttendance";
 import PayslipGenerator from "./pages/PayslipManagement/PaySlipGenerator";
 import GeneratePayroll from "./pages/PayrollManagement/GeneratePayroll";
+import ViewIdCard from "./pages/Cards/ViewIdCard";
 
 const App = () => {
   return (
@@ -67,6 +68,7 @@ const App = () => {
           />
           <Route path="/idcard" element={<IdCard />} />
           <Route path="/idcard/idcard-form" element={<IdCardForm />} />
+           <Route path="/idcard/:id" element={<ViewIdCard />} />
           <Route path="/userprofile" element={<UserProfile />} />
           <Route path="/employee-payslip" element={<EmployeePayslip />} />
           <Route path="/employee/employee-attendance" element={<EmployeeAttendance />} />
