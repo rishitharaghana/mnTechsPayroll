@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { CreditCard, Download, Eye, User, Mail, Phone, MapPin, Building } from 'lucide-react';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import PageMeta from '../../Components/common/PageMeta';
 
 const VisitingCard = () => {
   const [selectedEmployee, setSelectedEmployee] = useState('EMP001');
@@ -73,6 +75,13 @@ const VisitingCard = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <PageMeta title="Visiting Card Generator" description="Create professional business cards for employees" />
+        <PageBreadcrumb items={[
+          { label: 'Home', link: '/' },
+          { label: 'Visiting Card', link: '/admin/visitingcards' }
+        ]} />
+      </div>
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">

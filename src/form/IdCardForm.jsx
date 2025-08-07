@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PageBreadcrumb from '../Components/common/PageBreadcrumb';
+import PageMeta from '../Components/common/PageMeta';
 
 const IdCardForm = () => {
   const navigate = useNavigate();
@@ -25,6 +27,13 @@ const IdCardForm = () => {
 
   return (
     <div className="p-6">
+      <div className="flex justify-end">
+        <PageMeta title="Generate ID Card" description="Create and manage employee ID cards." />
+        <PageBreadcrumb items={[
+          { label: 'Home', link: '/' },
+          { label: 'Generate ID Card', link: '/idcard/idcard-form' },
+        ]} />
+      </div>
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Generate ID Card</h1>
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
         <div className="mb-4">

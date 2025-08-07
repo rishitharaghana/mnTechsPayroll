@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, Award, Target, Star, Users, DollarSign } from 'lucide-react';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import PageMeta from '../../Components/common/PageMeta';
 
 const Performance = () => {
   const [selectedEmployee, setSelectedEmployee] = useState('all');
@@ -62,6 +64,14 @@ const Performance = () => {
 
   return (
     <div className="p-6 space-y-8">
+      <div className="flex justify-end">
+        <PageMeta title="Performance Management" description="Track and manage employee performance metrics." />
+        <PageBreadcrumb items={[
+          { label: 'Home', link: '/' },
+          { label: 'Performance', link: '/admin/performance' }
+          ]} 
+        />
+      </div>
       <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
         <div>
           <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Employee Performance Dashboard</h1>

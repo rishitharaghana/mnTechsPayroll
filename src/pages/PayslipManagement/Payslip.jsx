@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Eye, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import PageMeta from '../../Components/common/PageMeta';
 
 const Payslip = () => {
   const navigate = useNavigate();
@@ -52,6 +54,15 @@ const Payslip = () => {
 
   return (
     <div className="space-y-8 bg-slate-50 min-h-screen p-6">
+      <div className="flex justify-end">
+        <PageMeta title="Payslip Management" description="Manage and generate employee payslips" />
+        <PageBreadcrumb
+          items={[
+            { label: 'Home', link: '/' },
+            { label: 'Payslip', link: '/admin/payslip' },
+          ]}
+        />
+      </div>
       {/* Header */}
       <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
