@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import DatePicker from 'react-datepicker'; 
-import 'react-datepicker/dist/react-datepicker.css'; 
+import DatePicker from 'react-datepicker'; // Use react-datepicker for consistency
+import 'react-datepicker/dist/react-datepicker.css'; // Import DatePicker styles
 import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 import PageMeta from '../../Components/common/PageMeta';
-import { Calendar } from 'lucide-react'; 
+import { Calendar } from 'lucide-react'; // Use Lucide React for icons
 
 // Custom FileUpload Component
 const FileUpload = ({ name, onChange, accept, label }) => (
