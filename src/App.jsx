@@ -31,6 +31,8 @@ import VisitingCard from "./pages/Cards/VisitingCard";
 import CalendarIntegration from "./pages/HolidayCalendar/CalendarIntegration";
 import TimeTracking from "./pages/timetracking/TimeTracking";
 import AdminForm from "./pages/Login/AdminForm";
+import EmployeeDetails from './pages/EmployeeManagement/EmployeeDetails';
+
 const App = () => {
   return (
     <GoogleOAuthProvider clientId="https://www.googleapis.com/auth/userinfo.profile">
@@ -94,6 +96,7 @@ const App = () => {
             <Route path="/admin/calendar" element={<CalendarIntegration />} />
             <Route path="/admin/time-tracking" element={<TimeTracking />} />
             <Route path="/admin/admin-form" element={<AdminForm />} />
+            <Route path="/employee-details/" element={<EmployeeDetails />} />
           </Route>
         </Routes>
       </BrowserRouter>
