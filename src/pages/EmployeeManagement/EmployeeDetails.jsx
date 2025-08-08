@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import DatePicker from '../../Components/ui/date/DatePicker';
+import DatePicker from 'react-datepicker'; 
+import 'react-datepicker/dist/react-datepicker.css'; 
 import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 import PageMeta from '../../Components/common/PageMeta';
+import { Calendar } from 'lucide-react'; 
 
 // Custom FileUpload Component
 const FileUpload = ({ name, onChange, accept, label }) => (
@@ -68,7 +70,7 @@ const EmployeeDetails = () => {
     ifscNumber: '',
     bankACnumber: '',
   });
-  const [errors, setErrors] = useState({}); // Added for validation
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -76,24 +78,9 @@ const EmployeeDetails = () => {
       ...prev,
       [name]: type === 'file' ? files[0] : value,
     }));
-
-    // Handle DatePicker changes
-    if (name === 'joiningDate' && value && !formData.contractEndDate) {
-      const joinDate = new Date(value);
-      if (!isNaN(joinDate)) {
-        joinDate.setFullYear(joinDate.getFullYear() + 1);
-        setFormData((prev) => ({
-          ...prev,
-          contractEndDate: joinDate.toISOString().split('T')[0],
-        }));
-      }
-    }
-
-    // Clear validation error for the field
     setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
-  // Handle DatePicker onChange (expects Date object)
   const handleDateChange = (name, date) => {
     if (date && !isNaN(date)) {
       setFormData((prev) => ({
@@ -112,37 +99,15 @@ const EmployeeDetails = () => {
     setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
-  const validateStep = () => {
-    const newErrors = {};
-    if (currentStep === 0) {
-      // if (!formData.fullName) newErrors.fullName = 'Full Name is required';
-      // if (!formData.email) newErrors.email = 'Email is required';
-      if (formData.positionType === 'experienced') {
-        if (!formData.employerIdName) newErrors.employerIdName = 'Employer ID/Name is required';
-        if (!formData.positionTitle) newErrors.positionTitle = 'Position Title is required';
-        if (!formData.employmentType) newErrors.employmentType = 'Employment Type is required';
-      }
-    } else if (currentStep === 3) {
-      if (!formData.bankACnumber) newErrors.bankACnumber = 'Bank Account Number is required';
-      if (!formData.ifscNumber) newErrors.ifscNumber = 'IFSC Number is required';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const nextStep = () => {
-    if (validateStep()) {
-      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-    }
+    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
   };
 
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
 
   const goToStep = (index) => {
     if (index === steps.length - 1) {
-      if (validateStep()) {
-        setIsPreviewOpen(true);
-      }
+      setIsPreviewOpen(true);
     } else {
       setCurrentStep(index);
     }
@@ -157,76 +122,153 @@ const EmployeeDetails = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validateStep()) {
-      console.log('Form Data:', formData);
-      // Submit logic here
-    }
+    console.log('Form Data:', formData);
+    // Submit logic here
   };
 
   const openPreview = () => setIsPreviewOpen(true);
   const closePreview = () => setIsPreviewOpen(false);
 
-  const PreviewPopup = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8 relative shadow-xl">
-        <button
-          onClick={closePreview}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
-          aria-label="Close preview"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Preview Employee Details</h3>
-        <div className="space-y-4 text-gray-700 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p><strong>Full Name:</strong> {formData.fullName || 'N/A'}</p>
-            <p><strong>Father’s Name:</strong> {formData.fatherName || 'N/A'}</p>
-            <p><strong>Mother’s Name:</strong> {formData.motherName || 'N/A'}</p>
-            <p><strong>Phone:</strong> {formData.phone || 'N/A'}</p>
-            <p><strong>Email:</strong> {formData.email || 'N/A'}</p>
-            <p><strong>Gender:</strong> {formData.gender || 'N/A'}</p>
-            <p><strong>Present Address:</strong> {formData.presentAddress || 'N/A'}</p>
-            <p><strong>Previous Address:</strong> {formData.previousAddress || 'N/A'}</p>
-          </div>
-          <div>
-            <p><strong>Position Type:</strong> {formData.positionType || 'N/A'}</p>
-            {formData.positionType === 'experienced' && (
-              <>
-                <p><strong>Employer ID/Name:</strong> {formData.employerIdName || 'N/A'}</p>
-                <p><strong>Position Title:</strong> {formData.positionTitle || 'N/A'}</p>
-                <p><strong>Employment Type:</strong> {formData.employmentType || 'N/A'}</p>
-                <p><strong>Joining Date:</strong> {formData.joiningDate || 'N/A'}</p>
-                <p><strong>Contract End Date:</strong> {formData.contractEndDate || 'N/A'}</p>
-              </>
-            )}
-            <p><strong>10th Class Name:</strong> {formData.tenthClassName || 'N/A'}</p>
-            <p><strong>10th Class Marks:</strong> {formData.tenthClassMarks ? `${formData.tenthClassMarks}%` : 'N/A'}</p>
-            <p><strong>Intermediate Name:</strong> {formData.intermediateName || 'N/A'}</p>
-            <p><strong>Intermediate Marks:</strong> {formData.intermediateMarks ? `${formData.intermediateMarks}%` : 'N/A'}</p>
-            <p><strong>Graduation Name:</strong> {formData.graduationName || 'N/A'}</p>
-            <p><strong>Graduation Marks:</strong> {formData.graduationMarks ? `${formData.graduationMarks}%` : 'N/A'}</p>
-            <p><strong>Postgraduation Name:</strong> {formData.postgraduationName || 'N/A'}</p>
-            <p><strong>Postgraduation Marks:</strong> {formData.postgraduationMarks ? `${formData.postgraduationMarks}%` : 'N/A'}</p>
-            <p><strong>IFSC Number:</strong> {formData.ifscNumber || 'N/A'}</p>
-            <p><strong>Bank Account Number:</strong> {formData.bankACnumber || 'N/A'}</p>
-          </div>
-        </div>
-        <div className="mt-6 flex justify-end">
+  const PreviewPopup = () => {
+    const stepGroups = [
+      {
+        title: 'Personal Details',
+        fields: [
+          { label: 'Full Name', value: formData.fullName || 'N/A' },
+          { label: 'Father’s Name', value: formData.fatherName || 'N/A' },
+          { label: 'Mother’s Name', value: formData.motherName || 'N/A' },
+          { label: 'Phone', value: formData.phone || 'N/A' },
+          { label: 'Email', value: formData.email || 'N/A' },
+          { label: 'Gender', value: formData.gender || 'N/A' },
+          { label: 'Present Address', value: formData.presentAddress || 'N/A' },
+          { label: 'Previous Address', value: formData.previousAddress || 'N/A' },
+        ],
+      },
+      {
+        title: 'Position Information',
+        fields: [
+          { label: 'Position Type', value: formData.positionType || 'N/A' },
+          ...(formData.positionType === 'experienced'
+            ? [
+                { label: 'Employer ID/Name', value: formData.employerIdName || 'N/A' },
+                { label: 'Position Title', value: formData.positionTitle || 'N/A' },
+                { label: 'Employment Type', value: formData.employmentType || 'N/A' },
+                { label: 'Joining Date', value: formData.joiningDate || 'N/A' },
+                { label: 'Contract End Date', value: formData.contractEndDate || 'N/A' },
+              ]
+            : []),
+        ],
+      },
+      {
+        title: 'Education Details',
+        fields: [
+          { label: '10th Class Name', value: formData.tenthClassName || 'N/A' },
+          {
+            label: '10th Class Marks',
+            value: formData.tenthClassMarks ? `${formData.tenthClassMarks}%` : 'N/A',
+          },
+          { label: 'Intermediate Name', value: formData.intermediateName || 'N/A' },
+          {
+            label: 'Intermediate Marks',
+            value: formData.intermediateMarks ? `${formData.intermediateMarks}%` : 'N/A',
+          },
+          { label: 'Graduation Name', value: formData.graduationName || 'N/A' },
+          {
+            label: 'Graduation Marks',
+            value: formData.graduationMarks ? `${formData.graduationMarks}%` : 'N/A',
+          },
+          { label: 'Postgraduation Name', value: formData.postgraduationName || 'N/A' },
+          {
+            label: 'Postgraduation Marks',
+            value: formData.postgraduationMarks ? `${formData.postgraduationMarks}%` : 'N/A',
+          },
+        ],
+      },
+      {
+        title: 'Bank Details',
+        fields: [
+          { label: 'IFSC Number', value: formData.ifscNumber || 'N/A' },
+          { label: 'Bank Account Number', value: formData.bankACnumber || 'N/A' },
+        ],
+      },
+    ];
+
+    return (
+      <div className="fixed inset-0 bg-gradient-to-br from-teal-500 to-blue-600 bg-opacity-80 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8 relative shadow-2xl">
           <button
             onClick={closePreview}
-            className="px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-all duration-300 text-sm font-medium"
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+            aria-label="Close preview"
           >
-            Close
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
+          <h3 className="text-2xl font-bold text-gray-900 mb-6 tracking-tight">Preview Employee Details</h3>
+          <div className="space-y-8">
+            {stepGroups.map((group, index) => (
+              <div
+                key={index}
+                className="bg-gray-50 rounded-lg p-6 shadow-sm animate-fade-in"
+                style={{ animationDelay: `${index * 200}ms` }}
+              >
+                <h4 className="text-lg font-semibold text-teal-600 mb-4">{group.title}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+                  {group.fields.map((field, idx) => (
+                    <p key={idx}>
+                      <strong>{field.label}:</strong> {field.value}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={closePreview}
+              className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all duration-300 text-sm font-medium"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div>
+      <style>
+        {`
+          .react-datepicker-wrapper {
+            width: 100%;
+          }
+          .react-datepicker__input-container {
+            position: relative;
+          }
+          .react-datepicker__input-container input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+          }
+          .react-datepicker__input-container input:focus {
+            outline: none;
+            border-color: #14b8a6;
+            box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2);
+          }
+          .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}
+      </style>
       <div className="flex justify-end">
         <PageMeta title="Employee Details" description="Add new employee details" />
         <PageBreadcrumb
@@ -236,7 +278,7 @@ const EmployeeDetails = () => {
           ]}
         />
       </div>
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="flex items-center justify-center p-4">
         <div className="max-w-4xl w-full bg-white rounded-2xl shadow-md border border-gray-100 p-8">
           <h2 className="text-2xl font-bold text-center text-gray-900 mb-8 tracking-tight">
             Employee Details Form
@@ -250,7 +292,11 @@ const EmployeeDetails = () => {
                   onClick={() => goToStep(index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
                   className={`w-8 h-8 flex items-center justify-center rounded-full font-semibold text-xs transition-all duration-300 ${
-                    currentStep >= index ? 'bg-teal-600 text-white' : 'bg-slate-700 text-white'
+                    currentStep === index
+                      ? 'bg-teal-600 text-white ring-2 ring-teal-600 ring-offset-2'
+                      : currentStep > index
+                      ? 'bg-teal-600 text-white'
+                      : 'bg-slate-700 text-white'
                   } stepper-dot hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2`}
                   aria-current={currentStep === index ? 'step' : undefined}
                   aria-label={`Go to ${step}`}
@@ -287,12 +333,9 @@ const EmployeeDetails = () => {
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 ${
-                        errors.fullName ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                       placeholder="Enter full name"
                     />
-                    {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
                   </div>
                   <div className="flex flex-col">
                     <label className="mb-1 text-sm font-bold text-black tracking-tight">
@@ -342,12 +385,9 @@ const EmployeeDetails = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 ${
-                        errors.email ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                       placeholder="Enter email"
                     />
-                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                   </div>
                   <div className="flex flex-col">
                     <label className="mb-1 text-sm font-bold text-black tracking-tight">
@@ -373,7 +413,7 @@ const EmployeeDetails = () => {
                       name="image"
                       onChange={handleChange}
                       accept="image/*"
-                    //   label="Image Upload"
+                      label="Image Upload"
                     />
                   </div>
                   <div className="flex flex-col col-span-2">
@@ -428,14 +468,9 @@ const EmployeeDetails = () => {
                           name="employerIdName"
                           value={formData.employerIdName}
                           onChange={handleChange}
-                          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 ${
-                            errors.employerIdName ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                           placeholder="Enter employer ID or name"
                         />
-                        {errors.employerIdName && (
-                          <p className="text-red-500 text-xs mt-1">{errors.employerIdName}</p>
-                        )}
                       </div>
                       <div className="flex flex-col">
                         <label className="mb-1 text-sm font-bold text-black tracking-tight">
@@ -446,14 +481,9 @@ const EmployeeDetails = () => {
                           name="positionTitle"
                           value={formData.positionTitle}
                           onChange={handleChange}
-                          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 ${
-                            errors.positionTitle ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                           placeholder="Enter position title"
                         />
-                        {errors.positionTitle && (
-                          <p className="text-red-500 text-xs mt-1">{errors.positionTitle}</p>
-                        )}
                       </div>
                       <div className="flex flex-col">
                         <label className="mb-1 text-sm font-bold text-black tracking-tight">
@@ -463,40 +493,43 @@ const EmployeeDetails = () => {
                           name="employmentType"
                           value={formData.employmentType}
                           onChange={handleChange}
-                          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 ${
-                            errors.employmentType ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                         >
                           <option value="">Select Employment Type</option>
                           <option value="full-time">Full-time</option>
                           <option value="part-time">Part-time</option>
                           <option value="internship">Internship</option>
                         </select>
-                        {errors.employmentType && (
-                          <p className="text-red-500 text-xs mt-1">{errors.employmentType}</p>
-                        )}
                       </div>
                       <div className="flex flex-col">
                         <label className="mb-1 text-sm font-bold text-black tracking-tight">
                           Joining Date
                         </label>
-                        <DatePicker
-                          selected={formData.joiningDate ? new Date(formData.joiningDate) : null}
-                          onChange={(date) => handleDateChange('joiningDate', date)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
-                          dateFormat="yyyy-MM-dd"
-                        />
+                        <div className="relative">
+                          <DatePicker
+                            selected={formData.joiningDate ? new Date(formData.joiningDate) : null}
+                            onChange={(date) => handleDateChange('joiningDate', date)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 pr-10"
+                            dateFormat="yyyy-MM-dd"
+                            placeholderText="Select joining date"
+                          />
+                          <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        </div>
                       </div>
                       <div className="flex flex-col">
                         <label className="mb-1 text-sm font-bold text-black tracking-tight">
                           Contract End Date
                         </label>
-                        <DatePicker
-                          selected={formData.contractEndDate ? new Date(formData.contractEndDate) : null}
-                          onChange={(date) => handleDateChange('contractEndDate', date)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
-                          dateFormat="yyyy-MM-dd"
-                        />
+                        <div className="relative">
+                          <DatePicker
+                            selected={formData.contractEndDate ? new Date(formData.contractEndDate) : null}
+                            onChange={(date) => handleDateChange('contractEndDate', date)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 pr-10"
+                            dateFormat="yyyy-MM-dd"
+                            placeholderText="Select contract end date"
+                          />
+                          <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        </div>
                       </div>
                     </>
                   )}
@@ -684,14 +717,9 @@ const EmployeeDetails = () => {
                       name="bankACnumber"
                       value={formData.bankACnumber}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 ${
-                        errors.bankACnumber ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                       placeholder="Enter Bank Account Number"
                     />
-                    {errors.bankACnumber && (
-                      <p className="text-red-500 text-xs mt-1">{errors.bankACnumber}</p>
-                    )}
                   </div>
                   <div className="flex flex-col">
                     <label className="mb-1 text-sm font-bold text-black tracking-tight">
@@ -702,12 +730,9 @@ const EmployeeDetails = () => {
                       name="ifscNumber"
                       value={formData.ifscNumber}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 ${
-                        errors.ifscNumber ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                       placeholder="Enter IFSC number"
                     />
-                    {errors.ifscNumber && <p className="text-red-500 text-xs mt-1">{errors.ifscNumber}</p>}
                   </div>
                 </>
               )}
