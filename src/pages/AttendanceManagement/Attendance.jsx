@@ -122,19 +122,20 @@ const Attendance = () => {
       </div>
       <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+          <div className='w-[65%]'>
             <h1 className="text-3xl font-bold text-white">Attendance Tracking</h1>
             <p className="text-slate-200 text-lg mt-1">Monitor employee attendance and working hours</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="w-[35%] flex items-center space-x-4">
             <DatePicker
-              type="date"
-              singleDate={selectedDate}
-              onSingleDateChange={setSelectedDate}
-              labelSingle="Select Date"
-              className="px-4 py-2 bg-white/90 border border-slate-200/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 text-slate-900"
+              name="attendanceDate"
+              singleDate
+              value={selectedDate}
+              onChange={(date) => setSelectedDate(date)}
+              className="w-full max-w-xs"
+              aria-label="Select Attendance Date"
             />
-          </div>
+          </div>  
         </div>
       </div>
 

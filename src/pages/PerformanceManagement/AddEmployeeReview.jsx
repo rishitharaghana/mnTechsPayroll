@@ -4,6 +4,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 import PageMeta from '../../Components/common/PageMeta';
 import { Calendar } from 'lucide-react'; // Use Lucide React for icons
+import Button from '../../Components/ui/date/Button'; 
 
 const steps = ['Employee Info', 'Performance', 'Review'];
 
@@ -384,32 +385,32 @@ const AddEmployeeReview = () => {
             </div>
 
             <div className="flex justify-between mt-8">
-              <button
+              <Button 
                 type="button"
                 onClick={prevStep}
                 disabled={currentStep === 0}
+                variant="secondary"
+                size="medium"
                 className="px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-800 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 text-sm font-medium"
                 aria-label="Previous step"
-              >
-                Back
-              </button>
+              >Back</Button>
               {currentStep < steps.length - 1 ? (
-                <button
+                <Button
                   type="button"
                   onClick={nextStep}
                   className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 text-sm font-medium"
                   aria-label="Next step"
                 >
                   Next
-                </button>
+                </Button>
               ) : (
-                <button
+                <Button
                   type="submit"
                   className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 text-sm font-medium"
                   aria-label="Submit form"
                 >
                   Submit
-                </button>
+                </Button>
               )}
             </div>
           </form>

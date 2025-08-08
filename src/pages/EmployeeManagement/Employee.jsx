@@ -10,6 +10,7 @@ import {
 import { Link } from "react-router-dom";
 import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
+import Button from "../../Components/ui/date/Button";
 
 const Employee = () => {
   const [employees, setEmployees] = useState([
@@ -65,7 +66,7 @@ const Employee = () => {
         </div>
         <Link
           to="/admin/employees/add-employee"
-          className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
+          className="flex items-center bg-slate-600 text-white px-4 py-2 rounded-lg shadow transition"
         >
           <UserPlus className="mr-2" size={20} />
           Add Employee

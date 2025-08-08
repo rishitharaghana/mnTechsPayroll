@@ -8,7 +8,7 @@ const PageBreadcrumb = ({ items = [] }) => {
     'Home': <Home className="h-4 w-4" />,
     'Attendance': <Clock className="h-4 w-4" />,
     'Employees': <Users className="h-4 w-4" />,
-    'AddEmployee': <User className="h-4 w-4" />,
+    'Add Employee': <User className="h-4 w-4" />,
     'Leave Tracker': <CalendarDays className="h-4 w-4" />,
     'Generate Payroll': <HandCoins className="h-4 w-4" />,
     'Payroll': <CreditCard className="h-4 w-4" />,
