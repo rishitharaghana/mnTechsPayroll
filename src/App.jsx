@@ -96,7 +96,7 @@ const App = () => {
             <Route path="/admin/calendar" element={<CalendarIntegration />} />
             <Route path="/admin/time-tracking" element={<TimeTracking />} />
             <Route path="/admin/admin-form" element={<AdminForm />} />
-            <Route path="/employee-details/" element={<EmployeeDetails />} />
+            <Route path="/employee/employee-details" element={<EmployeeDetails />} />
           </Route>
         </Routes>
       </BrowserRouter>

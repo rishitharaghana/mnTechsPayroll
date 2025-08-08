@@ -5,6 +5,9 @@ const TimeTracking = () => {
   const [isTracking, setIsTracking] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [location, setLocation] = useState(null);
+  const [isInGeofence, setIsInGeofence] = useState(false);
+  const [marketingTeam] = useState(['EMP001', 'EMP002']); // Example: John and Sarah are marketing team
 
   useEffect(() => {
     let interval;
@@ -15,6 +18,42 @@ const TimeTracking = () => {
     }
     return () => clearInterval(interval);
   }, [isTracking]);
+
+  useEffect(() => {
+    // Check geofence and start tracking for marketing team on site visit
+    if (selectedEmployee && marketingTeam.includes(selectedEmployee) && location) {
+      const siteGeofence = { lat: 37.7749, lng: -122.4194, radius: 100 }; // Example: San Francisco office
+      const distance = calculateDistance(location.lat, location.lng, siteGeofence.lat, siteGeofence.lng);
+      const inGeofence = distance <= siteGeofence.radius;
+      setIsInGeofence(inGeofence);
+      if (inGeofence && !isTracking) {
+        setIsTracking(true); // Automatically start tracking when entering geofence
+      } else if (!inGeofence && isTracking) {
+        setIsTracking(false); // Pause tracking when leaving geofence
+      }
+    }
+  }, [location, selectedEmployee, isTracking, marketingTeam]);
+
+  useEffect(() => {
+    // Request location updates
+    if (navigator.geolocation) {
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+        },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+      );
+      return () => navigator.geolocation.clearWatch(watchId);
+    } else {
+      console.error('Geolocation is not supported by this browser.');
+    }
+  }, []);
 
   const formatTime = (seconds) => {
     const hours = Math.floor(seconds / 3600);
@@ -31,42 +70,10 @@ const TimeTracking = () => {
   ];
 
   const timeEntries = [
-    {
-      employee: 'John Smith',
-      date: '2024-01-15',
-      loginTime: '09:00 AM',
-      logoutTime: '06:00 PM',
-      totalHours: '9h 0m',
-      location: 'Office - Main Building',
-      status: 'Completed'
-    },
-    {
-      employee: 'Sarah Wilson',
-      date: '2024-01-15',
-      loginTime: '08:45 AM',
-      logoutTime: '05:30 PM',
-      totalHours: '8h 45m',
-      location: 'Remote - Home Office',
-      status: 'Completed'
-    },
-    {
-      employee: 'Mike Johnson',
-      date: '2024-01-15',
-      loginTime: '09:15 AM',
-      logoutTime: 'Active',
-      totalHours: '7h 30m',
-      location: 'Office - Design Lab',
-      status: 'Active'
-    },
-    {
-      employee: 'Emily Davis',
-      date: '2024-01-15',
-      loginTime: '09:00 AM',
-      logoutTime: '06:15 PM',
-      totalHours: '9h 15m',
-      location: 'Office - HR Department',
-      status: 'Completed'
-    }
+    { employee: 'John Smith', date: '2024-01-15', loginTime: '09:00 AM', logoutTime: '06:00 PM', totalHours: '9h 0m', location: 'Office - Main Building', status: 'Completed' },
+    { employee: 'Sarah Wilson', date: '2024-01-15', loginTime: '08:45 AM', logoutTime: '05:30 PM', totalHours: '8h 45m', location: 'Remote - Home Office', status: 'Completed' },
+    { employee: 'Mike Johnson', date: '2024-01-15', loginTime: '09:15 AM', logoutTime: 'Active', totalHours: '7h 30m', location: 'Office - Design Lab', status: 'Active' },
+    { employee: 'Emily Davis', date: '2024-01-15', loginTime: '09:00 AM', logoutTime: '06:15 PM', totalHours: '9h 15m', location: 'Office - HR Department', status: 'Completed' },
   ];
 
   const getStatusColor = (status) => {
@@ -78,6 +85,21 @@ const TimeTracking = () => {
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  // Haversine formula to calculate distance between two coordinates
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = (lat1 * Math.PI) / 180;
+    const φ2 = (lat2 * Math.PI) / 180;
+    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in meters
   };
 
   return (
@@ -137,6 +159,12 @@ const TimeTracking = () => {
               ))}
             </select>
           </div>
+          {location && (
+            <p className="mt-4 text-sm text-gray-600">
+              Current Location: Lat {location.lat.toFixed(4)}, Lng {location.lng.toFixed(4)}{' '}
+              {isInGeofence && <span className="text-green-600">(In Geofence)</span>}
+            </p>
+          )}
         </div>
       </div>
 
@@ -239,22 +267,21 @@ const TimeTracking = () => {
         </div>
       </div>
 
-      {/* Google Maps Integration Placeholder */}
+      {/* Google Maps Integration */}
       <div className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900">Employee Location Tracking</h2>
           <MapPin className="text-indigo-600" size={24} />
         </div>
-        <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-xl p-8 text-center">
-          <MapPin className="mx-auto mb-4 text-indigo-600" size={48} />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Google Maps Integration</h3>
-          <p className="text-gray-600 mb-4">
-            Real-time employee location tracking and geofencing capabilities
-          </p>
-          <button className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all duration-300">
-            Enable Location Tracking
-          </button>
+        <div id="map" className="h-64 rounded-xl bg-gray-200">
+          {/* Map will be rendered here with Google Maps API */}
         </div>
+        {location && (
+          <p className="mt-4 text-sm text-gray-600">
+            Current Location: Lat {location.lat.toFixed(4)}, Lng {location.lng.toFixed(4)}{' '}
+            {isInGeofence && <span className="text-green-600">(In Geofence)</span>}
+          </p>
+        )}
       </div>
     </div>
   );

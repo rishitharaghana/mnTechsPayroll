@@ -115,8 +115,8 @@ const EmployeeDetails = () => {
   const validateStep = () => {
     const newErrors = {};
     if (currentStep === 0) {
-      if (!formData.fullName) newErrors.fullName = 'Full Name is required';
-      if (!formData.email) newErrors.email = 'Email is required';
+      // if (!formData.fullName) newErrors.fullName = 'Full Name is required';
+      // if (!formData.email) newErrors.email = 'Email is required';
       if (formData.positionType === 'experienced') {
         if (!formData.employerIdName) newErrors.employerIdName = 'Employer ID/Name is required';
         if (!formData.positionTitle) newErrors.positionTitle = 'Position Title is required';
