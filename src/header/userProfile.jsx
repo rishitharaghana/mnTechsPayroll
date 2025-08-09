@@ -1,5 +1,6 @@
 import React from "react";
 import { Edit } from "lucide-react";
+import { Link } from "react-router-dom"; // Import Link
 
 const UserProfile = () => {
   const user = {
@@ -21,7 +22,7 @@ const UserProfile = () => {
             <img
               src={user.profileImage}
               alt="Profile"
-              className="w-32 h-32 rounded-full border-4 border-blue-500 object-cover shadow-md hover:scale-105 transition-transform duration-300"
+              className="w-32 h-32 rounded-full border-4 border-slate-700 object-cover shadow-md hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-4xl text-gray-600 border-4 border-blue-500 shadow-md hover:scale-105 transition-transform duration-300">
@@ -29,18 +30,20 @@ const UserProfile = () => {
             </div>
           )}
         </div>
-        <button
-          className="p-2 bg-white rounded-full shadow-md hover:bg-blue-50 hover:shadow-lg transition-all duration-300"
-          aria-label="Edit Profile"
-        >
-          <Edit size={18} className="text-blue-600 hover:text-blue-800" />
-        </button>
+        <Link to="/profile">
+          <button
+            className="p-2 bg-white rounded-full shadow-md hover:bg-blue-50 hover:shadow-lg transition-all duration-300"
+            aria-label="Edit Profile"
+          >
+            <Edit size={18} className="text-slate-700 hover:text-teal-800" />
+          </button>
+        </Link>
       </div>
 
       {/* Second Component: Name, Designation, Employee ID */}
       <div className="mb-6 p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
         <h2 className="text-2xl font-bold text-gray-800 mb-2">{user.fullName}</h2>
-        <p className="text-sm font-medium text-blue-600">{user.designation}</p>
+        <p className="text-sm font-medium text-slate-700">{user.designation}</p>
         <p className="text-sm text-gray-500">Employee ID: {user.employeeId}</p>
       </div>
 
