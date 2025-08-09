@@ -6,8 +6,9 @@ import {
   TrendingUp,
   CreditCard,
   MapPin,
-  Settings,
+  PersonStanding,
   Shield,
+  Settings,
   HelpCircle,
   LogOut,
   CalendarClock,
@@ -19,38 +20,89 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const [activeTab, setActiveTab] = useState("");
 
   const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: TrendingUp, path: "/admin/dashboard" },
-    { id: "employees", label: "Employees", icon: Users, path: "/admin/employees" },
-    { id: "attendance", label: "Attendance", icon: Clock, path: "/admin/attendance" },
-    { id: "leave-tracker", label: "Leave Management", icon: CalendarClock, path: "/admin/leave-tracker" },
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: TrendingUp,
+      path: "/admin/dashboard",
+    },
+    {
+      id: "employees",
+      label: "Employees",
+      icon: Users,
+      path: "/admin/employees",
+    },
+    {
+      id: "attendance",
+      label: "Attendance",
+      icon: Clock,
+      path: "/admin/attendance",
+    },
+    {
+      id: "leave-tracker",
+      label: "Leave Management",
+      icon: CalendarClock,
+      path: "/admin/leave-tracker",
+    },
     {
       id: "payroll",
       label: "Payroll",
       icon: CreditCard,
       children: [
         { id: "view-payroll", label: "View Payroll", path: "/admin/payroll" },
-        { id: "generate-payroll", label: "Generate Payroll", path: "/admin/generate-payroll" },
-                { id: "payroll history", label: "View Payroll History", path: "/pay-history" },
-
+        {
+          id: "generate-payroll",
+          label: "Generate Payroll",
+          path: "/admin/generate-payroll",
+        },
+        {
+          id: "payroll history",
+          label: "View Payroll History",
+          path: "/pay-history",
+        },
       ],
     },
-    { id: "payslips", label: "Payslips", icon: FileText, path: "/admin/payslip" },
-    { id: "calendar", label: "Calendar", icon: Calendar, path: "/admin/calendar" },
+    {
+      id: "payslips",
+      label: "Payslips",
+      icon: FileText,
+      path: "/admin/payslip",
+    },
+    {
+      id: "calendar",
+      label: "Calendar",
+      icon: Calendar,
+      path: "/admin/calendar",
+    },
     {
       id: "performance",
       label: "Performance",
       icon: TrendingUp,
       children: [
-        { id: "view-performance", label: "View Performance", path: "/admin/performance" },
-        { id: "add-performance", label: "Add Employee Review", path: "/admin/add-performance" },
+        {
+          id: "view-performance",
+          label: "View Performance",
+          path: "/admin/performance",
+        },
+        {
+          id: "add-performance",
+          label: "Add Employee Review",
+          path: "/admin/add-performance",
+        },
       ],
     },
-    { id: "visitingcards", label: "Visiting Cards", icon: MapPin, path: "/admin/visitingcards" },
+    {
+      id: "visitingcards",
+      label: "Visiting Cards",
+      icon: MapPin,
+      path: "/admin/visitingcards",
+    },
     { id: "idcard", label: "ID Card", icon: CreditCard, path: "/idcard" },
   ];
 
-  const settingsItems = [
-    { id: "logout", label: "Logout", icon: LogOut, path: "/logout" },
+  const profileItems = [
+    { id: "profile", label: "Profile", icon: PersonStanding, path: "/profile" },
+    { id: "logout", label: "Logout", icon: LogOut, path: "login" }, 
   ];
 
   return (
@@ -71,7 +123,9 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                 <div key={item.id}>
                   <button
                     type="button"
-                    onClick={() => setActiveTab((prev) => (prev === item.id ? "" : item.id))}
+                    onClick={() =>
+                      setActiveTab((prev) => (prev === item.id ? "" : item.id))
+                    }
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
                       isActive
                         ? "bg-teal-600 text-white shadow-md"
@@ -131,59 +185,35 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           })}
         </nav>
 
-        {/* Settings & Logout */}
+        {/* Profile & Logout */}
         <div className="p-4 border-t border-gray-200">
-          <div className="mb-3">
-            <NavLink
-              to="/settings"
-              onClick={() => {
-                setActiveTab("settings");
-                setIsMobileMenuOpen(false);
-              }}
-              className={({ isActive }) =>
-                `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  isActive || activeTab === "settings"
-                    ? "bg-teal-600 text-white shadow-md"
-                    : "hover:bg-slate-700 hover:text-white"
-                }`
-              }
-            >
-              <Settings size={20} />
-              <span className="font-medium">Settings</span>
-            </NavLink>
-          </div>
-
-          {activeTab === "settings" && (
-            <div className="space-y-1 ml-4">
-              {settingsItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.id}
-                    to={item.path}
-                    onClick={() => {
-                      setActiveTab(item.id);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className={({ isActive }) =>
-                      `w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
-                        item.id === "logout"
-                          ? isActive
-                            ? "text-red-600 bg-red-50"
-                            : "text-red-600 hover:bg-red-50"
-                          : isActive
-                          ? "text-gray-600 bg-gray-100"
-                          : "text-gray-600 hover:bg-gray-100"
-                      }`
-                    }
-                  >
-                    <Icon size={16} />
-                    <span>{item.label}</span>
-                  </NavLink>
-                );
-              })}
-            </div>
-          )}
+          {profileItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.id}
+                to={item.path}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setIsMobileMenuOpen(false);
+                }}
+                className={({ isActive }) =>
+                  `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                    item.id === "logout"
+                      ? isActive
+                        ? "text-red-600 bg-red-50"
+                        : "text-red-600 hover:bg-red-50"
+                      : isActive || activeTab === item.id
+                      ? "bg-teal-600 text-white shadow-md"
+                      : "hover:bg-slate-700 hover:text-white"
+                  }`
+                }
+              >
+                <Icon size={20} />
+                <span className="font-medium">{item.label}</span>
+              </NavLink>
+            );
+          })}
         </div>
       </aside>
 

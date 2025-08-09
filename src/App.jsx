@@ -7,7 +7,7 @@ import Home from "./pages/HomePage/home";
 import Dashboard from "./Components/dashboard/Dashboard";
 import EmployeeDashboard from "./Components/dashboard/EmployeeDashboard";
 import UserProfile from "./header/userProfile";
-import Settings from "./pages/settings/Settings";
+import EditProfile from "./pages/settings/EditProfile";
 import Employee from "./pages/EmployeeManagement/Employee";
 import AddEmployee from "./pages/EmployeeManagement/AddEmployee";
 import Attendance from "./pages/AttendanceManagement/Attendance";
@@ -38,14 +38,14 @@ const App = () => {
     <GoogleOAuthProvider clientId="https://www.googleapis.com/auth/userinfo.profile">
       <BrowserRouter>
         <Routes>
-          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/login" element={<AdminLogin />} />
 
           <Route element={<AppLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/emp-dashboard" element={<EmployeeDashboard />} />
             <Route path="/userprofile" element={<UserProfile />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/profile" element={<EditProfile />} />
 
             <Route path="/admin/employees" element={<Employee />} />
             <Route
@@ -97,6 +97,7 @@ const App = () => {
             <Route path="/admin/time-tracking" element={<TimeTracking />} />
             <Route path="/admin/admin-form" element={<AdminForm />} />
             <Route path="/employee/employee-details" element={<EmployeeDetails />} />
+
           </Route>
         </Routes>
       </BrowserRouter>

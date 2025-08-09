@@ -1,12 +1,10 @@
-// Settings.jsx
 import React, { useState } from 'react';
-import SettingsNav from '../../pages/settings/SettingsNav';
-import SettingsProfile from '../../pages/settings/SettingsProfile';
-import SettingsSystem from '../../pages/settings/SettingsSystem'; 
+import SettingsNav from './SettingsNav';
+import SettingsProfile from './SettingsProfile';
 
-const Settings = () => {
+const EditProfile = () => {
   const [activeSection, setActiveSection] = useState('profile');
-  const [settings, setSettings] = useState({
+  const [profile, setProfile] = useState({
     profile: {
       name: 'John Administrator',
       email: 'admin@payrollhub.com',
@@ -38,7 +36,7 @@ const Settings = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
         <p className="text-gray-600 mt-1">Manage your account and system preferences</p>
       </div>
 
@@ -50,10 +48,7 @@ const Settings = () => {
         <div className="lg:col-span-3">
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             {activeSection === 'profile' && (
-              <SettingsProfile settings={settings} setSettings={setSettings} />
-            )}
-            {activeSection === 'system' && (
-              <SettingsSystem settings={settings} setSettings={setSettings} />
+              <SettingsProfile settings={profile} setProfile={setProfile} />
             )}
           </div>
         </div>
@@ -62,4 +57,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default EditProfile;

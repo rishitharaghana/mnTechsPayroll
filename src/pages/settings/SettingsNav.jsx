@@ -4,7 +4,6 @@ import { User, Bell, Shield, Database } from 'lucide-react';
 
 const sections = [
   { id: 'profile', label: 'Profile', icon: User, path:'/settings/profile' },
-  { id: 'system', label: 'System', icon: Database, path:'/settings/system' },
 ];
 
 const SettingsNav = ({ activeSection, setActiveSection }) => {
