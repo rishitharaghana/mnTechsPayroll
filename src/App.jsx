@@ -7,7 +7,7 @@ import Home from "./pages/HomePage/home";
 import Dashboard from "./Components/dashboard/Dashboard";
 import EmployeeDashboard from "./Components/dashboard/EmployeeDashboard";
 import UserProfile from "./header/userProfile";
-import EditProfile from "./pages/settings/EditProfile";
+import EditProfile from "./header/EditProfile";
 import Employee from "./pages/EmployeeManagement/Employee";
 import AddEmployee from "./pages/EmployeeManagement/AddEmployee";
 import Attendance from "./pages/AttendanceManagement/Attendance";

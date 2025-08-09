@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import SettingsNav from './SettingsNav';
-import SettingsProfile from './SettingsProfile';
+import SettingsNav from '../pages/settings/SettingsNav';
+import SettingsProfile from '../pages/settings/SettingsProfile';
 
 const EditProfile = () => {
   const [activeSection, setActiveSection] = useState('profile');
