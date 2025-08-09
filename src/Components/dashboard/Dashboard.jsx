@@ -104,13 +104,8 @@ const Dashboard = () => {
         })}
       </div>
 
-
-
-      
-
-      {/* Content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Activities */}
+
         <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
           <h2 className="text-xl font-bold text-slate-900 mb-6">Recent Activities</h2>
           <div className="space-y-4">

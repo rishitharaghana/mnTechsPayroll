@@ -2,7 +2,6 @@ import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import AppLayout from "./layout/AppLayout";
-import AdminLogin from "./pages/Login/AdminLogin";
 import Home from "./pages/HomePage/home";
 import Dashboard from "./Components/dashboard/Dashboard";
 import EmployeeDashboard from "./Components/dashboard/EmployeeDashboard";
@@ -32,13 +31,14 @@ import CalendarIntegration from "./pages/HolidayCalendar/CalendarIntegration";
 import TimeTracking from "./pages/timetracking/TimeTracking";
 import AdminForm from "./pages/Login/AdminForm";
 import EmployeeDetails from './pages/EmployeeManagement/EmployeeDetails';
+import Login from "./pages/Login/Login";
 
 const App = () => {
   return (
     <GoogleOAuthProvider clientId="https://www.googleapis.com/auth/userinfo.profile">
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<AdminLogin />} />
+          <Route path="/login" element={<Login />} />
 
           <Route element={<AppLayout />}>
             <Route path="/" element={<Home />} />

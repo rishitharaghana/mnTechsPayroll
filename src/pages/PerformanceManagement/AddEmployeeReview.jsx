@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+// import DatePicker from 'react-datepicker';
+// import 'react-datepicker/dist/react-datepicker.css';
 import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 import PageMeta from '../../Components/common/PageMeta';
 import { Calendar } from 'lucide-react'; // Use Lucide React for icons
@@ -37,20 +37,20 @@ const AddEmployeeReview = () => {
     setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
-  const handleDateChange = (date) => {
-    if (date && !isNaN(date)) {
-      setFormData((prev) => ({
-        ...prev,
-        reviewedDate: date.toISOString().split('T')[0],
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        reviewedDate: '',
-      }));
-    }
-    setErrors((prev) => ({ ...prev, reviewedDate: '' }));
-  };
+  // const handleDateChange = (date) => {
+  //   if (date && !isNaN(date)) {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       reviewedDate: date.toISOString().split('T')[0],
+  //     }));
+  //   } else {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       reviewedDate: '',
+  //     }));
+  //   }
+  //   setErrors((prev) => ({ ...prev, reviewedDate: '' }));
+  // };
 
   const nextStep = () => {
     setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
@@ -77,7 +77,7 @@ const AddEmployeeReview = () => {
 
   return (
     <div>
-      <style>
+      {/* <style>
         {`
           .react-datepicker-wrapper {
             width: 100%;
@@ -112,7 +112,7 @@ const AddEmployeeReview = () => {
             }
           }
         `}
-      </style>
+      </style> */}
       <div className="flex justify-end">
         <PageMeta title="Add Employee Review" description="Add a new employee performance review" />
         <PageBreadcrumb
@@ -336,11 +336,11 @@ const AddEmployeeReview = () => {
                       aria-label="Reviewed By"
                     />
                   </div>
-                  <div className="flex flex-col">
+                  {/* <div className="flex flex-col">
                     <label className="mb-1 text-sm font-bold text-black tracking-tight">
                       Reviewed Date
                     </label>
-                    <div className="relative">
+                   <div className="relative">
                       <DatePicker
                         selected={formData.reviewedDate ? new Date(formData.reviewedDate) : null}
                         onChange={handleDateChange}
@@ -350,8 +350,8 @@ const AddEmployeeReview = () => {
                         aria-label="Reviewed Date"
                       />
                       <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                    </div>
-                  </div>
+                    </div> 
+                  </div> */}
                   <div className="flex flex-col col-span-2">
                     <label className="mb-1 text-sm font-bold text-black tracking-tight">
                       Manager Comments
