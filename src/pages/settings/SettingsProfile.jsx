@@ -15,55 +15,24 @@ const SettingsProfile = ({ settings, setSettings }) => {
         setPreviewImage(reader.result);
         setSettings({
           ...settings,
-          profile: { ...settings.profile, profileImage: reader.result },
+          profileImage: reader.result, // Adjusted to match settings structure
         });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Validate form fields
-  const validateForm = () => {
-    const newErrors = {};
-    if (!settings.profile.fullName) newErrors.fullName = 'Full Name is required';
-    if (!settings.profile.email) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(settings.profile.email))
-      newErrors.email = 'Invalid email format';
-    if (!settings.profile.phone) newErrors.phone = 'Phone number is required';
-    else if (!/^[6-9]\d{9}$/.test(settings.profile.phone))
-      newErrors.phone = 'Phone number must be a 10-digit Indian number starting with 6, 7, 8, or 9';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   // Handle save changes
   const handleSaveChanges = (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      // Simulate saving data (replace with API call if needed)
-      setIsSaved(true);
-      // Clear form inputs
-      setSettings({
-        ...settings,
-        profile: {
-          profileImage: '',
-          fullName: '',
-          email: '',
-          phone: '',
-          designation: '',
-          department: '',
-          employeeId: '',
-        },
-      });
-      setPreviewImage('');
-      setErrors({});
-      // Reset save status after 3 seconds
-      setTimeout(() => setIsSaved(false), 3000);
-    }
+    // No validation required, directly save
+    setIsSaved(true);
+    // Simulate saving data (replace with API call if needed)
+    setTimeout(() => setIsSaved(false), 3000);
   };
 
   return (
-    <div className="space-y-6 max-w-4xl lg-max-w-3xl md-max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-md">
+    <div className="space-y-6 max-w-4xl lg:max-w-3xl md:max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-md">
       <h2 className="text-2xl font-semibold text-gray-900">Profile Settings</h2>
 
       {/* Save Confirmation Message */}
@@ -86,12 +55,12 @@ const SettingsProfile = ({ settings, setSettings }) => {
               />
             ) : (
               <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-2xl text-gray-500 border-2 border-gray-200">
-                {settings.profile.fullName?.charAt(0) || '?'}
+                {settings.name?.charAt(0) || '?'}
               </div>
             )}
             <label
               htmlFor="profileImage"
-              className="absolute bottom-0 right-0 cursor-pointer bg-blue-500 text-white rounded-full p-1.5 hover:bg-blue-600 transition-colors duration-200"
+              className="absolute bottom-0 right-0 cursor-pointer bg-slate-700 text-white rounded-full p-1.5 transition-colors duration-200"
             >
               <Camera className="h-5 w-5" />
             </label>
@@ -112,78 +81,63 @@ const SettingsProfile = ({ settings, setSettings }) => {
               className="block text-sm font-medium text-gray-700 mb-1"
               htmlFor="fullName"
             >
-              Full Name *
+              Full Name
             </label>
             <input
               id="fullName"
               type="text"
-              value={settings.profile.fullName || ''}
+              value={settings.name || ''}
               onChange={(e) =>
                 setSettings({
                   ...settings,
-                  profile: { ...settings.profile, fullName: e.target.value },
+                  name: e.target.value,
                 })
               }
-              required
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.fullName ? 'border-red-500' : 'border-gray-300'
-              }`}
+              placeholder="Enter full name"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.fullName && (
-              <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
-            )}
           </div>
           <div>
             <label
               className="block text-sm font-medium text-gray-700 mb-1"
               htmlFor="email"
             >
-              Email *
+              Email
             </label>
             <input
               id="email"
               type="email"
-              value={settings.profile.email || ''}
+              value={settings.email || ''}
               onChange={(e) =>
                 setSettings({
                   ...settings,
-                  profile: { ...settings.profile, email: e.target.value },
+                  email: e.target.value,
                 })
               }
-              required
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
-              }`}
+              placeholder="Enter your email"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-            )}
           </div>
           <div>
             <label
               className="block text-sm font-medium text-gray-700 mb-1"
               htmlFor="phone"
             >
-              Phone *
+              Phone Number
             </label>
             <input
               id="phone"
               type="tel"
-              value={settings.profile.phone || ''}
+              value={settings.phone || ''}
               onChange={(e) =>
                 setSettings({
                   ...settings,
-                  profile: { ...settings.profile, phone: e.target.value },
+                  phone: e.target.value,
                 })
               }
-              required
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.phone ? 'border-red-500' : 'border-gray-300'
-              }`}
+              placeholder="Enter number"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.phone && (
-              <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-            )}
           </div>
           <div>
             <label
@@ -195,13 +149,14 @@ const SettingsProfile = ({ settings, setSettings }) => {
             <input
               id="designation"
               type="text"
-              value={settings.profile.designation || ''}
+              value={settings.designation || ''}
               onChange={(e) =>
                 setSettings({
                   ...settings,
-                  profile: { ...settings.profile, designation: e.target.value },
+                  designation: e.target.value,
                 })
               }
+              placeholder="Enter designation"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -215,13 +170,14 @@ const SettingsProfile = ({ settings, setSettings }) => {
             <input
               id="department"
               type="text"
-              value={settings.profile.department || ''}
+              value={settings.department || ''}
               onChange={(e) =>
                 setSettings({
                   ...settings,
-                  profile: { ...settings.profile, department: e.target.value },
+                  department: e.target.value,
                 })
               }
+              placeholder="Enter department"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -235,13 +191,14 @@ const SettingsProfile = ({ settings, setSettings }) => {
             <input
               id="employeeId"
               type="text"
-              value={settings.profile.employeeId || ''}
+              value={settings.employeeId || ''}
               onChange={(e) =>
                 setSettings({
                   ...settings,
-                  profile: { ...settings.profile, employeeId: e.target.value },
+                  employeeId: e.target.value,
                 })
               }
+              placeholder="Enter employee ID"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -251,7 +208,7 @@ const SettingsProfile = ({ settings, setSettings }) => {
         <div className="flex justify-end mt-6">
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+            className="px-6 py-2 bg-teal-700 text-white rounded-lg transition-colors duration-200"
           >
             Save Changes
           </button>
