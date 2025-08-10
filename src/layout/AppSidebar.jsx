@@ -30,7 +30,10 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "employees",
       label: "Employees",
       icon: Users,
-      path: "/admin/employees",
+      children: [
+        { id: "view-employees", label: "View Employees", path: "/admin/employees" },
+        {id: "assign-employee", label: "Assign Employee", path: "/admin/assign-employee"},
+      ],
     },
     {
       id: "attendance",

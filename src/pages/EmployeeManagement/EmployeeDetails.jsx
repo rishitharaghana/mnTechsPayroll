@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import DatePicker from 'react-datepicker'; // Use react-datepicker for consistency
+import DatePicker from 'react-datepicker'; 
 import 'react-datepicker/dist/react-datepicker.css'; // Import DatePicker styles
 import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 import PageMeta from '../../Components/common/PageMeta';
@@ -499,6 +499,7 @@ const EmployeeDetails = () => {
                           <option value="full-time">Full-time</option>
                           <option value="part-time">Part-time</option>
                           <option value="internship">Internship</option>
+                          <option value="contract">Contract</option>
                         </select>
                       </div>
                       <div className="flex flex-col">
@@ -782,7 +783,7 @@ const EmployeeDetails = () => {
           </form>
         </div>
       </div>
-      {isPreviewOpen && <PreviewPopup />}
+      {isPreviewOpen && <PreviewPopup />} 
     </div>
   );
 };
