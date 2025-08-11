@@ -1,7 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Home, Clock, User, ChevronRight, Users, Calendar, CreditCard, FileChartColumnIncreasing,
-     TrendingUp, RefreshCcw, IdCard, IdCardLanyard, BookText, CalendarDays, HandCoins, Target } from 'lucide-react';
+     TrendingUp, RefreshCcw, IdCard, IdCardLanyard, BookText, CalendarDays, HandCoins, Target, 
+     Clipboard,
+     ClipboardCheckIcon,
+     ImageUpscale,
+     BookImage} from 'lucide-react';
 
 const PageBreadcrumb = ({ items = [] }) => {
   const iconMap = {
@@ -17,9 +21,9 @@ const PageBreadcrumb = ({ items = [] }) => {
     'Performance': <TrendingUp className="h-4 w-4" />,
     'Add Employee Review': <Target className="h-4 w-4" />,
     'Visiting Card': <IdCard className="h-4 w-4" />,
-    'ID Cards': <IdCardLanyard className="h-4 w-4" />,
+    'ID Cards': <BookImage className="h-4 w-4" />,
     'Generate ID Card': <IdCardLanyard className="h-4 w-4" />,
-    'IdCardForm': <BookText className="h-4 w-4" />,
+    'IdCardForm': <BookImage className="h-4 w-4" />,
   };
 
   return (

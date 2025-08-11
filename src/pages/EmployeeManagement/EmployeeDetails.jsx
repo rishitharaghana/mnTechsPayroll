@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import DatePicker from 'react-datepicker'; 
-import 'react-datepicker/dist/react-datepicker.css'; // Import DatePicker styles
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 import PageMeta from '../../Components/common/PageMeta';
-import { Calendar } from 'lucide-react'; // Use Lucide React for icons
+import { Calendar } from 'lucide-react';
 
 // Custom FileUpload Component
-const FileUpload = ({ name, onChange, accept, label }) => (
+const FileUpload = ({ name, onChange, accept, label, preview, isPdf }) => (
   <div className="flex flex-col">
     <label className="mb-1 text-sm font-bold text-black tracking-tight">{label}</label>
     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
@@ -18,10 +18,39 @@ const FileUpload = ({ name, onChange, accept, label }) => (
         className="hidden"
         id={`${name}-upload`}
       />
-      <label htmlFor={`${name}-upload`} className="cursor-pointer">
+      <label htmlFor={`${name}-upload`} className="cursor-pointer text-gray-600">
         <span className="text-gray-500">Drag and drop files here or </span>
-        <span className="text-black underline">Browse Files</span>
+        <span className="underline text-black">Browse Files</span>
       </label>
+      {preview && (
+        <div className="mt-4">
+          <img
+            src={preview}
+            alt="Uploaded Preview"
+            className="w-40 h-25 rounded-lg mt-2"
+            style={{ maxHeight: '200px', objectFit: 'cover' }}
+          />
+        </div>
+      )}
+      {isPdf && (
+        <div className="mt-4 flex flex-col">
+          <svg
+            className="w-10 h-10 text-red-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <span className="text-left text-sm text-gray-600 mt-2">PDF Uploaded</span>
+        </div>
+      )}
     </div>
   </div>
 );
@@ -74,11 +103,19 @@ const EmployeeDetails = () => {
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'file' ? files[0] : value,
-    }));
-    setErrors((prev) => ({ ...prev, [name]: '' }));
+    if (type === 'file' && files[0]) {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: files[0],
+      }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
+    } else if (type !== 'file') {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleDateChange = (name, date) => {
@@ -140,6 +177,21 @@ const EmployeeDetails = () => {
           { label: 'Phone', value: formData.phone || 'N/A' },
           { label: 'Email', value: formData.email || 'N/A' },
           { label: 'Gender', value: formData.gender || 'N/A' },
+          {
+            label: 'Image',
+            value: formData.image ? (
+              <div className="flex flex-col items-center">
+                <img
+                  src={URL.createObjectURL(formData.image)}
+                  alt="Employee"
+                  className="w-24 h-24 rounded-lg"
+                  style={{ maxHeight: '100px', objectFit: 'cover' }}
+                />
+              </div>
+            ) : (
+              'N/A'
+            ),
+          },
           { label: 'Present Address', value: formData.presentAddress || 'N/A' },
           { label: 'Previous Address', value: formData.previousAddress || 'N/A' },
         ],
@@ -185,6 +237,233 @@ const EmployeeDetails = () => {
         ],
       },
       {
+        title: 'Documents',
+        fields: [
+          {
+            label: '10th Class Document',
+            value: formData.tenthClassDoc ? (
+              <div className="flex flex-col items-center">
+                {formData.tenthClassDoc.type.startsWith('image/') ? (
+                  <img
+                    src={URL.createObjectURL(formData.tenthClassDoc)}
+                    alt="10th Class Document"
+                    className="w-24 h-24 rounded-lg"
+                    style={{ maxHeight: '100px', objectFit: 'cover' }}
+                  />
+                ) : formData.tenthClassDoc.type === 'application/pdf' ? (
+                  <div className="flex flex-col items-center">
+                    <svg
+                      className="w-10 h-10 text-red-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <span className="text-sm text-gray-600 mt-2">PDF Uploaded</span>
+                  </div>
+                ) : (
+                  'Unsupported file type'
+                )}
+              </div>
+            ) : (
+              'N/A'
+            ),
+          },
+          {
+            label: 'Intermediate Document',
+            value: formData.intermediateDoc ? (
+              <div className="flex flex-col items-center">
+                {formData.intermediateDoc.type.startsWith('image/') ? (
+                  <img
+                    src={URL.createObjectURL(formData.intermediateDoc)}
+                    alt="Intermediate Document"
+                    className="w-24 h-24 rounded-lg"
+                    style={{ maxHeight: '100px', objectFit: 'cover' }}
+                  />
+                ) : formData.intermediateDoc.type === 'application/pdf' ? (
+                  <div className="flex flex-col items-center">
+                    <svg
+                      className="w-10 h-10 text-red-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <span className="text-sm text-gray-600 mt-2">PDF Uploaded</span>
+                  </div>
+                ) : (
+                  'Unsupported file type'
+                )}
+              </div>
+            ) : (
+              'N/A'
+            ),
+          },
+          {
+            label: 'Graduation Document',
+            value: formData.graduationDoc ? (
+              <div className="flex flex-col items-center">
+                {formData.graduationDoc.type.startsWith('image/') ? (
+                  <img
+                    src={URL.createObjectURL(formData.graduationDoc)}
+                    alt="Graduation Document"
+                    className="w-24 h-24 rounded-lg"
+                    style={{ maxHeight: '100px', objectFit: 'cover' }}
+                  />
+                ) : formData.graduationDoc.type === 'application/pdf' ? (
+                  <div className="flex flex-col items-center">
+                    <svg
+                      className="w-10 h-10 text-red-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <span className="text-sm text-gray-600 mt-2">PDF Uploaded</span>
+                  </div>
+                ) : (
+                  'Unsupported file type'
+                )}
+              </div>
+            ) : (
+              'N/A'
+            ),
+          },
+          {
+            label: 'Postgraduation Document',
+            value: formData.postgraduationDoc ? (
+              <div className="flex flex-col items-center">
+                {formData.postgraduationDoc.type.startsWith('image/') ? (
+                  <img
+                    src={URL.createObjectURL(formData.postgraduationDoc)}
+                    alt="Postgraduation Document"
+                    className="w-24 h-24 rounded-lg"
+                    style={{ maxHeight: '100px', objectFit: 'cover' }}
+                  />
+                ) : formData.postgraduationDoc.type === 'application/pdf' ? (
+                  <div className="flex flex-col items-center">
+                    <svg
+                      className="w-10 h-10 text-red-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <span className="text-sm text-gray-600 mt-2">PDF Uploaded</span>
+                  </div>
+                ) : (
+                  'Unsupported file type'
+                )}
+              </div>
+            ) : (
+              'N/A'
+            ),
+          },
+          {
+            label: 'Aadhar Document',
+            value: formData.aadharDoc ? (
+              <div className="flex flex-col items-center">
+                {formData.aadharDoc.type.startsWith('image/') ? (
+                  <img
+                    src={URL.createObjectURL(formData.aadharDoc)}
+                    alt="Aadhar Document"
+                    className="w-24 h-24 rounded-lg"
+                    style={{ maxHeight: '100px', objectFit: 'cover' }}
+                  />
+                ) : formData.aadharDoc.type === 'application/pdf' ? (
+                  <div className="flex flex-col items-center">
+                    <svg
+                      className="w-10 h-10 text-red-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <span className="text-sm text-gray-600 mt-2">PDF Uploaded</span>
+                  </div>
+                ) : (
+                  'Unsupported file type'
+                )}
+              </div>
+            ) : (
+              'N/A'
+            ),
+          },
+          {
+            label: 'PAN Document',
+            value: formData.panDoc ? (
+              <div className="flex flex-col items-center">
+                {formData.panDoc.type.startsWith('image/') ? (
+                  <img
+                    src={URL.createObjectURL(formData.panDoc)}
+                    alt="PAN Document"
+                    className="w-24 h-24 rounded-lg"
+                    style={{ maxHeight: '100px', objectFit: 'cover' }}
+                  />
+                ) : formData.panDoc.type === 'application/pdf' ? (
+                  <div className="flex flex-col items-center">
+                    <svg
+                      className="w-10 h-10 text-red-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <span className="text-sm text-gray-600 mt-2">PDF Uploaded</span>
+                  </div>
+                ) : (
+                  'Unsupported file type'
+                )}
+              </div>
+            ) : (
+              'N/A'
+            ),
+          },
+        ],
+      },
+      {
         title: 'Bank Details',
         fields: [
           { label: 'IFSC Number', value: formData.ifscNumber || 'N/A' },
@@ -216,7 +495,7 @@ const EmployeeDetails = () => {
                 <h4 className="text-lg font-semibold text-teal-600 mb-4">{group.title}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
                   {group.fields.map((field, idx) => (
-                    <p key={idx}>
+                    <p key={idx} className="flex flex-col gap-2">
                       <strong>{field.label}:</strong> {field.value}
                     </p>
                   ))}
@@ -406,14 +685,13 @@ const EmployeeDetails = () => {
                     </select>
                   </div>
                   <div className="flex flex-col col-span-2">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Image Upload
-                    </label>
                     <FileUpload
                       name="image"
                       onChange={handleChange}
                       accept="image/*"
                       label="Image Upload"
+                      preview={formData.image ? URL.createObjectURL(formData.image) : null}
+                      isPdf={false}
                     />
                   </div>
                   <div className="flex flex-col col-span-2">
@@ -660,48 +938,60 @@ const EmployeeDetails = () => {
                     <FileUpload
                       name="tenthClassDoc"
                       onChange={handleChange}
-                      accept=".pdf,.doc,.docx,.jpg,.png"
+                      accept=".pdf,.jpg,.png"
                       label="10th Class Document"
+                      preview={formData.tenthClassDoc && formData.tenthClassDoc.type.startsWith('image/') ? URL.createObjectURL(formData.tenthClassDoc) : null}
+                      isPdf={formData.tenthClassDoc && formData.tenthClassDoc.type === 'application/pdf'}
                     />
                   </div>
                   <div className="flex flex-col col-span-2">
                     <FileUpload
                       name="intermediateDoc"
                       onChange={handleChange}
-                      accept=".pdf,.doc,.docx,.jpg,.png"
+                      accept=".pdf,.jpg,.png"
                       label="Intermediate Document"
+                      preview={formData.intermediateDoc && formData.intermediateDoc.type.startsWith('image/') ? URL.createObjectURL(formData.intermediateDoc) : null}
+                      isPdf={formData.intermediateDoc && formData.intermediateDoc.type === 'application/pdf'}
                     />
                   </div>
                   <div className="flex flex-col col-span-2">
                     <FileUpload
                       name="graduationDoc"
                       onChange={handleChange}
-                      accept=".pdf,.doc,.docx,.jpg,.png"
+                      accept=".pdf,.jpg,.png"
                       label="Graduation Document"
+                      preview={formData.graduationDoc && formData.graduationDoc.type.startsWith('image/') ? URL.createObjectURL(formData.graduationDoc) : null}
+                      isPdf={formData.graduationDoc && formData.graduationDoc.type === 'application/pdf'}
                     />
                   </div>
                   <div className="flex flex-col col-span-2">
                     <FileUpload
                       name="postgraduationDoc"
                       onChange={handleChange}
-                      accept=".pdf,.doc,.docx,.jpg,.png"
+                      accept=".pdf,.jpg,.png"
                       label="Postgraduation Document"
+                      preview={formData.postgraduationDoc && formData.postgraduationDoc.type.startsWith('image/') ? URL.createObjectURL(formData.postgraduationDoc) : null}
+                      isPdf={formData.postgraduationDoc && formData.postgraduationDoc.type === 'application/pdf'}
                     />
                   </div>
                   <div className="flex flex-col col-span-2">
                     <FileUpload
                       name="aadharDoc"
                       onChange={handleChange}
-                      accept=".pdf,.doc,.docx,.jpg,.png"
+                      accept=".pdf,.jpg,.png"
                       label="Aadhar Document"
+                      preview={formData.aadharDoc && formData.aadharDoc.type.startsWith('image/') ? URL.createObjectURL(formData.aadharDoc) : null}
+                      isPdf={formData.aadharDoc && formData.aadharDoc.type === 'application/pdf'}
                     />
                   </div>
                   <div className="flex flex-col col-span-2">
                     <FileUpload
                       name="panDoc"
                       onChange={handleChange}
-                      accept=".pdf,.doc,.docx,.jpg,.png"
+                      accept=".pdf,.jpg,.png"
                       label="PAN Document"
+                      preview={formData.panDoc && formData.panDoc.type.startsWith('image/') ? URL.createObjectURL(formData.panDoc) : null}
+                      isPdf={formData.panDoc && formData.panDoc.type === 'application/pdf'}
                     />
                   </div>
                 </>
@@ -783,7 +1073,7 @@ const EmployeeDetails = () => {
           </form>
         </div>
       </div>
-      {isPreviewOpen && <PreviewPopup />} 
+      {isPreviewOpen && <PreviewPopup />}
     </div>
   );
 };

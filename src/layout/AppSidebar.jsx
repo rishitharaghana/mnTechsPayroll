@@ -12,6 +12,9 @@ import {
   HelpCircle,
   LogOut,
   CalendarClock,
+  IdCard,
+  IdCardIcon,
+  IdCardLanyard,
 } from "lucide-react";
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
@@ -97,10 +100,10 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
     {
       id: "visitingcards",
       label: "Visiting Cards",
-      icon: MapPin,
+      icon: IdCardIcon,
       path: "/admin/visitingcards",
     },
-    { id: "idcard", label: "ID Card", icon: CreditCard, path: "/idcard" },
+    { id: "idcard", label: "ID Card", icon: IdCardLanyard, path: "/idcard" },
   ];
 
   const profileItems = [

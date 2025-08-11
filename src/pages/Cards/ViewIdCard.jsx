@@ -37,11 +37,6 @@ const ViewIdCard = () => {
 
   const MeetOwnerLogo = () => (
     <div className="flex flex-col items-center mb-4">
-      
-      <div className="flex items-center space-x-1">
-        <span className="text-2xl font-bold text-yellow-500"></span>
-        <span className="text-2xl font-bold text-blue-800"></span>
-      </div>
     </div>
   );
 
