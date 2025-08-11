@@ -42,10 +42,10 @@ const Payroll = ({ employees = [] }) => {
   const itemsPerPage = 5;
 
   const summaryStats = [
-    { title: 'Total Payroll', value: '$159,400', change: '+5.2%', icon: DollarSign, color: 'bg-teal-600' },
-    { title: 'Employees Paid', value: '248', change: '+2', icon: Users, color: 'bg-slate-700' },
-    { title: 'Avg. Gross Salary', value: '$4,830', change: '+3.1%', icon: TrendingUp, color: 'bg-teal-600' },
-    { title: 'Total PF Deductions', value: '$42,000', change: '-1.2%', icon: Calculator, color: 'bg-slate-700' }
+    { title: 'Total Payroll', value: '$159,400', change: '+5.2%', icon: DollarSign },
+    { title: 'Employees Paid', value: '248', change: '+2', icon: Users },
+    { title: 'Avg. Gross Salary', value: '$4,830', change: '+3.1%', icon: TrendingUp },
+    { title: 'Total PF Deductions', value: '$42,000', change: '-1.2%', icon: Calculator }
   ];
 
   const getStatusColor = (status) => {
@@ -122,15 +122,15 @@ const Payroll = ({ employees = [] }) => {
           ]}
         />
       </div>
-      <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800">Payroll Management</h1>
-            <p className="text-slate-500 text-lg mt-1">Manage employee deductions and payroll processing</p>
+            <h1 className="text-3xl font-bold text-white">Payroll Management</h1>
+            <p className="text-slate-200 text-lg mt-1">Manage employee deductions and payroll processing</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <Calendar size={20} className="text-slate-400" />
+              <Calendar size={20} className="text-slate-200" />
               <input
                 type="month"
                 value={selectedMonth}
@@ -140,7 +140,7 @@ const Payroll = ({ employees = [] }) => {
             </div>
             <button
               onClick={handleProcessPayroll}
-              className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105"
+              className="px-6 py-3 bg-white text-teal-600 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105"
             >
               Process Payroll
             </button>
@@ -150,13 +150,13 @@ const Payroll = ({ employees = [] }) => {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {summaryStats.map(({ title, value, change, icon: Icon, color }, idx) => (
+        {summaryStats.map(({ title, value, change, icon: Icon }, idx) => (
           <div
             key={idx}
             className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
           >
             <div className="flex items-center justify-between mb-4">
-              <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center`}>
+              <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg flex items-center justify-center w-12 h-12">
                 <Icon className="text-white" size={24} />
               </div>
               <span className={`text-sm font-medium ${change.startsWith('+') ? 'text-emerald-600' : 'text-red-600'}`}>
@@ -211,7 +211,7 @@ const Payroll = ({ employees = [] }) => {
           <h2 className="text-xl font-bold text-slate-900">Monthly Payroll Details</h2>
           <button
             onClick={exportToCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 transition-transform duration-300 transform hover:scale-105"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105"
           >
             <FileSpreadsheet size={16} /> Export CSV
           </button>
@@ -219,13 +219,13 @@ const Payroll = ({ employees = [] }) => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50">
+            <thead className="bg-gradient-to-r from-teal-600 to-slate-700">
               <tr>
                 {["Employee", "Gross Salary", "PF Deduction", "Net Salary", "Status", "Actions"].map((col, idx) => (
                   <th
                     key={idx}
                     onClick={() => col === "Employee" ? handleSort('name') : col === "Gross Salary" ? handleSort('grossSalary') : col === "Net Salary" ? handleSort('netSalary') : null}
-                    className={`px-6 py-4 text-left font-medium text-slate-500 uppercase tracking-wider ${['Employee', 'Gross Salary', 'Net Salary'].includes(col) ? 'cursor-pointer hover:text-slate-700' : ''}`}
+                    className={`px-6 py-4 text-left font-medium text-white uppercase tracking-wider ${['Employee', 'Gross Salary', 'Net Salary'].includes(col) ? 'cursor-pointer hover:text-slate-200' : ''}`}
                   >
                     {col} {sortConfig.key === (col === "Employee" ? 'name' : col === "Gross Salary" ? 'grossSalary' : 'netSalary') && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                   </th>
@@ -272,7 +272,7 @@ const Payroll = ({ employees = [] }) => {
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(currentPage - 1)}
-            className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:bg-slate-300 disabled:cursor-not-allowed transition-transform duration-300 transform hover:scale-105"
+            className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-slate-300 disabled:cursor-not-allowed transition-transform duration-300 transform hover:scale-105"
           >
             Previous
           </button>
@@ -280,7 +280,7 @@ const Payroll = ({ employees = [] }) => {
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(currentPage + 1)}
-            className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:bg-slate-300 disabled:cursor-not-allowed transition-transform duration-300 transform hover:scale-105"
+            className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-slate-300 disabled:cursor-not-allowed transition-transform duration-300 transform hover:scale-105"
           >
             Next
           </button>
@@ -293,7 +293,7 @@ const Payroll = ({ employees = [] }) => {
             <PayslipGenerator employee={selectedEmployee} selectedMonth={selectedMonth} />
             <button
               onClick={() => setSelectedEmployee(null)}
-              className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 w-full transition-transform duration-300 transform hover:scale-105"
+              className="mt-4 px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 w-full transition-transform duration-300 transform hover:scale-105"
             >
               Close
             </button>
