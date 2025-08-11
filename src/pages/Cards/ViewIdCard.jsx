@@ -1,5 +1,8 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Smartphone, Download } from 'lucide-react';
+import CardTemplate from '../../assets/IDCardTemplate.png';
+import Barcode from '../../assets/barcode.png';
 
 const ViewIdCard = () => {
   const { id } = useParams();
@@ -8,21 +11,21 @@ const ViewIdCard = () => {
   const idCards = [
     {
       id: 1,
-      employee: 'Thambi Prasanth Annam',
+      employee: 'THAMBI PRASANTH ANNAM',
       empId: 'MO-EMP-008',
       designation: 'Digital Marketing Executive',
       bloodGroup: 'B+ve',
       mobile: '+91 9347 105 985',
-      photo: 'placeholder',
+      photo: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
     },
     {
       id: 2,
-      employee: 'Jane Doe',
+      employee: 'JANE DOE SMITH',
       empId: 'MO-EMP-009',
       designation: 'UI/UX Designer',
       bloodGroup: 'A+ve',
       mobile: '+91 9876 543 210',
-      photo: 'placeholder',
+      photo: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
     },
   ];
 
@@ -32,46 +35,92 @@ const ViewIdCard = () => {
     return <p className="p-6 text-slate-500">ID Card not found.</p>;
   }
 
+  const MeetOwnerLogo = () => (
+    <div className="flex flex-col items-center mb-4">
+      
+      <div className="flex items-center space-x-1">
+        <span className="text-2xl font-bold text-yellow-500"></span>
+        <span className="text-2xl font-bold text-blue-800"></span>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="p-6 bg-slate-50 min-h-screen">
+    <div className="p-6 bg-gray-50 min-h-screen">
       <button
         onClick={() => navigate('/idcard')}
-        className="mb-6 bg-slate-700 text-white px-4 py-2 rounded-lg shadow-md hover:bg-slate-800 transition duration-300"
+        className="mb-6 bg-blue-600 text-white px-6 py-3 shadow-md hover:bg-blue-700 transition duration-300 font-medium"
       >
-        Back to List
+        ← Back to List
       </button>
-      <div
-        className="bg-white border border-slate-200 rounded-xl shadow-lg p-6 relative w-full max-w-md mx-auto transform transition-all duration-300 hover:shadow-xl"
-        style={{ height: '500px' }}
-      >
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-teal-800 to-teal-400 rounded-xl opacity-10 z-0"></div>
-        <div className="relative z-10 flex flex-col items-center text-center space-y-6">
-          <div className="w-32 h-32 bg-slate-200 rounded-full overflow-hidden border-4 border-white shadow-md">
-            {card.photo === 'placeholder' ? (
-              <span className="text-slate-500 text-lg">Photo</span>
-            ) : (
+      
+      <div className="flex justify-center">
+        <div
+          className="w-96 h-[600px] rounded-xl shadow-2xl overflow-hidden relative border border-gray-200 bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${CardTemplate})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          {/* Overlay for Better Text Readability */}
+          <div className="absolute inset-0 z-0" />
+
+          {/* Header with Logo */}
+          <div className="pt-6 pb-4 relative z-20">
+            <MeetOwnerLogo />
+          </div>
+
+          {/* Employee Photo */}
+          <div className="absolute top-32 left-1/2 transform -translate-x-1/2 z-30">
+            <div className="w-37 h-37 rounded-full ">
               <img
                 src={card.photo}
                 alt="Employee"
-                className="w-full h-full object-cover"
+                className="w-full h-full rounded-full object-cover"
               />
-            )}
+            </div>
           </div>
-          <div className="space-y-3">
-            <h2 className="text-2xl font-bold text-slate-900">{card.employee}</h2>
-            <p className="text-slate-600 text-base">
-              <span className="font-medium">Designation:</span> {card.designation}
-            </p>
-            <p className="text-slate-600 text-base">
-              <span className="font-medium">ID No:</span> {card.empId}
-            </p>
-            <p className="text-slate-600 text-base">
-              <span className="font-medium">Blood Group:</span> {card.bloodGroup}
-            </p>
-            <p className="text-slate-600 text-base">
-              <span className="font-medium">Mobile:</span> {card.mobile}
-            </p>
+
+          {/* Employee Details */}
+          <div className="absolute top-72 left-0 right-0 z-20 px-8">
+            <div className="text-center mb-8">
+              <h2 className="text-xl font-bold text-blue-900 mb-1 tracking-wider">
+                {card.employee}
+              </h2>
+              <p className="text-gray-600 text-sm font-medium">
+                {card.designation}
+              </p>
+            </div>
+
+            <div className="space-y-4 text-left">
+              <div className="flex justify-between items-center">
+                <span className="w-1/2 text-gray-700 font-medium text-sm">ID No</span>
+                <span className="w-1/2 text-blue-900 font-bold text-sm">: {card.empId}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="w-1/2 text-gray-700 font-medium text-sm">Blood Group</span>
+                <span className="w-1/2 text-blue-900 font-bold text-sm">: {card.bloodGroup}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="w-1/2 text-gray-700 font-medium text-sm">Mobile Number</span>
+                <span className="w-1/2 text-blue-900 font-bold text-sm">: {card.mobile}</span>
+              </div>
+            </div>
+
+            {/* Barcode */}
+            <div className="mt-7 flex justify-center">
+             <div className="bg-white p-2 rounded">
+                <img
+                  src={Barcode}
+                  alt="Barcode"
+                  className="h-6 w-40 object-contain"
+                />
+                <p className="text-center text-[8px] text-gray-600">{card.empId}</p>
+              </div>
+            </div>
           </div>
+
         </div>
       </div>
     </div>
