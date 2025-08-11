@@ -18,13 +18,13 @@ const AssignEmployee = () => {
     address: "",
     annualSalary: "",
     joinDate: "",
-    roleType: "HR",
+    roleType: "",
     department: "",
     position: "",
     employmentType: "Full-time",
   });
 
-  // Department heads and positions
+  // Department heads (for Department role) and departments (for Employee role)
   const departmentHeads = [
     "Head of IT",
     "Head of Graphic Designing",
@@ -33,31 +33,39 @@ const AssignEmployee = () => {
     "Head of Business Management",
   ];
 
+  const departments = [
+    "IT",
+    "Graphic Designing",
+    "Digital Marketing",
+    "Telecalling Operations",
+    "Business Management",
+  ];
+
   const positions = {
-    "Head of IT": [
+    IT: [
       "Senior Software Engineer",
       "Associate Software Engineer",
       "Front End Developer",
       "Full Stack Developer",
       "Intern",
     ],
-    "Head of Graphic Designing": [
+    "Graphic Designing": [
       "UI UX Designer",
       "Senior Graphic Designer",
       "Junior Graphic Designer",
       "Intern",
     ],
-    "Head of Digital Marketing": [
+    "Digital Marketing": [
       "Senior Digital Marketer",
       "Junior Digital Marketer",
       "Intern",
     ],
-    "Head of Telecalling Operations": [
+    "Telecalling Operations": [
       "Senior Tele Associate",
       "Junior Tele Associate",
       "Intern",
     ],
-    "Head of Business Management": [
+    "Business Management": [
       "General Manager",
       "Senior BDM",
       "Junior BDM",
@@ -68,6 +76,7 @@ const AssignEmployee = () => {
   };
 
   const employmentTypes = ["Full-time", "Part-time", "Internship", "Contract"];
+  const roleTypes = ["HR", "Department", "Employee"];
 
   // Handle input changes
   const handleInput = useCallback((field, value) => {
@@ -91,6 +100,18 @@ const AssignEmployee = () => {
       e.preventDefault();
       if (!employee.name || !employee.email || !employee.joinDate) {
         alert("Please fill in all required fields (Name, Email, Join Date).");
+        return;
+      }
+      if (employee.roleType === "Department" && !employee.department) {
+        alert("Please select a Department Head for Department role.");
+        return;
+      }
+      if (employee.roleType === "Employee" && !employee.department) {
+        alert("Please select a Department for Employee role.");
+        return;
+      }
+      if (employee.roleType === "Employee" && !employee.position) {
+        alert("Please select a Position for Employee role.");
         return;
       }
 
@@ -136,14 +157,9 @@ const AssignEmployee = () => {
               { label: "Email", field: "email", type: "email", required: true },
               { label: "Phone", field: "phone", type: "tel" },
               { label: "Emergency Phone", field: "emergencyPhone", type: "tel" },
-              {
-                label: "Address",
-                field: "address",
-                type: "textarea",
-                className: "min-h-[100px] resize-y",
-              },
+              { label: "Address", field: "address", type: "textarea" },
               { label: "Annual Salary", field: "annualSalary", type: "number" },
-            ].map(({ label, field, type, required, className }) => (
+            ].map(({ label, field, type, required }) => (
               <div key={field}>
                 {type === "textarea" ? (
                   <div>
@@ -153,7 +169,7 @@ const AssignEmployee = () => {
                     <textarea
                       value={employee[field]}
                       onChange={(e) => handleInput(field, e.target.value)}
-                      className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 ${className}`}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
                       aria-label={label}
                     />
                   </div>
@@ -191,8 +207,10 @@ const AssignEmployee = () => {
                 onChange={(e) => handleInput("roleType", e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
                 aria-label="Select role type"
+                required
               >
-                {["HR", "Department", "Employee"].map((role) => (
+                <option value="">Select Role Type</option>
+                {roleTypes.map((role) => (
                   <option key={role} value={role}>
                     {role}
                   </option>
@@ -201,7 +219,7 @@ const AssignEmployee = () => {
             </div>
           </div>
 
-          {(employee.roleType === "Department" || employee.roleType === "Employee") && (
+          {employee.roleType === "Department" && (
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -212,9 +230,34 @@ const AssignEmployee = () => {
                   onChange={(e) => handleInput("department", e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
                   aria-label="Select department head"
+                  required
                 >
                   <option value="">Select Department Head</option>
                   {departmentHeads.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {employee.roleType === "Employee" && (
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Department
+                </label>
+                <select
+                  value={employee.department}
+                  onChange={(e) => handleInput("department", e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                  aria-label="Select department"
+                  required
+                >
+                  <option value="">Select Department</option>
+                  {departments.map((dept) => (
                     <option key={dept} value={dept}>
                       {dept}
                     </option>
@@ -235,6 +278,7 @@ const AssignEmployee = () => {
                   onChange={(e) => handleInput("position", e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
                   aria-label="Select position"
+                  required
                 >
                   <option value="">Select Position</option>
                   {positions[employee.department]?.map((pos) => (
