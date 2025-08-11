@@ -24,6 +24,7 @@ const Employee = () => {
       department: "Engineering",
       type: "Full-time",
       salary: 75000,
+      image: "https://placehold.co/100x100?text=John&bg=4B5EAA",
     },
     {
       id: "EMP002",
@@ -35,6 +36,19 @@ const Employee = () => {
       department: "Design",
       type: "Part-time",
       salary: 50000,
+      image: "https://placehold.co/100x100?text=Jane&bg=FF6F61",
+    },
+    {
+      id: "EMP003",
+      name: "Michael Brown",
+      joinDate: "2023-06-01",
+      position: "Data Analyst",
+      email: "michael.brown@example.com",
+      phone: "9876512345",
+      department: "Analytics",
+      type: "Full-time",
+      salary: 65000,
+      image: "https://placehold.co/100x100?text=Michael&bg=6B7280",
     },
   ]);
 
@@ -48,14 +62,14 @@ const Employee = () => {
     <div className="p-6">
       <div className="flex justify-end">
         <PageBreadcrumb
-        items={[
-          { label: "Home", link: "/" },
-          { label: "Employees", link: "/admin/employees" },
-        ]}
-      />
-      {/* Page Meta */}
-      <PageMeta title="Employee Management" description="Manage your employees efficiently." />
-      {/* Breadcrumb */} 
+          items={[
+            { label: "Home", link: "/" },
+            { label: "Employees", link: "/admin/employees" },
+          ]}
+        />
+        {/* Page Meta */}
+        <PageMeta title="Employee Management" description="Manage your employees efficiently." />
+        {/* Breadcrumb */}
       </div>
 
       {/* Header */}
@@ -93,7 +107,7 @@ const Employee = () => {
           >
             <div className="flex flex-col items-center mb-4">
               <img
-                src={`https://i.pravatar.cc/100?u=${emp.id}`}
+                src={emp.image}
                 alt={emp.name}
                 className="w-40 h-40 rounded-full border-4 border-white shadow-md -mt-4"
               />
@@ -117,8 +131,6 @@ const Employee = () => {
               <div className="flex items-center gap-2">
                 <Mail size={14} /> {emp.email}
               </div>
-              
-              
             </div>
 
             <div className="pt-3 border-t border-gray-200 mt-3">
@@ -135,9 +147,6 @@ const Employee = () => {
                 </span>
               </div>
               <p className="font-medium text-gray-900">{emp.position}</p>
-              {/* <p className="text-lg font-bold text-indigo-600">
-                ${emp.salary.toLocaleString()}
-              </p> */}
             </div>
           </div>
         ))}
