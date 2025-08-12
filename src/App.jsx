@@ -30,6 +30,7 @@ import IdCardForm from "./form/IdCardForm";
 import VisitingCard from "./pages/Cards/VisitingCard";
 import CalendarIntegration from "./pages/HolidayCalendar/CalendarIntegration";
 import TimeTracking from "./pages/timetracking/TimeTracking";
+import EmployeeTimeTracking from "./pages/timetracking/EmployeeTimeTracking";
 import AdminForm from "./pages/Login/AdminForm";
 import EmployeeDetails from './pages/EmployeeManagement/EmployeeDetails';
 import Login from "./pages/Login/Login";
@@ -100,6 +101,7 @@ const App = () => {
             <Route path="/admin/time-tracking" element={<TimeTracking />} />
             <Route path="/admin/admin-form" element={<AdminForm />} />
             <Route path="/employee/employee-details" element={<EmployeeDetails />} />
+            <Route path="/employee/emp-timetracking" element={<EmployeeTimeTracking />} />
 
           </Route>
         </Routes>
