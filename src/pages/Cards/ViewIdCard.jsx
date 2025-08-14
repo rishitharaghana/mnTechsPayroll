@@ -1,8 +1,7 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Smartphone, Download } from 'lucide-react';
-import CardTemplate from '../../assets/IDCardTemplate.png';
-import Barcode from '../../assets/barcode.png';
+import React from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import IDCardTemplate from "../../../public/assets/IDCardTemplate.png";
+import Barcode from "../../../public/assets/barcode.png";
 
 const ViewIdCard = () => {
   const { id } = useParams();
@@ -11,21 +10,23 @@ const ViewIdCard = () => {
   const idCards = [
     {
       id: 1,
-      employee: 'THAMBI PRASANTH ANNAM',
-      empId: 'MO-EMP-008',
-      designation: 'Digital Marketing Executive',
-      bloodGroup: 'B+ve',
-      mobile: '+91 9347 105 985',
-      photo: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+      employee: "THAMBI PRASANTH ANNAM",
+      empId: "MO-EMP-008",
+      designation: "Digital Marketing Executive",
+      bloodGroup: "B+ve",
+      mobile: "+91 9347 105 985",
+      photo:
+        "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1",
     },
     {
       id: 2,
-      employee: 'JANE DOE SMITH',
-      empId: 'MO-EMP-009',
-      designation: 'UI/UX Designer',
-      bloodGroup: 'A+ve',
-      mobile: '+91 9876 543 210',
-      photo: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+      employee: "JANE DOE SMITH",
+      empId: "MO-EMP-009",
+      designation: "UI/UX Designer",
+      bloodGroup: "A+ve",
+      mobile: "+91 9876 543 210",
+      photo:
+        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1",
     },
   ];
 
@@ -36,26 +37,19 @@ const ViewIdCard = () => {
   }
 
   const MeetOwnerLogo = () => (
-    <div className="flex flex-col items-center mb-4">
-    </div>
+    <div className="flex flex-col items-center mb-4"></div>
   );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <button
-        onClick={() => navigate('/idcard')}
-        className="mb-6 bg-blue-600 text-white px-6 py-3 shadow-md hover:bg-blue-700 transition duration-300 font-medium"
-      >
-        ← Back to List
-      </button>
-      
+    <div className="p-6 pt-10 w-200 bg-white shadow-1xl rounded-xl min-h-screen">
+      <h2 className="text-2xl font-bold text-slate-700 mb-5">ID Card</h2>
       <div className="flex justify-center">
         <div
-          className="w-96 h-[600px] rounded-xl shadow-2xl overflow-hidden relative border border-gray-200 bg-cover bg-center"
+          className="w-96 h-[600px] rounded-sm shadow-2xl overflow-hidden relative border border-gray-200 bg-cover bg-center"
           style={{
-            backgroundImage: `url(${CardTemplate})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            backgroundImage: `url(${IDCardTemplate})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
           }}
         >
           {/* Overlay for Better Text Readability */}
@@ -90,33 +84,54 @@ const ViewIdCard = () => {
 
             <div className="space-y-4 text-left">
               <div className="flex justify-between items-center">
-                <span className="w-1/2 text-gray-700 font-medium text-sm">ID No</span>
-                <span className="w-1/2 text-blue-900 font-bold text-sm">: {card.empId}</span>
+                <span className="w-1/2 text-gray-700 font-medium text-sm">
+                  ID No
+                </span>
+                <span className="w-1/2 text-blue-900 font-bold text-sm">
+                  : {card.empId}
+                </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="w-1/2 text-gray-700 font-medium text-sm">Blood Group</span>
-                <span className="w-1/2 text-blue-900 font-bold text-sm">: {card.bloodGroup}</span>
+                <span className="w-1/2 text-gray-700 font-medium text-sm">
+                  Blood Group
+                </span>
+                <span className="w-1/2 text-blue-900 font-bold text-sm">
+                  : {card.bloodGroup}
+                </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="w-1/2 text-gray-700 font-medium text-sm">Mobile Number</span>
-                <span className="w-1/2 text-blue-900 font-bold text-sm">: {card.mobile}</span>
+                <span className="w-1/2 text-gray-700 font-medium text-sm">
+                  Mobile Number
+                </span>
+                <span className="w-1/2 text-blue-900 font-bold text-sm">
+                  : {card.mobile}
+                </span>
               </div>
             </div>
 
             {/* Barcode */}
             <div className="mt-7 flex justify-center">
-             <div className="bg-white p-2 rounded">
+              <div className="bg-white p-2 rounded">
                 <img
                   src={Barcode}
                   alt="Barcode"
                   className="h-6 w-40 object-contain"
                 />
-                <p className="text-center text-[8px] text-gray-600">{card.empId}</p>
+                <p className="text-center text-[8px] text-gray-600">
+                  {card.empId}
+                </p>
               </div>
             </div>
           </div>
-
         </div>
+      </div>
+      <div className="flex justify-end">
+        <button
+          onClick={() => navigate("/idcard")}
+          className="mb-6 bg-slate-700 mt-4 rounded-lg text-white px-6 py-2 shadow-md hover:bg-teal-700 transition duration-300 font-medium"
+        >
+          ← Back to List
+        </button>
       </div>
     </div>
   );
