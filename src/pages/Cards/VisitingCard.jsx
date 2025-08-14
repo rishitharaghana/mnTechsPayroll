@@ -10,7 +10,7 @@ const employees = [
     id: 1,
     name: "Jeevan Sekhar",
     position: "Associate Senior Software Engineer",
-    department: "TEch Team",
+    department: "Tech Team",
     email: "jeevan@company.com",
     phone: "6301234567",
     website: "www.jeevan.com",
@@ -121,14 +121,16 @@ const CardStylePopup = ({ style, onClose }) => {
             {selectedCard.name} Template
           </h2>
         </div>
-        <p className="text-sm text-slate-500 mb-6">{selectedCard.description}</p>
+        <p className="text-sm text-slate-500 mb-6">
+          {selectedCard.description}
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-2">Front</h3>
             <img
               src={selectedCard.front}
               alt={`${selectedCard.name} front`}
-              className="w-full h-auto rounded-lg shadow-sm"
+              className="w-full h-auto rounded-lg shadow-sm transform transition-transform duration-300 hover:scale-105 hover:shadow-lg"
             />
           </div>
           <div>
@@ -136,17 +138,17 @@ const CardStylePopup = ({ style, onClose }) => {
             <img
               src={selectedCard.back}
               alt={`${selectedCard.name} back`}
-              className="w-full h-auto rounded-lg shadow-sm"
+              className="w-full h-auto rounded-lg shadow-sm transform transition-transform duration-300 hover:scale-105 hover:shadow-lg"
             />
           </div>
         </div>
         <div className="flex justify-end">
-        <button
-          onClick={onClose}
-          className="mt-6 max-w-max bg-slate-700 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg"
-        >
-          Close
-        </button>
+          <button
+            onClick={onClose}
+            className="mt-6 max-w-max bg-slate-700 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -261,7 +263,6 @@ function VisitingCard() {
         />
       ) : (
         <>
-
           {/* Header */}
           <div className="flex justify-end ">
             <PageBreadcrumb
@@ -270,21 +271,20 @@ function VisitingCard() {
                 { label: "Visiting Card", href: "/admin/visitingcards" },
               ]}
             />
-            <PageMeta title="Visiting Card"/>
+            <PageMeta title="Visiting Card" />
           </div>
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
             {/* Controls */}
             <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
               <div className="mb-9">
-              <h1 className="text-2xl font-bold text-slate-700 mb-1">
-                Visiting Card Generator
-              </h1>
-              <p className="text-gray-400">
-                Create professional business cards for employees
-              </p>
-            </div>
+                <h1 className="text-2xl font-bold text-slate-700 mb-1">
+                  Visiting Card Generator
+                </h1>
+                <p className="text-gray-400">
+                  Create professional business cards for employees
+                </p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Employee Selector */}
                 <div>
