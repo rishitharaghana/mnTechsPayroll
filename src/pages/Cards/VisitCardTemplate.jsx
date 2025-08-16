@@ -18,10 +18,14 @@ const VisitCardTemplate = ({ style, employee, isPreview, sideFront }) => {
             }}
           >
             {/* Foreground content */}
-            <div className="relative z-10 h-full flex flex-col justify-between">
+            <div className="relative z-10 h-full flex justify-center items-center">
               <div className="text-center">
-                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Building size={isPreview ? 32 : 20} className="text-white" />
+                <div className="w-12 h-12 flex items-center justify-center mx-auto">
+                  <img
+                    src="/assets/CompanyLogo.png" 
+                    alt="Company Logo"
+                    className="w-8 h-8 text-white object-contain"
+                  />
                 </div>
                 <h2
                   className={`font-bold text-black ${
@@ -45,34 +49,22 @@ const VisitCardTemplate = ({ style, employee, isPreview, sideFront }) => {
               backgroundPosition: "center",
             }}
           >
-            <div className="h-full flex flex-col justify-between text-center">
-              <div>
-                <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Building size={isPreview ? 24 : 16} className="text-white" />
+            <div className="relative z-10 h-full flex justify-center items-center">
+              <div className="text-center">
+                <div className="w-12 h-12 flex items-center justify-center mx-auto">
+                  <img
+                    src="/assets/CompanyLogo.png" 
+                    alt="Company Logo"
+                    className="w-8 h-8 text-white object-contain"
+                  />
                 </div>
                 <h2
-                  className={`font-bold text-gray-800 ${
+                  className={`font-bold text-slate-700 ${
                     isPreview ? "text-xl" : "text-sm"
                   } mb-1`}
                 >
                   {companyName}
                 </h2>
-                <p
-                  className={`text-gray-600 ${
-                    isPreview ? "text-sm" : "text-xs"
-                  }`}
-                >
-                  {companyTagline}
-                </p>
-              </div>
-              <div>
-                <p
-                  className={`text-gray-500 ${
-                    isPreview ? "text-xs" : "text-xs"
-                  }`}
-                >
-                  Est. 2020
-                </p>
               </div>
             </div>
           </div>
@@ -88,25 +80,22 @@ const VisitCardTemplate = ({ style, employee, isPreview, sideFront }) => {
               backgroundPosition: "center",
             }}
           >
-            <div className="h-full flex flex-col justify-between">
+            <div className="relative z-10 h-full flex justify-center items-center">
               <div className="text-center">
+                <div className="w-12 h-12 flex items-center justify-center bg-white rounded-full p-2 mx-auto">
+                  <img
+                    src="/assets/CompanyLogo.png" 
+                    alt="Company Logo"
+                    className="w-8 h-8 text-white object-contain"
+                  />
+                </div>
                 <h2
-                  className={`font-light text-gray-900 ${
+                  className={`font-semibold text-white ${
                     isPreview ? "text-2xl" : "text-lg"
-                  } mb-2`}
+                  } mb-1`}
                 >
                   {companyName}
                 </h2>
-                <p
-                  className={`text-gray-600 ${
-                    isPreview ? "text-sm" : "text-xs"
-                  }`}
-                >
-                  {companyTagline}
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-full h-px bg-gray-300"></div>
               </div>
             </div>
           </div>
@@ -122,24 +111,22 @@ const VisitCardTemplate = ({ style, employee, isPreview, sideFront }) => {
               backgroundPosition: "center",
             }}
           >
-            <div className="relative z-10 h-full flex flex-col justify-between text-center">
-              <div>
+            <div className="relative z-10 h-full flex justify-center items-center">
+              <div className="text-center">
+                <div className="w-12 h-12 flex items-center justify-center bg-white rounded-full p-2 mx-auto">
+                  <img
+                    src="/assets/CompanyLogo.png" 
+                    alt="Company Logo"
+                    className="w-8 h-8 text-white object-contain"
+                  />
+                </div>
                 <h2
-                  className={`font-bold ${
-                    isPreview ? "text-xl" : "text-sm"
+                  className={`font-semibold text-white ${
+                    isPreview ? "text-2xl" : "text-lg"
                   } mb-1`}
                 >
                   {companyName}
                 </h2>
-                <p
-                  className={`text-blue-300 ${
-                    isPreview ? "text-sm" : "text-xs"
-                  }`}
-                >
-                  {companyTagline}
-                </p>
-              </div>
-              <div className="flex justify-center">
               </div>
             </div>
           </div>
@@ -182,13 +169,16 @@ const VisitCardTemplate = ({ style, employee, isPreview, sideFront }) => {
                 </p>
               </div>
               <div className="space-y-2">
-                
                 <div className="flex items-center space-x-2">
                   <Phone
                     size={isPreview ? 14 : 10}
                     className="text-slate-700 flex-shrink-0"
                   />
-                  <span className={`text-slate-700 ${isPreview ? "text-xs" : "text-xs"}`}>
+                  <span
+                    className={`text-slate-700 ${
+                      isPreview ? "text-xs" : "text-xs"
+                    }`}
+                  >
                     {employee.phone}
                   </span>
                 </div>
@@ -198,12 +188,14 @@ const VisitCardTemplate = ({ style, employee, isPreview, sideFront }) => {
                     className="text-slate-700 flex-shrink-0"
                   />
                   <span
-                    className={` text-slate-700 ${isPreview ? "text-xs" : "text-xs"} truncate`}
+                    className={` text-slate-700 ${
+                      isPreview ? "text-xs" : "text-xs"
+                    } truncate`}
                   >
                     {employee.email}
                   </span>
                 </div>
-                
+
                 <div className="flex items-start space-x-2">
                   <MapPin
                     size={isPreview ? 14 : 10}
@@ -222,7 +214,11 @@ const VisitCardTemplate = ({ style, employee, isPreview, sideFront }) => {
                     size={isPreview ? 14 : 10}
                     className="text-slate-700 flex-shrink-0"
                   />
-                  <span className={`text-slate-700 ${isPreview ? "text-xs" : "text-xs"}`}>
+                  <span
+                    className={`text-slate-700 ${
+                      isPreview ? "text-xs" : "text-xs"
+                    }`}
+                  >
                     {employee.website}
                   </span>
                 </div>
@@ -241,42 +237,77 @@ const VisitCardTemplate = ({ style, employee, isPreview, sideFront }) => {
               backgroundPosition: "center",
             }}
           >
-            <div className="h-full flex flex-col justify-between text-gray-700">
-              <div className="text-center mb-3">
+            <div className="relative z-10 h-full flex gap-1 flex-col justify-between">
+              <div>
                 <h3
-                  className={`font-bold ${
+                  className={`font-bold text-slate-700 ${
                     isPreview ? "text-lg" : "text-sm"
-                  } text-gray-800`}
+                  } mb-1 text-left`}
                 >
                   {employee.name}
                 </h3>
                 <p
                   className={`${
                     isPreview ? "text-sm" : "text-xs"
-                  } text-gray-600`}
+                  } text-teal-700 leading-none font-semibold text-left mb-1`}
                 >
                   {employee.position}
                 </p>
-                <div className="w-12 h-0.5 bg-gray-400 mx-auto mt-2"></div>
               </div>
-              <div className="space-y-1">
-                <p className={`${isPreview ? "text-xs" : "text-xs"}`}>
-                  <span className="font-medium">Email:</span> {employee.email}
-                </p>
-                <p className={`${isPreview ? "text-xs" : "text-xs"}`}>
-                  <span className="font-medium">Phone:</span> {employee.phone}
-                </p>
-                <p className={`${isPreview ? "text-xs" : "text-xs"}`}>
-                  <span className="font-medium">Web:</span> {employee.website}
-                </p>
-                <p
-                  className={`${
-                    isPreview ? "text-xs" : "text-xs"
-                  } leading-tight`}
-                >
-                  <span className="font-medium">Address:</span>{" "}
-                  {employee.address}
-                </p>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Phone
+                    size={isPreview ? 14 : 10}
+                    className="text-slate-700 flex-shrink-0"
+                  />
+                  <span
+                    className={`text-slate-700 ${
+                      isPreview ? "text-xs" : "text-xs"
+                    }`}
+                  >
+                    {employee.phone}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Mail
+                    size={isPreview ? 14 : 10}
+                    className="text-slate-700 flex-shrink-0"
+                  />
+                  <span
+                    className={` text-slate-700 ${
+                      isPreview ? "text-xs" : "text-xs"
+                    } truncate`}
+                  >
+                    {employee.email}
+                  </span>
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <MapPin
+                    size={isPreview ? 14 : 10}
+                    className="text-slate-700 mt-0.5 flex-shrink-0"
+                  />
+                  <span
+                    className={`text-slate-700 ${
+                      isPreview ? "text-xs" : "text-xs"
+                    } leading-tight`}
+                  >
+                    {employee.address}
+                  </span>
+                </div>
+                <div className="flex justify-end items-center space-x-2">
+                  <Globe
+                    size={isPreview ? 14 : 10}
+                    className="text-slate-700 flex-shrink-0"
+                  />
+                  <span
+                    className={`text-slate-700 ${
+                      isPreview ? "text-xs" : "text-xs"
+                    }`}
+                  >
+                    {employee.website}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -292,40 +323,77 @@ const VisitCardTemplate = ({ style, employee, isPreview, sideFront }) => {
               backgroundPosition: "center",
             }}
           >
-            <div className="h-full flex flex-col justify-between text-gray-700">
-              <div className="text-center mb-3">
+            <div className="relative z-10 h-full flex flex-col justify-between">
+              <div>
                 <h3
-                  className={`font-light ${
+                  className={`font-bold text-white ${
                     isPreview ? "text-lg" : "text-sm"
-                  } text-gray-900`}
+                  } mb-1 text-right`}
                 >
                   {employee.name}
                 </h3>
                 <p
                   className={`${
                     isPreview ? "text-sm" : "text-xs"
-                  } text-gray-600`}
+                  } text-white leading-none font-semibold text-right mb-2`}
                 >
                   {employee.position}
                 </p>
               </div>
               <div className="space-y-2">
-                <p className={`${isPreview ? "text-xs" : "text-xs"}`}>
-                  {employee.email}
-                </p>
-                <p className={`${isPreview ? "text-xs" : "text-xs"}`}>
-                  {employee.phone}
-                </p>
-                <p className={`${isPreview ? "text-xs" : "text-xs"}`}>
-                  {employee.website}
-                </p>
-                <p
-                  className={`${
-                    isPreview ? "text-xs" : "text-xs"
-                  } text-gray-500 leading-tight`}
-                >
-                  {employee.address}
-                </p>
+                <div className="flex items-center space-x-2">
+                  <Phone
+                    size={isPreview ? 14 : 10}
+                    className="text-white flex-shrink-0"
+                  />
+                  <span
+                    className={`text-white ${
+                      isPreview ? "text-xs" : "text-xs"
+                    }`}
+                  >
+                    {employee.phone}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Mail
+                    size={isPreview ? 14 : 10}
+                    className="text-white flex-shrink-0"
+                  />
+                  <span
+                    className={` text-white ${
+                      isPreview ? "text-xs" : "text-xs"
+                    } truncate`}
+                  >
+                    {employee.email}
+                  </span>
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <MapPin
+                    size={isPreview ? 14 : 10}
+                    className="text-white mt-0.5 flex-shrink-0"
+                  />
+                  <span
+                    className={`text-white ${
+                      isPreview ? "text-xs" : "text-xs"
+                    } leading-tight`}
+                  >
+                    {employee.address}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Globe
+                    size={isPreview ? 14 : 10}
+                    className="text-white flex-shrink-0"
+                  />
+                  <span
+                    className={`text-white ${
+                      isPreview ? "text-xs" : "text-xs"
+                    }`}
+                  >
+                    {employee.website}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

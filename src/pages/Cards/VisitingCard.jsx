@@ -3,13 +3,14 @@ import { Eye, User, Building, Archive, X } from "lucide-react";
 import VisitCardPreview from "./VisitCardPreview";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
+// import VisitingCardForm from "../../form/VisitingCardForm";
 
 // Employee data
 const employees = [
   {
     id: 1,
     name: "Jeevan Sekhar",
-    position: "Associate Senior Software Engineer",
+    position: "Associate Software Engineer",
     department: "Tech Team",
     email: "jeevan@company.com",
     phone: "6301234567",
@@ -340,7 +341,7 @@ function VisitingCard() {
               <h2 className="text-xl font-semibold text-gray-900 mb-6">
                 Card Styles
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {cardStyles.map((style) => (
                   <div
                     key={style.id}
