@@ -36,6 +36,7 @@ import Login from "./pages/Login/Login";
 import Unauthorized from "./pages/Others/UnAuthorized";
 import ProtectedRoute from "./context/ProtectedRoute";
 import EmployeeTimeTracking from "./pages/timetracking/EmployeeTimeTracking";
+import VisitingCardForm from "./form/VisitingCardForm";
 
 const App = () => {
   return (
@@ -108,6 +109,7 @@ const App = () => {
               element={<EmployeeDetails />}
             />
             <Route path="/employee/emp-timetracking" element={<EmployeeTimeTracking />} />
+            <Route path="/visitingcard-form" element={<VisitingCardForm />} />
           </Route>
         </Route>
           <Route path="/unauthorized" element={<Unauthorized />} />
