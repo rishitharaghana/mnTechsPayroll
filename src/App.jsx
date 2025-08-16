@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import AppLayout from "./layout/AppLayout";
 import Home from "./pages/HomePage/home";
@@ -30,18 +30,21 @@ import IdCardForm from "./form/IdCardForm";
 import VisitingCard from "./pages/Cards/VisitingCard";
 import CalendarIntegration from "./pages/HolidayCalendar/CalendarIntegration";
 import TimeTracking from "./pages/timetracking/TimeTracking";
-import EmployeeTimeTracking from "./pages/timetracking/EmployeeTimeTracking";
 import AdminForm from "./pages/Login/AdminForm";
-import EmployeeDetails from './pages/EmployeeManagement/EmployeeDetails';
+import EmployeeDetails from "./pages/EmployeeManagement/EmployeeDetails";
 import Login from "./pages/Login/Login";
+import Unauthorized from "./pages/Others/UnAuthorized";
+import ProtectedRoute from "./context/ProtectedRoute";
+import EmployeeTimeTracking from "./pages/timetracking/EmployeeTimeTracking";
 
 const App = () => {
   return (
     <GoogleOAuthProvider clientId="https://www.googleapis.com/auth/userinfo.profile">
       <BrowserRouter>
         <Routes>
+           <Route element={<ProtectedRoute />}>
           <Route path="/login" element={<Login />} />
-
+        
           <Route element={<AppLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/admin/dashboard" element={<Dashboard />} />
@@ -50,7 +53,7 @@ const App = () => {
             <Route path="/profile" element={<EditProfile />} />
 
             <Route path="/admin/employees" element={<Employee />} />
-            <Route path="/admin/assign-employee" element={<AssignEmployee />}/>
+            <Route path="/admin/assign-employee" element={<AssignEmployee />} />
 
             <Route
               path="/admin/employees/add-employee"
@@ -100,11 +103,17 @@ const App = () => {
             <Route path="/admin/calendar" element={<CalendarIntegration />} />
             <Route path="/admin/time-tracking" element={<TimeTracking />} />
             <Route path="/admin/admin-form" element={<AdminForm />} />
-            <Route path="/employee/employee-details" element={<EmployeeDetails />} />
+            <Route
+              path="/employee/employee-details"
+              element={<EmployeeDetails />}
+            />
             <Route path="/employee/emp-timetracking" element={<EmployeeTimeTracking />} />
-
           </Route>
+        </Route>
+          <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
+      
       </BrowserRouter>
     </GoogleOAuthProvider>
   );

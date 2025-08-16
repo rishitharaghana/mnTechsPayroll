@@ -12,10 +12,7 @@ const LeaveApplication = () => {
 
   const employees = [
     { id: 'EMP001', name: 'John Smith' },
-    { id: 'EMP002', name: 'Sarah Wilson' },
-    { id: 'EMP003', name: 'Mike Johnson' },
-    { id: 'EMP004', name: 'Emily Davis' },
-    { id: 'EMP005', name: 'Robert Brown' },
+
   ];
 
   const handleSubmit = (e) => {
@@ -93,7 +90,6 @@ const LeaveApplication = () => {
                 />
               </div>
             </div>
-
             <div>
               <label className="block text-sm font-medium mb-2">To</label>
               <div className="flex items-center space-x-2">
@@ -107,14 +103,13 @@ const LeaveApplication = () => {
               </div>
             </div>
           </div>
-
           <div className="md:col-span-3">
             <label className="block text-sm font-medium mb-2">Email</label>
             <div className="flex items-center space-x-2">
               <Mail size={20} className="text-slate-400" />
               <input
                 type="email"
-                value={email}
+                value={email} 
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:outline-none"

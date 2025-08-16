@@ -6,7 +6,6 @@ const SettingsProfile = ({ settings, setSettings }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Handle image upload
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -15,19 +14,16 @@ const SettingsProfile = ({ settings, setSettings }) => {
         setPreviewImage(reader.result);
         setSettings({
           ...settings,
-          profileImage: reader.result, // Adjusted to match settings structure
+          profileImage: reader.result, 
         });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Handle save changes
   const handleSaveChanges = (e) => {
     e.preventDefault();
-    // No validation required, directly save
     setIsSaved(true);
-    // Simulate saving data (replace with API call if needed)
     setTimeout(() => setIsSaved(false), 3000);
   };
 
@@ -35,16 +31,13 @@ const SettingsProfile = ({ settings, setSettings }) => {
     <div className="space-y-6 max-w-4xl lg:max-w-3xl md:max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-md">
       <h2 className="text-2xl font-semibold text-gray-900">Profile Settings</h2>
 
-      {/* Save Confirmation Message */}
       {isSaved && (
         <div className="p-3 bg-green-100 text-green-700 rounded-lg">
           Profile settings saved successfully!
         </div>
       )}
 
-      {/* Form */}
       <form onSubmit={handleSaveChanges}>
-        {/* Profile Image Upload */}
         <div className="flex items-center space-x-4 mb-6">
           <div className="relative">
             {previewImage ? (
@@ -74,7 +67,6 @@ const SettingsProfile = ({ settings, setSettings }) => {
           </div>
         </div>
 
-        {/* Form Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label
@@ -204,7 +196,6 @@ const SettingsProfile = ({ settings, setSettings }) => {
           </div>
         </div>
 
-        {/* Save Button */}
         <div className="flex justify-end mt-6">
           <button
             type="submit"

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   DollarSign,
   Calendar,
@@ -10,35 +10,43 @@ import {
 import PayslipGenerator from '../PayslipManagement/PaySlipGenerator';
 import PageMeta from '../../Components/common/PageMeta';
 import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import { fetchPayroll } from '../../redux/slices/payrollSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 const Payroll = ({ employees = [] }) => {
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [filters, setFilters] = useState({ search: '', department: '', status: '' });
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [payrollData, setPayrollData] = useState(employees.length > 0 ? employees : [
-    {
-      id: 'EMP001', name: 'John Smith', department: 'Engineering',
-      grossSalary: 75000, deductions: { pf: 1200 },
-      netSalary: 73800, paidLeave: 2, unpaidLeave: 0,
-      paymentMethod: 'Direct Deposit', bankDetails: { accountNumber: 'XXXX1234', bankName: 'Bank of America' },
-      status: 'Processed'
-    },
-    {
-      id: 'EMP002', name: 'Sarah Wilson', department: 'Marketing',
-      grossSalary: 65000, deductions: { pf: 1000 },
-      netSalary: 64000, paidLeave: 1, unpaidLeave: 1,
-      paymentMethod: 'Check', bankDetails: {}, status: 'Processed'
-    },
-    {
-      id: 'EMP003', name: 'Mike Johnson', department: 'Design',
-      grossSalary: 50000, deductions: { pf: 800 },
-      netSalary: 49200, paidLeave: 0, unpaidLeave: 2,
-      paymentMethod: 'Direct Deposit', bankDetails: { accountNumber: 'XXXX5678', bankName: 'Chase' },
-      status: 'Pending'
-    }
-  ]);
+  
+  
+const dispatch = useDispatch();
+  const { payrollList, loading, error } = useSelector((state) => state.payroll);
+
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+  
+  // const [payrollData, setPayrollData] = useState(employees.length > 0 ? employees : [
+  //   {
+  //     id: 'EMP001', name: 'John Smith', department: 'Engineering',
+  //     grossSalary: 75000, deductions: { pf: 1200 },
+  //     netSalary: 73800, paidLeave: 2, unpaidLeave: 0,
+  //     paymentMethod: 'Direct Deposit', bankDetails: { accountNumber: 'XXXX1234', bankName: 'Bank of America' },
+  //     status: 'Processed'
+  //   },
+  //   {
+  //     id: 'EMP002', name: 'Sarah Wilson', department: 'Marketing',
+  //     grossSalary: 65000, deductions: { pf: 1000 },
+  //     netSalary: 64000, paidLeave: 1, unpaidLeave: 1,
+  //     paymentMethod: 'Check', bankDetails: {}, status: 'Processed'
+  //   },
+  //   {
+  //     id: 'EMP003', name: 'Mike Johnson', department: 'Design',
+  //     grossSalary: 50000, deductions: { pf: 800 },
+  //     netSalary: 49200, paidLeave: 0, unpaidLeave: 2,
+  //     paymentMethod: 'Direct Deposit', bankDetails: { accountNumber: 'XXXX5678', bankName: 'Chase' },
+  //     status: 'Pending'
+  //   }
+  // ]);
   const itemsPerPage = 5;
 
   const summaryStats = [
@@ -48,6 +56,13 @@ const Payroll = ({ employees = [] }) => {
     { title: 'Total PF Deductions', value: '$42,000', change: '-1.2%', icon: Calculator }
   ];
 
+  useEffect(() => {
+    dispatch(fetchPayroll({ month: selectedMonth }));
+  }, [dispatch, selectedMonth]);
+
+  const payrollData = payrollList || [];
+
+  
   const getStatusColor = (status) => {
     switch (status) {
       case 'Processed': return 'bg-green-100 text-green-800';
@@ -57,7 +72,6 @@ const Payroll = ({ employees = [] }) => {
     }
   };
 
-  // Filtering and sorting logic
   const filteredData = payrollData
     .filter((emp) =>
       emp.name.toLowerCase().includes(filters.search.toLowerCase()) &&

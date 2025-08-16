@@ -1,3 +1,6 @@
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import { NavLink } from "react-router-dom";
 import {
   Users,
   Clock,
@@ -5,22 +8,19 @@ import {
   Calendar,
   TrendingUp,
   CreditCard,
-  MapPin,
   PersonStanding,
-  Shield,
-  Settings,
-  HelpCircle,
   LogOut,
   CalendarClock,
-  IdCard,
   IdCardIcon,
-  IdCardLanyard,
 } from "lucide-react";
-import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
 
 const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const [activeTab, setActiveTab] = useState("");
+  const { user } = useSelector((state) => state.auth);
+
+  if (!user?.role) {
+    console.error("User role is undefined or user is not authenticated");
+  }
 
   const menuItems = [
     {
@@ -28,14 +28,33 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Dashboard",
       icon: TrendingUp,
       path: "/admin/dashboard",
+      allowedRoles: ["super_admin", "hr", "dept_head", ],
+    },
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: TrendingUp,
+      path: "/emp-dashboard",
+      allowedRoles: ["employee", ],
     },
     {
       id: "employees",
       label: "Employees",
       icon: Users,
+      allowedRoles: ["super_admin", "hr", "dept_head"],
       children: [
-        { id: "view-employees", label: "View Employees", path: "/admin/employees" },
-        {id: "assign-employee", label: "Assign Employee", path: "/admin/assign-employee"},
+        {
+          id: "view-employees",
+          label: "View Employees",
+          path: "/admin/employees",
+          allowedRoles: ["super_admin", "hr", "dept_head"],
+        },
+        {
+          id: "assign-employee",
+          label: "Assign Employee",
+          path: "/admin/assign-employee",
+          allowedRoles: ["super_admin", ],
+        },
       ],
     },
     {
@@ -43,28 +62,60 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Attendance",
       icon: Clock,
       path: "/admin/attendance",
+      allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
+      children: [
+        {
+          id: "attendance",
+          label: "Apply Attendance",
+          path: "/employee/employee-attendance",
+          allowedRoles: ["employee"],
+        },
+      ],
     },
     {
       id: "leave-tracker",
       label: "Leave Management",
       icon: CalendarClock,
       path: "/admin/leave-tracker",
+      allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
+      children: [
+        {
+          id: "leave-application",
+          label: "Apply Leave",
+          path: "/employee/leave-application",
+          allowedRoles: ["employee"],
+        },
+        {
+          id: "leave-dashboard",
+          label: "Leave Dashboard",
+          path: "/employee/leave-dashboard",
+          allowedRoles: ["employee"],
+        },
+      ],
     },
     {
       id: "payroll",
       label: "Payroll",
       icon: CreditCard,
+      allowedRoles: ["super_admin", "hr"],
       children: [
-        { id: "view-payroll", label: "View Payroll", path: "/admin/payroll" },
+        {
+          id: "view-payroll",
+          label: "View Payroll",
+          path: "/admin/payroll",
+          allowedRoles: ["super_admin", "hr"],
+        },
         {
           id: "generate-payroll",
           label: "Generate Payroll",
           path: "/admin/generate-payroll",
+          allowedRoles: ["super_admin"],
         },
         {
-          id: "payroll history",
+          id: "payroll-history",
           label: "View Payroll History",
           path: "/pay-history",
+          allowedRoles: ["super_admin", "hr"],
         },
       ],
     },
@@ -73,27 +124,32 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Payslips",
       icon: FileText,
       path: "/admin/payslip",
+      allowedRoles: ["super_admin", "hr", "employee"],
     },
     {
       id: "calendar",
       label: "Calendar",
       icon: Calendar,
       path: "/admin/calendar",
+      allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
     },
     {
       id: "performance",
       label: "Performance",
       icon: TrendingUp,
+      allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
       children: [
         {
           id: "view-performance",
           label: "View Performance",
           path: "/admin/performance",
+          allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
         },
         {
           id: "add-performance",
           label: "Add Employee Review",
           path: "/admin/add-performance",
+          allowedRoles: ["super_admin", "hr"],
         },
       ],
     },
@@ -102,14 +158,33 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Visiting Cards",
       icon: IdCardIcon,
       path: "/admin/visitingcards",
+      allowedRoles: ["super_admin", "hr"],
     },
-    { id: "idcard", label: "ID Card", icon: IdCardLanyard, path: "/idcard" },
+    {
+      id: "idcard",
+      label: "ID Card",
+      icon: IdCardIcon,
+      path: "/idcard",
+      allowedRoles: ["super_admin", "hr", "dept_head"],
+    },
   ];
 
   const profileItems = [
     { id: "profile", label: "Profile", icon: PersonStanding, path: "/profile" },
-    { id: "logout", label: "Logout", icon: LogOut, path: "login" }, 
+    { id: "logout", label: "Logout", icon: LogOut, path: "/login" },
   ];
+
+  const filteredMenuItems = menuItems
+    .filter((menu) => menu.allowedRoles.includes(user?.role))
+    .map((menu) => {
+      if (menu.children) {
+        const filteredChildren = menu.children.filter((child) =>
+          child.allowedRoles.includes(user?.role)
+        );
+        return { ...menu, children: filteredChildren };
+      }
+      return menu;
+    });
 
   return (
     <>
@@ -118,24 +193,48 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white text-gray-800 border-r border-white/20 transition-transform duration-300 ease-in-out flex flex-col`}
       >
-        {/* Main Navigation */}
         <nav className="flex-1 p-4 space-y-2 mt-4">
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             const Icon = item.icon;
 
+            if (item.path && (!item.children || item.children.length === 0)) {
+              return (
+                <NavLink
+                  key={item.id}
+                  to={item.path}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={({ isActive }) =>
+                    `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                      isActive || activeTab === item.id
+                        ? "bg-teal-600 text-white shadow-md"
+                        : "hover:bg-slate-700 hover:text-white"
+                    }`
+                  }
+                >
+                  <Icon size={20} />
+                  <span className="font-medium">{item.label}</span>
+                </NavLink>
+              );
+            }
+
+            // If the item has children, render as a dropdown
             if (item.children) {
               const isActive = activeTab === item.id;
               return (
                 <div key={item.id}>
                   <button
                     type="button"
-                    onClick={() =>
-                      setActiveTab((prev) => (prev === item.id ? "" : item.id))
-                    }
+                    onClick={() => {
+                      setActiveTab((prev) => (prev === item.id ? "" : item.id));
+                      if (item.path && item.children.length === 0) {
+                        setIsMobileMenuOpen(false);
+                      }
+                    }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
-                      isActive
-                        ? "bg-teal-600 text-white shadow-md"
-                        : "hover:bg-slate-700 hover:text-white"
+                      isActive ? "bg-teal-600 text-white shadow-md" : "hover:bg-slate-700 hover:text-white"
                     }`}
                   >
                     <div className="flex items-center space-x-3">
@@ -144,7 +243,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                     </div>
                   </button>
 
-                  {isActive && (
+                  {isActive && item.children.length > 0 && (
                     <div className="ml-6 mt-2 space-y-1">
                       {item.children.map((child) => (
                         <NavLink
@@ -153,9 +252,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={({ isActive }) =>
                             `block px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
-                              isActive
-                                ? "bg-teal-100 text-teal-800"
-                                : "hover:bg-slate-100 text-gray-700"
+                              isActive ? "bg-teal-100 text-teal-800" : "hover:bg-slate-100 text-gray-700"
                             }`
                           }
                         >
@@ -168,6 +265,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
               );
             }
 
+            // Fallback for items with a path (no children)
             return (
               <NavLink
                 key={item.id}
@@ -191,7 +289,6 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           })}
         </nav>
 
-        {/* Profile & Logout */}
         <div className="p-4 border-t border-gray-200">
           {profileItems.map((item) => {
             const Icon = item.icon;
@@ -223,7 +320,6 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
         </div>
       </aside>
 
-      {/* Overlay on mobile */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 lg:hidden"

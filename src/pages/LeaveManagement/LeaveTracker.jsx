@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   Clock,
   CheckCircle,
@@ -7,34 +7,11 @@ import {
   UserCheck,
   Calendar,
 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPendingLeaves, approveLeave, rejectLeave } from "../../redux/slices/leaveSlice";
 import DatePicker from "../../Components/ui/date/DatePicker";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
-
-const leaveData = [
-  {
-    id: "1",
-    name: "John Doe",
-    department: "Engineering",
-    type: "vacation",
-    from: "2024-04-01",
-    to: "2024-04-05",
-    days: 5,
-    status: "pending",
-    reason: "Family vacation",
-  },
-  {
-    id: "2",
-    name: "Sarah Wilson",
-    department: "HR",
-    type: "sick",
-    from: "2024-03-18",
-    to: "2024-03-20",
-    days: 3,
-    status: "approved",
-    reason: "Medical treatment",
-  },
-];
 
 const statusColors = {
   approved: "bg-green-100 text-green-700",
@@ -45,34 +22,40 @@ const statusColors = {
 const typeColors = {
   vacation: "from-teal-600 to-slate-700",
   sick: "from-teal-600 to-slate-700",
-  personal: "from-teal-600 to-slate-700",
+  casual: "from-teal-600 to-slate-700",
   maternity: "from-teal-600 to-slate-700",
 };
 
 const LeaveTracker = () => {
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("pending");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const dispatch = useDispatch();
+  const { pendingLeaves, loading, error } = useSelector((state) => state.leave);
+
+  useEffect(() => {
+    dispatch(fetchPendingLeaves());
+  }, [dispatch]);
 
   const filteredLeaveData = useMemo(() => {
-    return leaveData.filter((req) => {
+    return pendingLeaves.filter((req) => {
       const from = fromDate ? new Date(fromDate) : new Date("1970-01-01");
       const to = toDate ? new Date(toDate) : new Date("9999-12-31");
-      const reqFrom = new Date(req.from);
+      const reqFrom = new Date(req.start_date);
       return (
-        (filterStatus === "all" || req.status === filterStatus) &&
+        (filterStatus === "all" || req.status.toLowerCase() === filterStatus) &&
         reqFrom >= from &&
         reqFrom <= to
       );
     });
-  }, [filterStatus, fromDate, toDate]);
+  }, [pendingLeaves, filterStatus, fromDate, toDate]);
 
   const summary = useMemo(() => {
     const counts = {
-      pending: leaveData.filter((req) => req.status === "pending").length,
-      approved: leaveData.filter((req) => req.status === "approved").length,
-      rejected: leaveData.filter((req) => req.status === "rejected").length,
-      total: leaveData.length,
+      pending: pendingLeaves.filter((req) => req.status.toLowerCase() === "pending").length,
+      approved: pendingLeaves.filter((req) => req.status.toLowerCase() === "approved").length,
+      rejected: pendingLeaves.filter((req) => req.status.toLowerCase() === "rejected").length,
+      total: pendingLeaves.length,
     };
 
     return [
@@ -105,22 +88,22 @@ const LeaveTracker = () => {
         status: "all",
       },
     ];
-  }, []);
+  }, [pendingLeaves]);
 
   const handleApprove = useCallback((id) => {
-    console.log(`Approved leave request ID: ${id}`);
-  }, []);
+    dispatch(approveLeave(id));
+  }, [dispatch]);
 
   const handleReject = useCallback((id) => {
-    console.log(`Rejected leave request ID: ${id}`);
-  }, []);
+    dispatch(rejectLeave(id));
+  }, [dispatch]);
 
   const handleFilter = useCallback((status) => {
     setFilterStatus(status);
   }, []);
 
   return (
-    <div className="p-6 space-y-6 bg-gray-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-gray-100 min-h-screen font-sans">
       <div className="flex justify-end">
         <PageMeta
           title="Leave Tracker"
@@ -151,17 +134,21 @@ const LeaveTracker = () => {
             onToDateChange={setToDate}
             labelFrom="From Date"
             labelTo="To Date"
+            className="rounded-lg border-teal-200 bg-gray-100 text-gray-900 focus:ring-teal-600"
           />
         </div>
       </div>
+
+      {loading && <p className="text-gray-600">Loading...</p>}
+      {error && <p className="text-red-500">{error}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {summary.map((item, i) => (
           <div
             key={i}
             onClick={() => item.status && handleFilter(item.status)}
-            className={`p-6 rounded-2xl bg-white/70 backdrop-blur-md border border-white/20 hover:shadow-lg transition cursor-pointer ${
-              item.status === filterStatus ? "ring-2 ring-indigo-500" : ""
+            className={`p-6 rounded-2xl bg-white/90 backdrop-blur-sm border border-teal-200/50 hover:shadow-md transition-all duration-300 cursor-pointer ${
+              item.status === filterStatus ? "ring-2 ring-teal-600" : ""
             }`}
             role="button"
             aria-label={`Filter by ${item.label} leave requests`}
@@ -172,43 +159,43 @@ const LeaveTracker = () => {
           >
             <div className="flex justify-between items-center mb-4">
               <div
-                className={`w-12 h-12 rounded-xl bg-gradient-to-r ${item.color} flex items-center justify-center`}
+                className={`w-12 h-12 rounded-lg bg-gradient-to-r ${item.color} flex items-center justify-center shadow-md`}
               >
                 {item.icon}
               </div>
-              <div className="text-2xl font-bold text-gray-800">
+              <div className="text-2xl font-bold text-gray-900">
                 {item.count}
               </div>
             </div>
-            <div className="text-gray-500 font-medium text-sm">
+            <div className="text-gray-600 font-medium text-sm">
               {item.label}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white/70 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden">
-        <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+        <div className="p-6 border-b border-teal-200/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-xl font-bold text-gray-900">Leave Requests</h2>
           <div className="flex gap-2">
             <button
               onClick={() => handleFilter("all")}
-              className={`px-4 py-2 rounded-xl text-sm font-medium ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium ${
                 filterStatus === "all"
                   ? "bg-gradient-to-r from-teal-600 to-slate-700 text-white"
                   : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              }`}
+              } transition-all duration-300`}
               aria-label="Show all leave requests"
             >
               Show All
             </button>
             <button
               onClick={() => handleFilter("pending")}
-              className={`px-4 py-2 rounded-xl text-sm font-medium ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium ${
                 filterStatus === "pending"
                   ? "bg-gradient-to-r from-teal-600 to-slate-700 text-white"
                   : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              }`}
+              } transition-all duration-300`}
               aria-label="Show pending leave requests"
             >
               Pending
@@ -220,22 +207,22 @@ const LeaveTracker = () => {
             filteredLeaveData.map((req) => (
               <div
                 key={req.id}
-                className="p-6 bg-white/50 rounded-xl border border-gray-200 hover:shadow-lg transition"
+                className="p-6 bg-white/90 rounded-2xl border border-teal-200/50 hover:shadow-md transition-all duration-300"
               >
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                   {/* Employee Details */}
                   <div className="col-span-2 flex items-start gap-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-600 to-slate-700 text-white flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-r from-teal-600 to-slate-700 text-white flex items-center justify-center shadow-md">
                       <User size={28} />
                     </div>
                     <div className="space-y-1">
                       <h3 className="text-xl font-bold text-gray-900">
-                        {req.name}
+                        {req.employee_name}
                       </h3>
                       <p className="text-sm font-medium text-gray-600">
                         {req.department}
                       </p>
-                      <p className="text-xs text-gray-500">ID: {req.id}</p>
+                      <p className="text-xs text-gray-500">ID: {req.employee_id}</p>
                       <p className="text-sm text-gray-700">
                         <span className="font-medium">Reason:</span>{" "}
                         {req.reason}
@@ -246,17 +233,17 @@ const LeaveTracker = () => {
                   {/* Leave Details */}
                   <div className="col-span-2 space-y-2">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar size={16} className="text-gray-400" />
+                      <Calendar size={16} className="text-teal-600" />
                       <span>
                         <strong>From:</strong>{" "}
-                        {new Date(req.from).toLocaleDateString()}
+                        {new Date(req.start_date).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar size={16} className="text-gray-400" />
+                      <Calendar size={16} className="text-teal-600" />
                       <span>
                         <strong>To:</strong>{" "}
-                        {new Date(req.to).toLocaleDateString()}
+                        {new Date(req.end_date).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="text-sm text-gray-600">
@@ -265,10 +252,10 @@ const LeaveTracker = () => {
                     <div>
                       <span
                         className={`px-3 py-1 rounded-full text-xs text-white font-semibold bg-gradient-to-r ${
-                          typeColors[req.type]
+                          typeColors[req.leave_type]
                         }`}
                       >
-                        {req.type}
+                        {req.leave_type}
                       </span>
                     </div>
                   </div>
@@ -281,25 +268,25 @@ const LeaveTracker = () => {
                       </span>
                       <p
                         className={`mt-1 px-3 py-1 rounded-full text-xs font-semibold ${
-                          statusColors[req.status]
+                          statusColors[req.status.toLowerCase()]
                         }`}
                       >
                         {req.status}
                       </p>
                     </div>
-                    {req.status === "pending" && (
+                    {req.status.toLowerCase() === "pending" && (
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleApprove(req.id)}
-                          className="px-4 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs rounded-xl"
-                          aria-label={`Approve leave request for ${req.name}`}
+                          className="px-4 py-1.5 bg-gradient-to-r from-green-500 to-green-700 text-white text-xs rounded-lg hover:from-green-600 hover:to-green-800 transition-all duration-300 shadow-md"
+                          aria-label={`Approve leave request for ${req.employee_name}`}
                         >
                           Approve
                         </button>
                         <button
                           onClick={() => handleReject(req.id)}
-                          className="px-4 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs rounded-xl"
-                          aria-label={`Reject leave request for ${req.name}`}
+                          className="px-4 py-1.5 bg-gradient-to-r from-red-500 to-red-700 text-white text-xs rounded-lg hover:from-red-600 hover:to-red-800 transition-all duration-300 shadow-md"
+                          aria-label={`Reject leave request for ${req.employee_name}`}
                         >
                           Reject
                         </button>
