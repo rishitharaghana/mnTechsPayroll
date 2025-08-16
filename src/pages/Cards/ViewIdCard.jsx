@@ -1,7 +1,5 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import IDCardTemplate from "../../../public/assets/IDCardTemplate.png";
-import Barcode from "../../../public/assets/barcode.png";
 
 const ViewIdCard = () => {
   const { id } = useParams();
@@ -47,22 +45,22 @@ const ViewIdCard = () => {
         <div
           className="w-96 h-[600px] rounded-sm shadow-2xl overflow-hidden relative border border-gray-200 bg-cover bg-center"
           style={{
-            backgroundImage: `url(${IDCardTemplate})`,
+            backgroundImage: "url(/assets/IDCardTemplate.png)",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         >
-          {/* Overlay for Better Text Readability */}
+          {/* Overlay */}
           <div className="absolute inset-0 z-0" />
 
-          {/* Header with Logo */}
+          {/* Header */}
           <div className="pt-6 pb-4 relative z-20">
             <MeetOwnerLogo />
           </div>
 
           {/* Employee Photo */}
           <div className="absolute top-32 left-1/2 transform -translate-x-1/2 z-30">
-            <div className="w-37 h-37 rounded-full ">
+            <div className="w-37 h-37 rounded-full">
               <img
                 src={card.photo}
                 alt="Employee"
@@ -113,7 +111,7 @@ const ViewIdCard = () => {
             <div className="mt-7 flex justify-center">
               <div className="bg-white p-2 rounded">
                 <img
-                  src={Barcode}
+                  src="/assets/barcode.png"
                   alt="Barcode"
                   className="h-6 w-40 object-contain"
                 />
@@ -125,6 +123,8 @@ const ViewIdCard = () => {
           </div>
         </div>
       </div>
+
+      {/* Back Button */}
       <div className="flex justify-end">
         <button
           onClick={() => navigate("/idcard")}
