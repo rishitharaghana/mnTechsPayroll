@@ -1,11 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import ngrokAxiosInstance from '../../hooks/AxiosInstance';
+import axios from 'axios';
 
 export const fetchMyLeaves = createAsyncThunk(
   'leaves/fetchLeaves',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await ngrokAxiosInstance.get('/api/leaves');
+      const response = await axios.get('/api/leaves');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Error fetching leaves');
@@ -17,7 +17,7 @@ export const fetchPendingLeaves = createAsyncThunk(
   'leaves/fetchPendingLeaves',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await ngrokAxiosInstance.get('/api/leaves');
+      const response = await axios.get('/api/leaves');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Error fetching pending leaves');
@@ -29,7 +29,7 @@ export const applyLeave = createAsyncThunk(
   'leaves/applyLeave',
   async (leaveData, { rejectWithValue }) => {
     try {
-      const response = await ngrokAxiosInstance.post('/api/leaves', leaveData);
+      const response = await axios.post('/api/leaves', leaveData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Error applying leave');
@@ -41,7 +41,7 @@ export const approveLeave = createAsyncThunk(
   'leaves/approveLeave',
   async (leaveId, { rejectWithValue }) => {
     try {
-      await ngrokAxiosInstance.put(`/api/leaves/${leaveId}/approve`);
+      await axios.put(`/api/leaves/${leaveId}/approve`);
       return leaveId;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Error approving leave');
@@ -53,7 +53,7 @@ export const rejectLeave = createAsyncThunk(
   'leaves/rejectLeave',
   async (leaveId, { rejectWithValue }) => {
     try {
-      await ngrokAxiosInstance.put(`/api/leaves/${leaveId}/reject`);
+      await axios.put(`/api/leaves/${leaveId}/reject`);
       return leaveId;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Error rejecting leave');
