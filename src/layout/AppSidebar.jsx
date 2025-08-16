@@ -251,7 +251,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                           to={child.path}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={({ isActive }) =>
-                            `block px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
+                            `block px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
                               isActive ? "bg-teal-100 text-teal-800" : "hover:bg-slate-100 text-gray-700"
                             }`
                           }
