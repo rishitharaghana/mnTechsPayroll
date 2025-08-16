@@ -167,61 +167,63 @@ const VisitCardTemplate = ({ style, employee, isPreview, sideFront }) => {
             <div className="relative z-10 h-full flex flex-col justify-between">
               <div>
                 <h3
-                  className={`font-bold ${
+                  className={`font-bold text-slate-700 ${
                     isPreview ? "text-lg" : "text-sm"
-                  } mb-3 text-center`}
+                  } mb-1 text-right`}
                 >
                   {employee.name}
                 </h3>
                 <p
                   className={`${
                     isPreview ? "text-sm" : "text-xs"
-                  } text-blue-300 text-center mb-4`}
+                  } text-teal-700 leading-none font-semibold text-right mb-2`}
                 >
                   {employee.position}
                 </p>
               </div>
               <div className="space-y-2">
+                
+                <div className="flex items-center space-x-2">
+                  <Phone
+                    size={isPreview ? 14 : 10}
+                    className="text-slate-700 flex-shrink-0"
+                  />
+                  <span className={`text-slate-700 ${isPreview ? "text-xs" : "text-xs"}`}>
+                    {employee.phone}
+                  </span>
+                </div>
                 <div className="flex items-center space-x-2">
                   <Mail
                     size={isPreview ? 14 : 10}
-                    className="text-blue-300 flex-shrink-0"
+                    className="text-slate-700 flex-shrink-0"
                   />
                   <span
-                    className={`${isPreview ? "text-xs" : "text-xs"} truncate`}
+                    className={` text-slate-700 ${isPreview ? "text-xs" : "text-xs"} truncate`}
                   >
                     {employee.email}
                   </span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Phone
+                
+                <div className="flex items-start space-x-2">
+                  <MapPin
                     size={isPreview ? 14 : 10}
-                    className="text-blue-300 flex-shrink-0"
+                    className="text-slate-700 mt-0.5 flex-shrink-0"
                   />
-                  <span className={`${isPreview ? "text-xs" : "text-xs"}`}>
-                    {employee.phone}
+                  <span
+                    className={`text-slate-700 ${
+                      isPreview ? "text-xs" : "text-xs"
+                    } leading-tight`}
+                  >
+                    {employee.address}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Globe
                     size={isPreview ? 14 : 10}
-                    className="text-blue-300 flex-shrink-0"
+                    className="text-slate-700 flex-shrink-0"
                   />
-                  <span className={`${isPreview ? "text-xs" : "text-xs"}`}>
+                  <span className={`text-slate-700 ${isPreview ? "text-xs" : "text-xs"}`}>
                     {employee.website}
-                  </span>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <MapPin
-                    size={isPreview ? 14 : 10}
-                    className="text-blue-300 mt-0.5 flex-shrink-0"
-                  />
-                  <span
-                    className={`${
-                      isPreview ? "text-xs" : "text-xs"
-                    } leading-tight`}
-                  >
-                    {employee.address}
                   </span>
                 </div>
               </div>

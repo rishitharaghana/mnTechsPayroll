@@ -5,7 +5,7 @@ export const login = createAsyncThunk(
   "auth/login",
   async ({ mobileNumber, password, role }, { rejectWithValue }) => {
     try {
-      const response = await ngrokAxiosInstance.post("http://localhost:3007/api/login", {
+      const response = await ngrokAxiosInstance.post("/api/login", {
         mobile: mobileNumber,
         password,
         role,

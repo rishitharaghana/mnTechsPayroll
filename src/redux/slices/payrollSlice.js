@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import ngrokAxiosInstance from "../../hooks/AxiosInstance";
 
 // Fetch payrolls for a given month
 export const fetchPayroll = createAsyncThunk(
@@ -10,7 +10,7 @@ export const fetchPayroll = createAsyncThunk(
       if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
       const { token } = JSON.parse(userToken);
 
-      const response = await axios.get(`http://localhost:3007/api/payroll?month=${month}`, {
+      const response = await ngrokAxiosInstance.get(`/api/payroll?month=${month}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -30,7 +30,7 @@ export const createPayroll = createAsyncThunk(
       if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
       const { token } = JSON.parse(userToken);
 
-      const response = await axios.post(`http://localhost:3007/api/payroll`, payrollData, {
+      const response = await ngrokAxiosInstance.post(`/api/payroll`, payrollData, {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });
 
@@ -50,8 +50,8 @@ export const generatePayroll = createAsyncThunk(
       if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
       const { token } = JSON.parse(userToken);
 
-      const response = await axios.post(
-        `http://localhost:3007/api/payroll/generate`,
+      const response = await ngrokAxiosInstance.post(
+        `/api/payroll/generate`,
         { month },
         { headers: { Authorization: `Bearer ${token}` } }
       );

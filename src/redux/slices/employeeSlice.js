@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
 import ngrokAxiosInstance from "../../hooks/AxiosInstance";
 
 export const createEmployee = createAsyncThunk(
@@ -12,7 +11,7 @@ export const createEmployee = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await ngrokAxiosInstance.post("http://localhost:3007/api/employees", employeeData, {
+      const response = await ngrokAxiosInstance.post("/api/employees", employeeData, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -41,7 +40,7 @@ export const updateEmployee = createAsyncThunk(
       const { token } = JSON.parse(userToken);
 
       const response = await ngrokAxiosInstance.put(
-        `http://localhost:3007/api/employees/${role}/${id}`,
+        `/api/employees/${role}/${id}`,
         data,
         {
           headers: {
@@ -72,7 +71,7 @@ export const deleteEmployee = createAsyncThunk(
       const { token } = JSON.parse(userToken);
 
       const response = await ngrokAxiosInstance.delete(
-        `http://localhost:3007/api/employees/${role}/${id}`,
+        `/api/employees/${role}/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -100,7 +99,7 @@ export const fetchEmployees = createAsyncThunk(
 
       const { token } = JSON.parse(userToken);
 
-      const response = await ngrokAxiosInstance.get("http://localhost:3007/api/employees", {
+      const response = await ngrokAxiosInstance.get("/api/employees", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
