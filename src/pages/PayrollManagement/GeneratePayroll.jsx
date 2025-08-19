@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
-import { createPayroll, generatePayroll, clearState } from "../../redux/slices/payrollSlice";
+import { createPayroll, generatePayroll, fetchPayroll, clearState, downloadPayrollPDF } from "../../redux/slices/payrollSlice";
 
 const GeneratePayroll = () => {
   const dispatch = useDispatch();
@@ -21,7 +21,7 @@ const GeneratePayroll = () => {
     netSalary: 0,
     status: "Pending",
     paymentMethod: "Bank Transfer",
-    month: new Date().toISOString().slice(0, 7),
+    month: "2025-08", // Default to 2025-08
     paymentDate: "",
   });
 
@@ -63,30 +63,48 @@ const GeneratePayroll = () => {
       paymentDate: form.paymentDate,
     };
 
-    dispatch(createPayroll(payrollData)).then(() => {
-      setForm({
-        name: "",
-        id: "",
-        department: "",
-        basicSalary: 0,
-        allowances: 0,
-        bonuses: 0,
-        pfDeduction: 0,
-        esicDeduction: 0,
-        taxDeduction: 0,
-        netSalary: 0,
-        status: "Pending",
-        paymentMethod: "Bank Transfer",
-        month: new Date().toISOString().slice(0, 7),
-        paymentDate: "",
-      });
+    console.log("Submitting payrollData:", payrollData); // Debug log
+    dispatch(createPayroll(payrollData)).then((result) => {
+      if (createPayroll.fulfilled.match(result)) {
+        console.log("createPayroll success, refetching for month:", form.month); // Debug log
+        dispatch(fetchPayroll({ month: form.month }));
+        setForm({
+          name: "",
+          id: "",
+          department: "",
+          basicSalary: 0,
+          allowances: 0,
+          bonuses: 0,
+          pfDeduction: 0,
+          esicDeduction: 0,
+          taxDeduction: 0,
+          netSalary: 0,
+          status: "Pending",
+          paymentMethod: "Bank Transfer",
+          month: "2025-08",
+          paymentDate: "",
+        });
+      }
     });
   };
 
   const handleGenerateAll = () => {
     if (!form.month) return alert("Please select a month first.");
     dispatch(clearState());
-    dispatch(generatePayroll({ month: form.month }));
+    console.log("Generating payroll for month:", form.month); // Debug log
+    dispatch(generatePayroll({ month: form.month })).then((result) => {
+      if (generatePayroll.fulfilled.match(result)) {
+        console.log("generatePayroll success, refetching for month:", form.month); // Debug log
+        dispatch(fetchPayroll({ month: form.month }));
+      }
+    });
+  };
+
+  const handleDownloadPDF = () => {
+    if (!form.month) return alert("Please select a month first.");
+    dispatch(clearState());
+    console.log("Downloading PDF for month:", form.month); // Debug log
+    dispatch(downloadPayrollPDF({ month: form.month }));
   };
 
   return (
@@ -252,7 +270,7 @@ const GeneratePayroll = () => {
               className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
             >
               <option value="Pending">Pending</option>
-              <option value="Paid">Paid</option>
+              <option value="Processed">Processed</option>
               <option value="Failed">Failed</option>
             </select>
           </div>
@@ -294,6 +312,15 @@ const GeneratePayroll = () => {
             className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600"
           >
             ⚡ Generate Payroll for All
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDownloadPDF}
+            disabled={loading}
+            className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600"
+          >
+            📄 Download Payroll PDF
           </button>
         </div>
       </form>

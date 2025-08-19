@@ -26,7 +26,7 @@ const authSlice = createSlice({
       : null,
     token: storedUser?.token || null,
     role: storedUser?.role || null,
-    isAuthenticated: !!storedUser,
+    isAuthenticated: !!storedUser, 
     loading: false,
     error: null,
   },
@@ -49,6 +49,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.user = {
+          id: action.payload._id,
           name: action.payload.name || "",
           mobile: action.payload.mobile,
           role: action.payload.role,
@@ -63,6 +64,7 @@ const authSlice = createSlice({
             token: action.payload.token,
             role: action.payload.role,
             email: action.payload.email || null,
+            id: action.payload._id,
           })
         );
       })

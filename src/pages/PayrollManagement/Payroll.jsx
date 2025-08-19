@@ -6,6 +6,7 @@ import {
   TrendingUp,
   Calculator,
   FileSpreadsheet,
+  RefreshCw,
 } from 'lucide-react';
 import PayslipGenerator from '../PayslipManagement/PaySlipGenerator';
 import PageMeta from '../../Components/common/PageMeta';
@@ -13,56 +14,69 @@ import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 import { fetchPayroll } from '../../redux/slices/payrollSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
-const Payroll = ({ employees = [] }) => {
+const Payroll = () => {
   const [filters, setFilters] = useState({ search: '', department: '', status: '' });
-  const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState({ key: 'employee_name', direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  
-  
-const dispatch = useDispatch();
-  const { payrollList, loading, error } = useSelector((state) => state.payroll);
 
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
-  
-  // const [payrollData, setPayrollData] = useState(employees.length > 0 ? employees : [
-  //   {
-  //     id: 'EMP001', name: 'John Smith', department: 'Engineering',
-  //     grossSalary: 75000, deductions: { pf: 1200 },
-  //     netSalary: 73800, paidLeave: 2, unpaidLeave: 0,
-  //     paymentMethod: 'Direct Deposit', bankDetails: { accountNumber: 'XXXX1234', bankName: 'Bank of America' },
-  //     status: 'Processed'
-  //   },
-  //   {
-  //     id: 'EMP002', name: 'Sarah Wilson', department: 'Marketing',
-  //     grossSalary: 65000, deductions: { pf: 1000 },
-  //     netSalary: 64000, paidLeave: 1, unpaidLeave: 1,
-  //     paymentMethod: 'Check', bankDetails: {}, status: 'Processed'
-  //   },
-  //   {
-  //     id: 'EMP003', name: 'Mike Johnson', department: 'Design',
-  //     grossSalary: 50000, deductions: { pf: 800 },
-  //     netSalary: 49200, paidLeave: 0, unpaidLeave: 2,
-  //     paymentMethod: 'Direct Deposit', bankDetails: { accountNumber: 'XXXX5678', bankName: 'Chase' },
-  //     status: 'Pending'
-  //   }
-  // ]);
-  const itemsPerPage = 5;
+  const dispatch = useDispatch();
+  const { payrollList = [], loading, error, successMessage } = useSelector((state) => state.payroll);
 
-  const summaryStats = [
-    { title: 'Total Payroll', value: '$159,400', change: '+5.2%', icon: DollarSign },
-    { title: 'Employees Paid', value: '248', change: '+2', icon: Users },
-    { title: 'Avg. Gross Salary', value: '$4,830', change: '+3.1%', icon: TrendingUp },
-    { title: 'Total PF Deductions', value: '$42,000', change: '-1.2%', icon: Calculator }
-  ];
+  const [selectedMonth, setSelectedMonth] = useState('2025-08'); // Default to 2025-08
 
   useEffect(() => {
+    console.log("Fetching payroll for month:", selectedMonth); // Debug log
     dispatch(fetchPayroll({ month: selectedMonth }));
   }, [dispatch, selectedMonth]);
 
+  useEffect(() => {
+    console.log("payrollList updated:", payrollList); // Debug log
+  }, [payrollList]);
+
+  const itemsPerPage = 5;
+
+  // Ensure numeric values and use INR (₹) currency
+  const summaryStats = [
+    {
+      title: 'Total Payroll',
+      value: `₹${payrollList
+        .reduce((sum, emp) => sum + (parseFloat(emp.gross_salary) || 0), 0)
+        .toLocaleString('en-IN')}`,
+      change: '+5.2%',
+      icon: DollarSign,
+    },
+    {
+      title: 'Employees Paid',
+      value: payrollList.length,
+      change: '+2',
+      icon: Users,
+    },
+    {
+      title: 'Avg. Gross Salary',
+      value: `₹${payrollList.length
+        ? (payrollList.reduce((sum, emp) => sum + (parseFloat(emp.gross_salary) || 0), 0) / payrollList.length).toFixed(2)
+        : 0}`,
+      change: '+3.1%',
+      icon: TrendingUp,
+    },
+    {
+      title: 'Total PF Deductions',
+      value: `₹${payrollList
+        .reduce((sum, emp) => sum + (parseFloat(emp.pf_deduction) || 0), 0)
+        .toLocaleString('en-IN')}`,
+      change: '-1.2%',
+      icon: Calculator,
+    },
+  ];
+
+  // Debug log for summary stats values
+  useEffect(() => {
+    console.log("Summary Stats:", summaryStats);
+  }, [payrollList]);
+
   const payrollData = payrollList || [];
 
-  
   const getStatusColor = (status) => {
     switch (status) {
       case 'Processed': return 'bg-green-100 text-green-800';
@@ -74,7 +88,7 @@ const dispatch = useDispatch();
 
   const filteredData = payrollData
     .filter((emp) =>
-      emp.name.toLowerCase().includes(filters.search.toLowerCase()) &&
+      emp.employee_name?.toLowerCase().includes(filters.search.toLowerCase()) &&
       (!filters.department || emp.department === filters.department) &&
       (!filters.status || emp.status === filters.status)
     )
@@ -97,8 +111,8 @@ const dispatch = useDispatch();
 
   const handleSort = (key) => {
     setSortConfig({
-      key,
-      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+      key: key === 'Employee' ? 'employee_name' : key === 'Gross Salary' ? 'gross_salary' : key === 'Net Salary' ? 'net_salary' : key,
+      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc',
     });
   };
 
@@ -107,10 +121,15 @@ const dispatch = useDispatch();
     setCurrentPage(1);
   };
 
+  const handleRefresh = () => {
+    console.log("Refreshing payroll for month:", selectedMonth); // Debug log
+    dispatch(fetchPayroll({ month: selectedMonth }));
+  };
+
   const exportToCSV = () => {
     const headers = ['ID,Name,Department,Gross Salary,PF Deduction,Net Salary,Status'];
     const rows = paginatedData.map(emp =>
-      `${emp.id},${emp.name},${emp.department},${emp.grossSalary},${emp.deductions.pf},${emp.netSalary},${emp.status}`
+      `${emp.employee_id},${emp.employee_name},${emp.department},${parseFloat(emp.gross_salary) || 0},${parseFloat(emp.pf_deduction) || 0},${parseFloat(emp.net_salary) || 0},${emp.status}`
     );
     const csvContent = [...headers, ...rows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -125,8 +144,7 @@ const dispatch = useDispatch();
   };
 
   return (
-    <div className="space-y-8 bg-slate-50 min-h-screen p-6">
-      {/* Header */}
+    <div className="space-y-8 bg-slate-50 min-h-screen p-6 max-w-7xl mx-auto">
       <div className="flex justify-end">
         <PageMeta title="Payroll Management" description="Manage employee payroll and deductions." />
         <PageBreadcrumb
@@ -158,16 +176,31 @@ const dispatch = useDispatch();
             >
               Process Payroll
             </button>
+            <button
+              onClick={handleRefresh}
+              className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105"
+            >
+              <RefreshCw size={16} />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {(error || successMessage) && (
+        <div
+          className={`p-4 rounded-lg ${
+            error ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+          }`}
+        >
+          {error || successMessage}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-full">
         {summaryStats.map(({ title, value, change, icon: Icon }, idx) => (
           <div
             key={idx}
-            className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
+            className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-300 min-w-0"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg flex items-center justify-center w-12 h-12">
@@ -177,13 +210,12 @@ const dispatch = useDispatch();
                 {change}
               </span>
             </div>
-            <h3 className="text-slate-500 text-sm font-medium mb-1">{title}</h3>
-            <p className="text-2xl font-bold text-slate-900">{value}</p>
+            <h3 className="text-slate-500 text-sm font-medium mb-1 truncate">{title}</h3>
+            <p className="text-xl font-bold text-slate-900 truncate">{value}</p>
           </div>
         ))}
       </div>
 
-      {/* Filters */}
       <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col sm:flex-row gap-4">
           <input
@@ -219,7 +251,6 @@ const dispatch = useDispatch();
         </div>
       </div>
 
-      {/* Payroll Table */}
       <div className="bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex justify-between items-center flex-wrap gap-4 p-6 border-b border-slate-200">
           <h2 className="text-xl font-bold text-slate-900">Monthly Payroll Details</h2>
@@ -232,73 +263,81 @@ const dispatch = useDispatch();
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gradient-to-r from-teal-600 to-slate-700">
-              <tr>
-                {["Employee", "Gross Salary", "PF Deduction", "Net Salary", "Status", "Actions"].map((col, idx) => (
-                  <th
-                    key={idx}
-                    onClick={() => col === "Employee" ? handleSort('name') : col === "Gross Salary" ? handleSort('grossSalary') : col === "Net Salary" ? handleSort('netSalary') : null}
-                    className={`px-6 py-4 text-left font-medium text-white uppercase tracking-wider ${['Employee', 'Gross Salary', 'Net Salary'].includes(col) ? 'cursor-pointer hover:text-slate-200' : ''}`}
-                  >
-                    {col} {sortConfig.key === (col === "Employee" ? 'name' : col === "Gross Salary" ? 'grossSalary' : 'netSalary') && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {paginatedData.map((emp) => (
-                <tr key={emp.id} className="hover:bg-slate-50 transition-colors duration-200">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-slate-900">{emp.name}</div>
-                    <div className="text-slate-500 text-xs">{emp.id} • {emp.department}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-slate-900">${emp.grossSalary.toLocaleString()}</div>
-                    <div className="text-slate-500 text-xs">Base</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-red-600 font-medium">${emp.deductions.pf.toLocaleString()}</div>
-                    <div className="text-slate-500 text-xs">Provident Fund</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="font-bold text-teal-600">${emp.netSalary.toLocaleString()}</div>
-                    <div className="text-slate-500 text-xs">Take-home</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(emp.status)}`}>{emp.status}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => setSelectedEmployee(emp)}
-                      className="text-teal-600 hover:text-teal-500 font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-teal-400"
+          {paginatedData.length === 0 && !loading ? (
+            <div className="p-6 text-center text-slate-500">
+              No payroll records found for {selectedMonth}. Try refreshing or changing the month.
+            </div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-gradient-to-r from-teal-600 to-slate-700">
+                <tr>
+                  {["Employee", "Gross Salary", "PF Deduction", "Net Salary", "Status", "Actions"].map((col, idx) => (
+                    <th
+                      key={idx}
+                      onClick={() => col === "Employee" ? handleSort('employee_name') : col === "Gross Salary" ? handleSort('gross_salary') : col === "Net Salary" ? handleSort('net_salary') : null}
+                      className={`px-6 py-4 text-left font-medium text-white uppercase tracking-wider ${['Employee', 'Gross Salary', 'Net Salary'].includes(col) ? 'cursor-pointer hover:text-slate-200' : ''}`}
                     >
-                      View Payslip
-                    </button>
-                  </td>
+                      {col} {sortConfig.key === (col === "Employee" ? 'employee_name' : col === "Gross Salary" ? 'gross_salary' : 'net_salary') && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {paginatedData.map((emp) => (
+                  <tr key={emp.id} className="hover:bg-slate-50 transition-colors duration-200">
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-slate-900 truncate">{emp.employee_name}</div>
+                      <div className="text-slate-500 text-xs truncate">{emp.employee_id} • {emp.department}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-slate-900 truncate">₹{parseFloat(emp.gross_salary || 0).toLocaleString('en-IN')}</div>
+                      <div className="text-slate-500 text-xs">Base</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-red-600 font-medium truncate">₹{parseFloat(emp.pf_deduction || 0).toLocaleString('en-IN')}</div>
+                      <div className="text-slate-500 text-xs">Provident Fund</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="font-bold text-teal-600 truncate">₹{parseFloat(emp.net_salary || 0).toLocaleString('en-IN')}</div>
+                      <div className="text-slate-500 text-xs">Take-home</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(emp.status)}`}>{emp.status}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => setSelectedEmployee(emp)}
+                        className="text-teal-600 hover:text-teal-500 font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-teal-400"
+                      >
+                        View Payslip
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
-        <div className="flex justify-between items-center p-4">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(currentPage - 1)}
-            className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-slate-300 disabled:cursor-not-allowed transition-transform duration-300 transform hover:scale-105"
-          >
-            Previous
-          </button>
-          <span className="text-slate-500">Page {currentPage} of {totalPages}</span>
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(currentPage + 1)}
-            className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-slate-300 disabled:cursor-not-allowed transition-transform duration-300 transform hover:scale-105"
-          >
-            Next
-          </button>
-        </div>
+        {paginatedData.length > 0 && (
+          <div className="flex justify-between items-center p-4">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-slate-300 disabled:cursor-not-allowed transition-transform duration-300 transform hover:scale-105"
+            >
+              Previous
+            </button>
+            <span className="text-slate-500">Page {currentPage} of {totalPages}</span>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-slate-300 disabled:cursor-not-allowed transition-transform duration-300 transform hover:scale-105"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
       {selectedEmployee && (
