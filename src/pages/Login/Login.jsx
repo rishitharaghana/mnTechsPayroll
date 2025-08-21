@@ -2,62 +2,72 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../../redux/slices/authSlice';
-import { Lock, Mail, UserCircle, Phone } from 'lucide-react';
+import { Lock, Mail, UserCircle, Phone, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
-  const [uiRole, setUiRole] = useState('Admin'); 
+  const [uiRole, setUiRole] = useState('Admin');
+  const [showPassword, setShowPassword] = useState(false); // New state for password visibility
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
 
-const handleLogin = async (e) => {
-  e.preventDefault();
-  try {
-    const backendRole = uiRole === 'Admin' ? 'super_admin' :
-                       uiRole === 'HR' ? 'hr' :
-                       uiRole === 'Department Head' ? 'dept_head' : 'employee';
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const backendRole =
+        uiRole === 'Admin'
+          ? 'super_admin'
+          : uiRole === 'HR'
+          ? 'hr'
+          : uiRole === 'Department Head'
+          ? 'dept_head'
+          : 'employee';
 
-    const result = await dispatch(
-      login({ mobileNumber, password, role: backendRole })
-    ).unwrap();
+      const result = await dispatch(
+        login({ mobileNumber, password, role: backendRole })
+      ).unwrap();
 
-    if (result.token) {
-      localStorage.setItem(
-        'userToken',
-        JSON.stringify({
-          token: result.token,
-          role: result.role,
-          email: result.email || null,
-          mobile: result.mobile || mobileNumber,
-           name: result.name || null,
-        })
-      );
-    }
-
-    if (result.success) {
-      switch (backendRole) {
-        case 'employee':
-          navigate('/emp-dashboard', { replace: true });
-          break;
-        case 'hr':
-        case 'super_admin':
-        case 'dept_head':
-          navigate('/admin/dashboard', { replace: true });
-          break;
-        default:
-          navigate('/', { replace: true });
+      if (result.token) {
+        localStorage.setItem(
+          'userToken',
+          JSON.stringify({
+            token: result.token,
+            role: result.role,
+            email: result.email || null,
+            mobile: result.mobile || mobileNumber,
+            name: result.name || null,
+          })
+        );
       }
+
+      if (result.success) {
+        switch (backendRole) {
+          case 'employee':
+            navigate('/emp-dashboard', { replace: true });
+            break;
+          case 'hr':
+          case 'super_admin':
+          case 'dept_head':
+            navigate('/admin/dashboard', { replace: true });
+            break;
+          default:
+            navigate('/', { replace: true });
+        }
+      }
+    } catch (err) {
+      console.error('Login failed:', err);
     }
-  } catch (err) {
-    console.error('Login failed:', err);
-  }
-};
+  };
 
   const handleForgotPassword = (e) => {
     e.preventDefault();
     alert(`Password reset link sent to your ${uiRole} registered mobile (mock action).`);
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
   };
 
   return (
@@ -113,10 +123,10 @@ const handleLogin = async (e) => {
 
           <div>
             <label className="block text-sm font-medium text-slate-600 mb-1.5">Password</label>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 relative">
               <Lock size={18} className="text-slate-400" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'} // Toggle input type
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -124,6 +134,14 @@ const handleLogin = async (e) => {
                 required
                 aria-label="Password"
               />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-5 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 

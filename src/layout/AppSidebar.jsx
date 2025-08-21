@@ -154,6 +154,12 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
         },
         {
+          id: "view-performance",
+          label: "View Goals",
+          path: "/employee/viewgoals",
+          allowedRoles: ["dept_head", "employee"],
+        },
+        {
           id: "add-performance",
           label: "Add Employee Review",
           path: "/admin/add-performance",

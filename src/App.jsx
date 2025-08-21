@@ -37,6 +37,7 @@ import Unauthorized from "./pages/Others/UnAuthorized";
 import ProtectedRoute from "./context/ProtectedRoute";
 import EmployeeTimeTracking from "./pages/timetracking/EmployeeTimeTracking";
 import VisitingCardForm from "./form/VisitingCardForm";
+import ViewGoals from "./pages/PerformanceManagement/ViewGoals";
 
 const App = () => {
   return (
@@ -84,6 +85,7 @@ const App = () => {
             <Route path="/employee-payslip" element={<EmployeePayslip />} />
 
             <Route path="/admin/performance" element={<Performance />} />
+            <Route path="/employee/viewgoals" element={<ViewGoals />} />
             <Route
               path="/admin/add-performance"
               element={<AddEmployeeReview />}
