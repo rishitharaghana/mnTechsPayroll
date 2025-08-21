@@ -38,11 +38,16 @@ import ProtectedRoute from "./context/ProtectedRoute";
 import EmployeeTimeTracking from "./pages/timetracking/EmployeeTimeTracking";
 import VisitingCardForm from "./form/VisitingCardForm";
 import ViewGoals from "./pages/PerformanceManagement/ViewGoals";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const App = () => {
   return (
     <GoogleOAuthProvider clientId="https://www.googleapis.com/auth/userinfo.profile">
       <BrowserRouter>
+                  <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+
         <Routes>
            <Route element={<ProtectedRoute />}>
           <Route path="/login" element={<Login />} />
