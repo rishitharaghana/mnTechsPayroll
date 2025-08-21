@@ -13,17 +13,17 @@ const AssignEmployee = () => {
   const [employee, setEmployee] = useState({
     name: "",
     email: "",
-    mobile: "", 
+    mobile: "",
     emergencyPhone: "",
     address: "",
     annualSalary: "",
-    allowances: "", 
+    allowances: "",
     joinDate: "",
     roleType: "",
     department: "",
     position: "",
     employmentType: "Full-time",
-    password: "", 
+    password: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -89,6 +89,22 @@ const AssignEmployee = () => {
     { name: "Employee", icon: <User className="w-6 h-6" />, description: "Standard employee role" },
   ];
 
+  // Real-time mobile vs. emergency phone validation
+  useEffect(() => {
+    if (
+      employee.emergencyPhone &&
+      employee.mobile &&
+      employee.emergencyPhone.trim() === employee.mobile.trim()
+    ) {
+      setErrors((prev) => ({
+        ...prev,
+        emergencyPhone: "Mobile and emergency contact numbers cannot be the same",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, emergencyPhone: "" }));
+    }
+  }, [employee.mobile, employee.emergencyPhone]);
+
   const handleInput = useCallback((field, value) => {
     setEmployee((prev) => {
       const updated = { ...prev, [field]: value };
@@ -120,6 +136,9 @@ const AssignEmployee = () => {
       }
       if (employee.emergencyPhone && !/^[0-9]{10}$/.test(employee.emergencyPhone)) {
         newErrors.emergencyPhone = "Emergency Phone must be a 10-digit number";
+      }
+      if (employee.emergencyPhone && employee.emergencyPhone.trim() === employee.mobile.trim()) {
+        newErrors.emergencyPhone = "Mobile and emergency contact numbers cannot be the same";
       }
       if (!employee.password) newErrors.password = "Password is required";
       if (employee.password && employee.password.length < 8) {
@@ -242,7 +261,6 @@ const AssignEmployee = () => {
     setStep((prev) => prev - 1);
   };
 
-  // Clear errors and success message on step change or unmount
   useEffect(() => {
     return () => {
       dispatch(clearState());

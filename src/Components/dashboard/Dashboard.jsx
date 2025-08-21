@@ -14,7 +14,6 @@ import {
   Shield,
 } from 'lucide-react';
 
-// Role-specific Stats
 const statsByRole = {
   super_admin: [
     { title: 'Total Employees', value: '248', change: '+12%', icon: Users },
@@ -35,7 +34,6 @@ const statsByRole = {
   ],
 };
 
-// Role-specific Quick Actions
 const quickActionsByRole = {
   super_admin: [
     { title: 'Manage Employees', icon: Users, link: '/admin/employees' },
@@ -62,7 +60,6 @@ const quickActionsByRole = {
   ],
 };
 
-// Role-specific Recent Activities
 const recentActivitiesByRole = {
   super_admin: [
     { type: 'Employee Added', name: 'John Smith', time: '2 hours ago', icon: Users },
@@ -83,7 +80,6 @@ const recentActivitiesByRole = {
   ],
 };
 
-// Role-specific Performance Metrics
 const performanceMetricsByRole = {
   super_admin: [
     { title: 'Organization Performance', value: 'A+', description: 'Excellent overall rating' },
@@ -112,7 +108,6 @@ const AdminDashboard = () => {
   const recentActivities = recentActivitiesByRole[role] || [];
   const performanceMetrics = performanceMetricsByRole[role] || [];
 
-  // Hardcoded date and time for 05:11 PM IST, Wednesday, August 13, 2025
   const currentDateTime = new Date('2025-08-13T17:11:00+05:30');
   const formattedDate = new Intl.DateTimeFormat('en-US', { dateStyle: 'full' }).format(currentDateTime);
   const formattedTime = new Intl.DateTimeFormat('en-US', { timeStyle: 'short', timeZone: 'Asia/Kolkata' }).format(currentDateTime);

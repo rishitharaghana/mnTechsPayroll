@@ -11,7 +11,7 @@ export const createEmployee = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.post("/api/employees", employeeData, {
+      const response = await axios.post("http://localhost:3007/api/employees", employeeData, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -30,7 +30,7 @@ export const createEmployee = createAsyncThunk(
 
 export const updateEmployee = createAsyncThunk(
   "employee/updateEmployee",
-  async ({ role, id, data }, { rejectWithValue }) => {
+  async ({ id, data }, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
       if (!userToken) {
@@ -38,9 +38,8 @@ export const updateEmployee = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-
       const response = await axios.put(
-        `/api/employees/${role}/${id}`,
+        `http://localhost:3007/api/employees/${id}`,
         data,
         {
           headers: {
@@ -50,7 +49,7 @@ export const updateEmployee = createAsyncThunk(
         }
       );
 
-      return { ...response.data, role, id };
+      return { ...response.data, id };
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.error || "Failed to update employee"
@@ -61,7 +60,7 @@ export const updateEmployee = createAsyncThunk(
 
 export const deleteEmployee = createAsyncThunk(
   "employee/deleteEmployee",
-  async ({ role, id }, { rejectWithValue }) => {
+  async ({ id, role }, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
       if (!userToken) {
@@ -69,17 +68,17 @@ export const deleteEmployee = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-
       const response = await axios.delete(
-        `/api/employees/${role}/${id}`,
+        `http://localhost:3007/api/employees/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          data: { role }, 
         }
       );
 
-      return { role, id, message: response.data.message };
+      return { id, role, message: response.data.message };
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.error || "Failed to delete employee"
@@ -98,8 +97,7 @@ export const fetchEmployees = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-
-      const response = await axios.get("/api/employees", {
+      const response = await axios.get("http://localhost:3007/api/employees", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -149,8 +147,8 @@ const employeeSlice = createSlice({
       .addCase(updateEmployee.fulfilled, (state, action) => {
         state.loading = false;
         state.successMessage = action.payload.message;
-        const { role, id } = action.meta.arg;
-        const index = state.employees.findIndex((emp) => emp.id === id && emp.role === role);
+        const { id } = action.meta.arg;
+        const index = state.employees.findIndex((emp) => emp.id === id);
         if (index !== -1) {
           state.employees[index] = { ...state.employees[index], ...action.payload.data };
         }
@@ -165,8 +163,8 @@ const employeeSlice = createSlice({
       .addCase(deleteEmployee.fulfilled, (state, action) => {
         state.loading = false;
         state.successMessage = action.payload.message;
-        const { role, id } = action.meta.arg;
-        state.employees = state.employees.filter((emp) => !(emp.id === id && emp.role === role));
+        const { id } = action.meta.arg;
+        state.employees = state.employees.filter((emp) => emp.id !== id);
       })
       .addCase(deleteEmployee.rejected, (state, action) => {
         state.loading = false;

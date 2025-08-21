@@ -1,17 +1,37 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import {
-  Clock,
-  CheckCircle,
-  XCircle,
-  User,
-  UserCheck,
-  Calendar,
-} from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchPendingLeaves, approveLeave, rejectLeave } from "../../redux/slices/leaveSlice";
-import DatePicker from "../../Components/ui/date/DatePicker";
+import { useNavigate } from "react-router-dom";
+import { fetchAllLeaves, approveLeave, rejectLeave, clearState } from "../../redux/slices/leaveSlice";
+import { Clock, CheckCircle, XCircle, User, UserCheck, Calendar, Users } from "lucide-react";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
+
+const DatePicker = ({ fromDate, toDate, onFromDateChange, onToDateChange, labelFrom, labelTo, className }) => {
+  return (
+    <div className={`flex flex-col sm:flex-row gap-4 ${className}`}>
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-600">{labelFrom}</label>
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(e) => onFromDateChange(e.target.value)}
+          className="px-4 py-2 border border-teal-200 rounded-lg focus:ring-2 focus:ring-teal-600"
+          aria-label={labelFrom}
+        />
+      </div>
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-600">{labelTo}</label>
+        <input
+          type="date"
+          value={toDate}
+          onChange={(e) => onToDateChange(e.target.value)}
+          className="px-4 py-2 border border-teal-200 rounded-lg focus:ring-2 focus:ring-teal-600"
+          aria-label={labelTo}
+        />
+      </div>
+    </div>
+  );
+};
 
 const statusColors = {
   approved: "bg-green-100 text-green-700",
@@ -31,31 +51,61 @@ const LeaveTracker = () => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const dispatch = useDispatch();
-  const { pendingLeaves, loading, error } = useSelector((state) => state.leave);
+  const navigate = useNavigate();
+  const { pendingLeaves = [], loading, error, successMessage } = useSelector((state) => state.leaves);
+  const { role, token } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    dispatch(fetchPendingLeaves());
-  }, [dispatch]);
+    if (!token) {
+      navigate("/login");
+    } else if (role !== "hr" && role !== "super_admin") {
+      navigate("/unauthorized");
+    } else {
+      dispatch(fetchAllLeaves());
+    }
+  }, [dispatch, navigate, token, role]);
+
+  useEffect(() => {
+    if (successMessage || error) {
+      const timer = setTimeout(() => dispatch(clearState()), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage, error, dispatch]);
+
+  const calculateDays = (startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (isNaN(start) || isNaN(end)) return 0;
+    const diffTime = Math.abs(end - start);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  };
 
   const filteredLeaveData = useMemo(() => {
-    return pendingLeaves.filter((req) => {
-      const from = fromDate ? new Date(fromDate) : new Date("1970-01-01");
-      const to = toDate ? new Date(toDate) : new Date("9999-12-31");
-      const reqFrom = new Date(req.start_date);
-      return (
-        (filterStatus === "all" || req.status.toLowerCase() === filterStatus) &&
-        reqFrom >= from &&
-        reqFrom <= to
-      );
-    });
+    const leaves = Array.isArray(pendingLeaves) ? pendingLeaves : [];
+    return leaves
+      .map((req) => ({
+        ...req,
+        days: req.days || calculateDays(req.start_date, req.end_date),
+      }))
+      .filter((req) => {
+        const from = fromDate ? new Date(fromDate) : new Date("1970-01-01");
+        const to = toDate ? new Date(toDate) : new Date("9999-12-31");
+        const reqFrom = new Date(req.start_date);
+        return (
+          (filterStatus === "all" || req.status?.toLowerCase() === filterStatus) &&
+          reqFrom >= from &&
+          reqFrom <= to
+        );
+      });
   }, [pendingLeaves, filterStatus, fromDate, toDate]);
 
   const summary = useMemo(() => {
+    const leaves = Array.isArray(pendingLeaves) ? pendingLeaves : [];
     const counts = {
-      pending: pendingLeaves.filter((req) => req.status.toLowerCase() === "pending").length,
-      approved: pendingLeaves.filter((req) => req.status.toLowerCase() === "approved").length,
-      rejected: pendingLeaves.filter((req) => req.status.toLowerCase() === "rejected").length,
-      total: pendingLeaves.length,
+      pending: leaves.filter((req) => req.status?.toLowerCase() === "pending").length,
+      approved: leaves.filter((req) => req.status?.toLowerCase() === "approved").length,
+      rejected: leaves.filter((req) => req.status?.toLowerCase() === "rejected").length,
+      total: leaves.length,
     };
 
     return [
@@ -90,13 +140,27 @@ const LeaveTracker = () => {
     ];
   }, [pendingLeaves]);
 
-  const handleApprove = useCallback((id) => {
-    dispatch(approveLeave(id));
-  }, [dispatch]);
+  const handleApprove = useCallback(
+    (id) => {
+      dispatch(approveLeave(id)).then((result) => {
+        if (result.error && result.error.message.includes("No authentication token")) {
+          navigate("/login");
+        }
+      });
+    },
+    [dispatch, navigate]
+  );
 
-  const handleReject = useCallback((id) => {
-    dispatch(rejectLeave(id));
-  }, [dispatch]);
+  const handleReject = useCallback(
+    (id) => {
+      dispatch(rejectLeave(id)).then((result) => {
+        if (result.error && result.error.message.includes("No authentication token")) {
+          navigate("/login");
+        }
+      });
+    },
+    [dispatch, navigate]
+  );
 
   const handleFilter = useCallback((status) => {
     setFilterStatus(status);
@@ -122,12 +186,11 @@ const LeaveTracker = () => {
             Leave Management
           </h1>
           <p className="text-gray-600 mt-1">
-            Monitor and process employee leave requests
+            Monitor and process {role === "hr" ? "employee and department head" : "HR"} leave requests
           </p>
         </div>
         <div className="w-4/12">
           <DatePicker
-            type="date"
             fromDate={fromDate}
             toDate={toDate}
             onFromDateChange={setFromDate}
@@ -139,8 +202,11 @@ const LeaveTracker = () => {
         </div>
       </div>
 
-      {loading && <p className="text-gray-600">Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      <div aria-live="polite">
+        {loading && <p className="text-gray-600">Loading...</p>}
+        {error && <p className="text-red-500">{error}</p>}
+        {successMessage && <p className="text-green-600">{successMessage}</p>}
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {summary.map((item, i) => (
@@ -210,83 +276,81 @@ const LeaveTracker = () => {
                 className="p-6 bg-white/90 rounded-2xl border border-teal-200/50 hover:shadow-md transition-all duration-300"
               >
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                  {/* Employee Details */}
                   <div className="col-span-2 flex items-start gap-4">
                     <div className="w-16 h-16 rounded-full bg-gradient-to-r from-teal-600 to-slate-700 text-white flex items-center justify-center shadow-md">
                       <User size={28} />
                     </div>
                     <div className="space-y-1">
                       <h3 className="text-xl font-bold text-gray-900">
-                        {req.employee_name}
+                        {req.employee_name || "Unknown"}
                       </h3>
                       <p className="text-sm font-medium text-gray-600">
-                        {req.department}
+                        {req.department || "N/A"}
                       </p>
-                      <p className="text-xs text-gray-500">ID: {req.employee_id}</p>
+                      <p className="text-xs text-gray-500">ID: {req.employee_id || "N/A"}</p>
                       <p className="text-sm text-gray-700">
-                        <span className="font-medium">Reason:</span>{" "}
-                        {req.reason}
+                        <span className="font-medium">Reason:</span> {req.reason || "N/A"}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">Recipients:</span>{" "}
+                        {req.recipients?.join(", ") || "N/A"}
                       </p>
                     </div>
                   </div>
-
-                  {/* Leave Details */}
                   <div className="col-span-2 space-y-2">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Calendar size={16} className="text-teal-600" />
                       <span>
                         <strong>From:</strong>{" "}
-                        {new Date(req.start_date).toLocaleDateString()}
+                        {req.start_date ? new Date(req.start_date).toLocaleDateString() : "N/A"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Calendar size={16} className="text-teal-600" />
                       <span>
                         <strong>To:</strong>{" "}
-                        {new Date(req.end_date).toLocaleDateString()}
+                        {req.end_date ? new Date(req.end_date).toLocaleDateString() : "N/A"}
                       </span>
                     </div>
                     <div className="text-sm text-gray-600">
-                      <strong>Duration:</strong> {req.days} days
+                      <strong>Duration:</strong> {req.days || "N/A"} days
                     </div>
                     <div>
                       <span
                         className={`px-3 py-1 rounded-full text-xs text-white font-semibold bg-gradient-to-r ${
-                          typeColors[req.leave_type]
+                          typeColors[req.leave_type] || "from-gray-600 to-gray-700"
                         }`}
                       >
-                        {req.leave_type}
+                        {req.leave_type || "Unknown"}
                       </span>
                     </div>
                   </div>
-
-                  {/* Status and Actions */}
                   <div className="col-span-1 flex flex-col items-start md:items-end gap-3">
                     <div>
-                      <span className="text-xs font-medium text-gray-500 uppercase">
-                        Status
-                      </span>
+                      <span className="text-xs font-medium text-gray-500 uppercase">Status</span>
                       <p
                         className={`mt-1 px-3 py-1 rounded-full text-xs font-semibold ${
-                          statusColors[req.status.toLowerCase()]
+                          statusColors[req.status?.toLowerCase()] || "bg-gray-100 text-gray-700"
                         }`}
                       >
-                        {req.status}
+                        {req.status || "Unknown"}
                       </p>
                     </div>
-                    {req.status.toLowerCase() === "pending" && (
+                    {req.status?.toLowerCase() === "pending" && (
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleApprove(req.id)}
                           className="px-4 py-1.5 bg-gradient-to-r from-green-500 to-green-700 text-white text-xs rounded-lg hover:from-green-600 hover:to-green-800 transition-all duration-300 shadow-md"
-                          aria-label={`Approve leave request for ${req.employee_name}`}
+                          aria-label={`Approve leave request for ${req.employee_name || "employee"}`}
+                          disabled={loading}
                         >
                           Approve
                         </button>
                         <button
                           onClick={() => handleReject(req.id)}
                           className="px-4 py-1.5 bg-gradient-to-r from-red-500 to-red-700 text-white text-xs rounded-lg hover:from-red-600 hover:to-red-800 transition-all duration-300 shadow-md"
-                          aria-label={`Reject leave request for ${req.employee_name}`}
+                          aria-label={`Reject leave request for ${req.employee_name || "employee"}`}
+                          disabled={loading}
                         >
                           Reject
                         </button>

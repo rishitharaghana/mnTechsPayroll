@@ -122,7 +122,7 @@ const Payroll = () => {
   };
 
   const handleRefresh = () => {
-    console.log("Refreshing payroll for month:", selectedMonth); // Debug log
+    console.log("Refreshing payroll for month:", selectedMonth); 
     dispatch(fetchPayroll({ month: selectedMonth }));
   };
 

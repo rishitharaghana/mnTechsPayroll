@@ -23,7 +23,6 @@ export const fetchPayroll = createAsyncThunk(
   }
 );
 
-// Create a single payroll entry
 export const createPayroll = createAsyncThunk(
   "payroll/createPayroll",
   async (payrollData, { rejectWithValue }) => {
@@ -32,7 +31,6 @@ export const createPayroll = createAsyncThunk(
       if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
       const { token } = JSON.parse(userToken);
 
-      // Transform payrollData to match expected structure
       const transformedData = {
         ...payrollData,
         deductions: {
@@ -46,16 +44,15 @@ export const createPayroll = createAsyncThunk(
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });
 
-      console.log("createPayroll response:", response.data); // Debug log
+      console.log("createPayroll response:", response.data); 
       return response.data;
     } catch (error) {
-      console.error("createPayroll error:", error.response?.data || error.message); // Debug log
+      console.error("createPayroll error:", error.response?.data || error.message); 
       return rejectWithValue(error.response?.data?.error || "Failed to create payroll");
     }
   }
 );
 
-// Generate payroll for all employees
 export const generatePayroll = createAsyncThunk(
   "payroll/generatePayroll",
   async ({ month }, { rejectWithValue }) => {
@@ -79,7 +76,6 @@ export const generatePayroll = createAsyncThunk(
   }
 );
 
-// Download payroll PDF
 export const downloadPayrollPDF = createAsyncThunk(
   "payroll/downloadPayrollPDF",
   async ({ month, employeeId }, { rejectWithValue }) => {

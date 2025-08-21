@@ -28,7 +28,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Dashboard",
       icon: TrendingUp,
       path: "/admin/dashboard",
-      allowedRoles: ["super_admin", "hr", "dept_head", ],
+      allowedRoles: ["super_admin", "hr", "dept_head", ]
     },
     {
       id: "dashboard",
@@ -80,17 +80,18 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
       children: [
         {
-          id: "leave-application",
-          label: "Apply Leave",
-          path: "/employee/leave-application",
-          allowedRoles: ["employee"],
-        },
-        {
           id: "leave-dashboard",
           label: "Leave Dashboard",
           path: "/employee/leave-dashboard",
           allowedRoles: ["employee"],
         },
+        {
+          id: "leave-application",
+          label: "Apply Leave",
+          path: "/employee/leave-application",
+          allowedRoles: ["employee"],
+        },
+        
       ],
     },
     {
@@ -124,7 +125,14 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Payslips",
       icon: FileText,
       path: "/admin/payslip",
-      allowedRoles: ["super_admin", "hr", "employee"],
+      allowedRoles: ["super_admin", "hr", ],
+    },
+    {
+      id: "payslips",
+      label: "Payslips",
+      icon: FileText,
+      path: "/employee-payslip",
+      allowedRoles: ["employee"],
     },
     {
       id: "calendar",
@@ -220,7 +228,6 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
               );
             }
 
-            // If the item has children, render as a dropdown
             if (item.children) {
               const isActive = activeTab === item.id;
               return (
@@ -265,7 +272,6 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
               );
             }
 
-            // Fallback for items with a path (no children)
             return (
               <NavLink
                 key={item.id}

@@ -74,7 +74,7 @@ const EmployeePayslip = () => {
     setError(null);
     try {
       const response = await axios.post(
-        'http://localhost:3004/generate-payslip',
+        'http://localhost:3007/generate-payslip',
         { from: fromDate, to: toDate },
         { responseType: 'blob' }
       );
