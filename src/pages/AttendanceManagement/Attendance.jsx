@@ -1,128 +1,110 @@
-import React, { useState } from 'react';
-import { Clock, CheckCircle, XCircle, Users } from 'lucide-react';
-import DatePicker from '../../Components/ui/date/DatePicker';
-import PageMeta from '../../Components/common/PageMeta';
-import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Clock, CheckCircle, XCircle, Users } from "lucide-react";
+import DatePicker from "../../Components/ui/date/DatePicker";
+import PageMeta from "../../Components/common/PageMeta";
+import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
+import { fetchAllAttendance, updateAttendanceStatus, clearState } from "../../redux/slices/attendanceSlice";
 
 const Attendance = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const dispatch = useDispatch();
+  const { submissions, loading, error, successMessage } = useSelector((state) => state.attendance);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
 
-  const attendanceData = [
-    {
-      id: 'EMP001',
-      name: 'John Smith',
-      department: 'Engineering',
-      checkIn: '09:00 AM',
-      checkOut: '06:00 PM',
-      status: 'Present',
-      workingHours: '9h 0m',
-      location: 'Office',
-    },
-    {
-      id: 'EMP002',
-      name: 'Sarah Wilson',
-      department: 'Marketing',
-      checkIn: '08:45 AM',
-      checkOut: '05:30 PM',
-      status: 'Present',
-      workingHours: '8h 45m',
-      location: 'Remote',
-    },
-    {
-      id: 'EMP003',
-      name: 'Mike Johnson',
-      department: 'Design',
-      checkIn: '-',
-      checkOut: '-',
-      status: 'Absent',
-      workingHours: '0h 0m',
-      location: '-',
-    },
-    {
-      id: 'EMP004',
-      name: 'Emily Davis',
-      department: 'HR',
-      checkIn: '09:15 AM',
-      checkOut: '06:15 PM',
-      status: 'Present',
-      workingHours: '9h 0m',
-      location: 'Office',
-    },
-    {
-      id: 'EMP005',
-      name: 'Robert Brown',
-      department: 'Sales',
-      checkIn: '10:00 AM',
-      checkOut: '-',
-      status: 'Late',
-      workingHours: '6h 30m',
-      location: 'Office',
-    },
-  ];
+  const userToken = localStorage.getItem("userToken");
+  const user = userToken ? JSON.parse(userToken).user : null;
+  const userRole = user?.role;
+
+  +
+  useEffect(() => {
+    if (["super_admin", "hr", "dept_head"].includes(userRole)) {
+      dispatch(fetchAllAttendance());
+    }
+    return () => {
+      dispatch(clearState());
+    };
+  }, [dispatch, userRole]);
+
+  useEffect(() => {
+    if (successMessage) {
+      alert(successMessage);
+      dispatch(clearState());
+    }
+    if (error) {
+      alert(error);
+      dispatch(clearState());
+    }
+  }, [successMessage, error, dispatch]);
+
+  const handleStatusUpdate = (id, status) => {
+    dispatch(updateAttendanceStatus({ id, status }));
+  };
+
+  const getStatusColor = (status) =>
+    ({
+      Present: "bg-green-100 text-green-800",
+      Absent: "bg-red-100 text-red-800",
+      Late: "bg-yellow-100 text-yellow-800",
+      Pending: "bg-blue-100 text-blue-800",
+      Approved: "bg-green-100 text-green-800",
+      Rejected: "bg-red-100 text-red-800",
+    }[status] || "bg-slate-100 text-slate-800");
+
+  const getLocationColor = (location) =>
+    ({
+      Office: "bg-blue-100 text-blue-800",
+      Remote: "bg-purple-100 text-purple-800",
+    }[location] || "bg-slate-100 text-slate-800");
 
   const stats = [
     {
-      title: 'Present Today',
-      value: '198',
-      total: '248',
-      percentage: '80%',
-      color: 'bg-gradient-to-r from-teal-600 to-slate-700',
+      title: "Present Today",
+      value: submissions.filter((s) => s.status === "Approved" && s.date === selectedDate).length,
+      total: submissions.length,
+      percentage: submissions.length ? ((submissions.filter((s) => s.status === "Approved" && s.date === selectedDate).length / submissions.length) * 100).toFixed(1) + "%" : "0%",
+      color: "bg-gradient-to-r from-teal-600 to-slate-700",
       icon: CheckCircle,
     },
     {
-      title: 'Absent Today',
-      value: '12',
-      total: '248',
-      percentage: '5%',
-      color: 'bg-gradient-to-r from-teal-600 to-slate-700',
+      title: "Absent Today",
+      value: submissions.filter((s) => s.status === "Rejected" && s.date === selectedDate).length,
+      total: submissions.length,
+      percentage: submissions.length ? ((submissions.filter((s) => s.status === "Rejected" && s.date === selectedDate).length / submissions.length) * 100).toFixed(1) + "%" : "0%",
+      color: "bg-gradient-to-r from-teal-600 to-slate-700",
       icon: XCircle,
     },
     {
-      title: 'Late Arrivals',
-      value: '8',
-      total: '248',
-      percentage: '3%',
-      color: 'bg-gradient-to-r from-teal-600 to-slate-700',
+      title: "Pending Approvals",
+      value: submissions.filter((s) => s.status === "Pending" && s.date === selectedDate).length,
+      total: submissions.length,
+      percentage: submissions.length ? ((submissions.filter((s) => s.status === "Pending" && s.date === selectedDate).length / submissions.length) * 100).toFixed(1) + "%" : "0%",
+      color: "bg-gradient-to-r from-teal-600 to-slate-700",
       icon: Clock,
     },
     {
-      title: 'Remote Workers',
-      value: '30',
-      total: '248',
-      percentage: '12%',
-      color: 'bg-gradient-to-r from-teal-600 to-slate-700',
+      title: "Remote Workers",
+      value: submissions.filter((s) => s.location === "Remote" && s.date === selectedDate).length,
+      total: submissions.length,
+      percentage: submissions.length ? ((submissions.filter((s) => s.location === "Remote" && s.date === selectedDate).length / submissions.length) * 100).toFixed(1) + "%" : "0%",
+      color: "bg-gradient-to-r from-teal-600 to-slate-700",
       icon: Users,
     },
   ];
 
-  const getStatusColor = (status) =>
-    ({
-      Present: 'bg-green-100 text-green-800',
-      Absent: 'bg-red-100 text-red-800',
-      Late: 'bg-yellow-100 text-yellow-800',
-    }[status] || 'bg-slate-100 text-slate-800');
-
-  const getLocationColor = (location) =>
-    ({
-      Office: 'bg-blue-100 text-blue-800',
-      Remote: 'bg-purple-100 text-purple-800',
-    }[location] || 'bg-slate-100 text-slate-800');
-
   return (
     <div className="space-y-2 bg-slate-50 min-h-screen p-6">
-      {/* Header */}
       <div className="flex justify-end">
         <PageMeta title="Attendance Management" description="Track and manage employee attendance efficiently." />
         <PageBreadcrumb
           items={[
-            { label: 'Home', link: '/' },
-            { label: 'Attendance', link: '/admin/attendance' },
+            { label: "Home", link: "/" },
+            { label: "Attendance", link: "/admin/attendance" },
           ]}
         />
       </div>
       <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className='w-[65%]'>
+          <div className="w-[65%]">
             <h1 className="text-3xl font-bold text-white">Attendance Tracking</h1>
             <p className="text-slate-200 text-lg mt-1">Monitor employee attendance and working hours</p>
           </div>
@@ -135,7 +117,7 @@ const Attendance = () => {
               className="w-full max-w-xs"
               aria-label="Select Attendance Date"
             />
-          </div>  
+          </div>
         </div>
       </div>
 
@@ -163,7 +145,7 @@ const Attendance = () => {
       {/* Attendance Table */}
       <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
         <div className="p-6 border-b border-slate-200/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-xl font-bold text-slate-900">Today's Attendance</h2>
+          <h2 className="text-xl font-bold text-slate-900">Attendance Records</h2>
           <div className="flex items-center space-x-4">
             <span className="text-sm text-slate-600">
               Date: {new Date(selectedDate).toLocaleDateString()}
@@ -178,82 +160,88 @@ const Attendance = () => {
           <table className="w-full table-fixed text-sm" aria-label="Employee Attendance Table">
             <thead className="bg-gradient-to-r from-teal-600 to-slate-700">
               <tr>
-                <th
-                  scope="col"
-                  className="w-1/4 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                >
+                <th className="w-1/5 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                   Employee
                 </th>
-                <th
-                  scope="col"
-                  className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                >
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                   Check In
                 </th>
-                <th
-                  scope="col"
-                  className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                >
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                   Check Out
                 </th>
-                <th
-                  scope="col"
-                  className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                >
-                  Working Hours
-                </th>
-                <th
-                  scope="col"
-                  className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                >
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                   Status
                 </th>
-                <th
-                  scope="col"
-                  className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                >
-                  Location
-                </th>
+                {["super_admin", "hr", "dept_head"].includes(userRole) && (
+                  <th className="w-1/5 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200/50">
-              {attendanceData.map(({ id, name, checkIn, checkOut, workingHours, status, location }) => (
-                <tr key={id} className="hover:bg-slate-100/80 transition-colors duration-200">
-                  <td className="px-4 py-3">
-                    <div className="text-sm font-medium text-slate-900">{name}</div>
-                    <div className="text-xs text-slate-500">{id}</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center space-x-2">
-                      <Clock size={14} className="text-slate-400" />
-                      <span className="text-sm text-slate-900">{checkIn}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center space-x-2">
-                      <Clock size={14} className="text-slate-400" />
-                      <span className="text-sm text-slate-900">{checkOut}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-sm text-teal-600 font-medium">{workingHours}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(status)}`}
-                    >
-                      {status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLocationColor(location)}`}
-                    >
-                      {location}
-                    </span>
+              {submissions.length === 0 ? (
+                <tr>
+                  <td colSpan={["super_admin", "hr", "dept_head"].includes(userRole) ? 6 : 5} className="px-4 py-3 text-sm text-slate-500 text-center">
+                    No attendance records found
                   </td>
                 </tr>
-              ))}
+              ) : (
+                submissions
+                  .filter((submission) => submission.date === selectedDate)
+                  .map(({ id, employee_name, date, login_time, logout_time, status }) => (
+                    <tr key={id} className="hover:bg-slate-100/80 transition-colors duration-200">
+                      <td className="px-4 py-3">
+                        <div className="text-sm font-medium text-slate-900">{employee_name}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm text-slate-900">{new Date(date).toLocaleDateString()}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center space-x-2">
+                          <Clock size={14} className="text-slate-400" />
+                          <span className="text-sm text-slate-900">{login_time}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center space-x-2">
+                          <Clock size={14} className="text-slate-400" />
+                          <span className="text-sm text-slate-900">{logout_time || "N/A"}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(status)}`}>
+                          {status}
+                        </span>
+                      </td>
+                      {["super_admin", "hr", "dept_head"].includes(userRole) && (
+                        <td className="px-4 py-3">
+                          {status === "Pending" && (
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => handleStatusUpdate(id, "Approved")}
+                                className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 transition-transform duration-300"
+                                disabled={loading}
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleStatusUpdate(id, "Rejected")}
+                                className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-400 transition-transform duration-300"
+                                disabled={loading}
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ))
+              )}
             </tbody>
           </table>
         </div>
@@ -263,9 +251,12 @@ const Attendance = () => {
       <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <h2 className="text-xl font-bold text-slate-900 mb-4">Weekly Attendance Overview</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
-            const value = Math.floor(Math.random() * 20 + 180);
-            const percentage = Math.random() * 40 + 60;
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => {
+            const daySubmissions = submissions.filter(
+              (s) => new Date(s.date).getDay() === (index + 1) % 7
+            );
+            const presentCount = daySubmissions.filter((s) => s.status === "Approved").length;
+            const percentage = daySubmissions.length ? ((presentCount / daySubmissions.length) * 100).toFixed(1) : 0;
 
             return (
               <div
@@ -290,10 +281,12 @@ const Attendance = () => {
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-slate-800">
-                    {Math.round(percentage)}%
+                    {percentage}%
                   </div>
                 </div>
-                <div className="text-xs text-slate-500 mt-2">{value}/248</div>
+                <div className="text-xs text-slate-500 mt-2">
+                  {presentCount}/{daySubmissions.length}
+                </div>
               </div>
             );
           })}

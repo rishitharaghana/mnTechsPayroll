@@ -6,19 +6,27 @@ export const applyLeave = createAsyncThunk(
   async (leaveData, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
       const { token } = JSON.parse(userToken);
-      const response = await axios.post("http://localhost:3007/api/leaves", leaveData, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      console.log("applyLeave response:", response.data); // Debug log
-      return response.data.leave;
+      const response = await axios.post(
+        "http://localhost:3007/api/leaves",
+        leaveData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("applyLeave response:", response.data);
+      return response.data; // Expecting { leave: {...}, message: string }
     } catch (error) {
-      console.error("applyLeave error:", error.response?.data || error.message); // Debug log
-      return rejectWithValue(error.response?.data?.error || "Failed to apply leave");
+      console.error("applyLeave error:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to apply leave"
+      );
     }
   }
 );
@@ -28,16 +36,20 @@ export const fetchMyLeaves = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
       const { token } = JSON.parse(userToken);
       const response = await axios.get("http://localhost:3007/api/leaves", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("fetchMyLeaves response:", response.data); // Debug log
+      console.log("fetchMyLeaves response:", response.data);
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
-      console.error("fetchMyLeaves error:", error.response?.data || error.message); // Debug log
-      return rejectWithValue(error.response?.data?.error || "Failed to fetch leaves");
+      console.error("fetchMyLeaves error:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch leaves"
+      );
     }
   }
 );
@@ -47,16 +59,26 @@ export const fetchPendingLeaves = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get("http://localhost:3007/api/leaves/pending", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log("fetchPendingLeaves response:", response.data); // Debug log
+      const response = await axios.get(
+        "http://localhost:3007/api/leaves/pending",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("fetchPendingLeaves response:", response.data);
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
-      console.error("fetchPendingLeaves error:", error.response?.data || error.message); // Debug log
-      return rejectWithValue(error.response?.data?.error || "Failed to fetch pending leaves");
+      console.error(
+        "fetchPendingLeaves error:",
+        error.response?.data || error.message
+      );
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch pending leaves"
+      );
     }
   }
 );
@@ -66,16 +88,23 @@ export const fetchAllLeaves = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get("http://localhost:3007/api/leaves/getAll", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log("fetchAllLeaves response:", response.data); // Debug log
+      const response = await axios.get(
+        "http://localhost:3007/api/leaves/getAll",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("fetchAllLeaves response:", response.data);
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
-      console.error("fetchAllLeaves error:", error.response?.data || error.message); // Debug log
-      return rejectWithValue(error.response?.data?.error || "Failed to fetch all leaves");
+      console.error("fetchAllLeaves error:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch all leaves"
+      );
     }
   }
 );
@@ -85,18 +114,22 @@ export const approveLeave = createAsyncThunk(
   async (leave_id, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
       const { token } = JSON.parse(userToken);
       const response = await axios.put(
         `http://localhost:3007/api/leaves/${leave_id}`,
         { leave_id, status: "Approved" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log("approveLeave response:", response.data); // Debug log
+      console.log("approveLeave response:", response.data);
       return { leave_id, message: response.data.message };
     } catch (error) {
-      console.error("approveLeave error:", error.response?.data || error.message); // Debug log
-      return rejectWithValue(error.response?.data?.error || "Failed to approve leave");
+      console.error("approveLeave error:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to approve leave"
+      );
     }
   }
 );
@@ -106,18 +139,22 @@ export const rejectLeave = createAsyncThunk(
   async (leave_id, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
       const { token } = JSON.parse(userToken);
       const response = await axios.put(
         `http://localhost:3007/api/leaves/${leave_id}`,
         { leave_id, status: "Rejected" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log("rejectLeave response:", response.data); // Debug log
+      console.log("rejectLeave response:", response.data);
       return { leave_id, message: response.data.message };
     } catch (error) {
-      console.error("rejectLeave error:", error.response?.data || error.message); // Debug log
-      return rejectWithValue(error.response?.data?.error || "Failed to reject leave");
+      console.error("rejectLeave error:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to reject leave"
+      );
     }
   }
 );
@@ -127,16 +164,26 @@ export const fetchRecipientOptions = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get("http://localhost:3007/api/leaves/recipient-options", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log("fetchRecipientOptions response:", response.data); // Debug log
+      const response = await axios.get(
+        "http://localhost:3007/api/leaves/recipient-options",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("fetchRecipientOptions response:", response.data);
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
-      console.error("fetchRecipientOptions error:", error.response?.data || error.message); // Debug log
-      return rejectWithValue(error.response?.data?.error || "Failed to fetch recipient options");
+      console.error(
+        "fetchRecipientOptions error:",
+        error.response?.data || error.message
+      );
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch recipient options"
+      );
     }
   }
 );
@@ -144,8 +191,8 @@ export const fetchRecipientOptions = createAsyncThunk(
 const leaveSlice = createSlice({
   name: "leaves",
   initialState: {
-    leaves: [],
-    pendingLeaves: [],
+    leaves: [], // All leaves (like employees in employeeSlice)
+    pendingLeaves: [], // Pending leaves for hr/super_admin
     recipients: [],
     loading: false,
     error: null,
@@ -168,8 +215,7 @@ const leaveSlice = createSlice({
       .addCase(applyLeave.fulfilled, (state, action) => {
         state.loading = false;
         state.successMessage = action.payload.message || "Leave applied successfully";
-        state.leaves = [...state.leaves, action.payload];
-        console.log("applyLeave fulfilled, leaves:", state.leaves); // Debug log
+        state.leaves.push(action.payload.leave || action.payload);
       })
       .addCase(applyLeave.rejected, (state, action) => {
         state.loading = false;
@@ -184,7 +230,7 @@ const leaveSlice = createSlice({
         state.loading = false;
         state.leaves = action.payload;
         state.successMessage = "Leaves fetched successfully";
-        console.log("fetchMyLeaves fulfilled, leaves:", state.leaves); // Debug log
+        console.log("fetchMyLeaves fulfilled, leaves:", action.payload);
       })
       .addCase(fetchMyLeaves.rejected, (state, action) => {
         state.loading = false;
@@ -199,7 +245,7 @@ const leaveSlice = createSlice({
         state.loading = false;
         state.pendingLeaves = action.payload;
         state.successMessage = "Pending leaves fetched successfully";
-        console.log("fetchPendingLeaves fulfilled, pendingLeaves:", state.pendingLeaves); // Debug log
+        console.log("fetchPendingLeaves fulfilled, pendingLeaves:", action.payload);
       })
       .addCase(fetchPendingLeaves.rejected, (state, action) => {
         state.loading = false;
@@ -212,9 +258,9 @@ const leaveSlice = createSlice({
       })
       .addCase(fetchAllLeaves.fulfilled, (state, action) => {
         state.loading = false;
-        state.pendingLeaves = action.payload;
+        state.leaves = action.payload;
         state.successMessage = "All leaves fetched successfully";
-        console.log("fetchAllLeaves fulfilled, pendingLeaves:", state.pendingLeaves); // Debug log
+        console.log("fetchAllLeaves fulfilled, leaves:", action.payload);
       })
       .addCase(fetchAllLeaves.rejected, (state, action) => {
         state.loading = false;
@@ -231,7 +277,11 @@ const leaveSlice = createSlice({
         state.pendingLeaves = state.pendingLeaves.filter(
           (leave) => leave.id !== action.payload.leave_id
         );
-        console.log("approveLeave fulfilled, pendingLeaves:", state.pendingLeaves); // Debug log
+        state.leaves = state.leaves.map((leave) =>
+          leave.id === action.payload.leave_id
+            ? { ...leave, status: "Approved", approved_at: new Date().toISOString() }
+            : leave
+        );
       })
       .addCase(approveLeave.rejected, (state, action) => {
         state.loading = false;
@@ -248,7 +298,11 @@ const leaveSlice = createSlice({
         state.pendingLeaves = state.pendingLeaves.filter(
           (leave) => leave.id !== action.payload.leave_id
         );
-        console.log("rejectLeave fulfilled, pendingLeaves:", state.pendingLeaves); // Debug log
+        state.leaves = state.leaves.map((leave) =>
+          leave.id === action.payload.leave_id
+            ? { ...leave, status: "Rejected", approved_at: new Date().toISOString() }
+            : leave
+        );
       })
       .addCase(rejectLeave.rejected, (state, action) => {
         state.loading = false;
@@ -263,7 +317,7 @@ const leaveSlice = createSlice({
         state.loading = false;
         state.recipients = action.payload;
         state.successMessage = "Recipient options fetched successfully";
-        console.log("fetchRecipientOptions fulfilled, recipients:", state.recipients); // Debug log
+        console.log("fetchRecipientOptions fulfilled, recipients:", action.payload);
       })
       .addCase(fetchRecipientOptions.rejected, (state, action) => {
         state.loading = false;

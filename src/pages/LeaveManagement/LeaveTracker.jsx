@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchAllLeaves, approveLeave, rejectLeave, clearState } from "../../redux/slices/leaveSlice";
-import { Clock, CheckCircle, XCircle, User, UserCheck, Calendar, Users } from "lucide-react";
+import { fetchAllLeaves, fetchPendingLeaves, approveLeave, rejectLeave, clearState } from "../../redux/slices/leaveSlice";
+import { Clock, CheckCircle, XCircle, User, UserCheck, Calendar } from "lucide-react";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 
@@ -52,22 +52,48 @@ const LeaveTracker = () => {
   const [toDate, setToDate] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { pendingLeaves = [], loading, error, successMessage } = useSelector((state) => state.leaves);
-  const { role, token } = useSelector((state) => state.auth);
+  const { leaves = [], pendingLeaves = [], loading, error, successMessage } = useSelector((state) => state.leaves);
+  const { role, token, user_id } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (!token) {
+    const userToken = localStorage.getItem("userToken");
+    console.log("userToken from localStorage:", userToken);
+    console.log("Redux auth state:", { role, token, user_id });
+    if (!token || !userToken) {
+      console.log("No token found, redirecting to login");
       navigate("/login");
-    } else if (role !== "hr" && role !== "super_admin") {
-      navigate("/unauthorized");
-    } else {
-      dispatch(fetchAllLeaves());
+      return;
     }
-  }, [dispatch, navigate, token, role]);
+    try {
+      const { token: parsedToken } = JSON.parse(userToken);
+      if (parsedToken !== token) {
+        console.warn("Token mismatch between Redux and localStorage");
+        navigate("/login");
+        return;
+      }
+    } catch (error) {
+      console.error("Error parsing userToken:", error);
+      navigate("/login");
+      return;
+    }
+
+    if (role !== "hr" && role !== "super_admin") {
+      console.log("Unauthorized role, redirecting:", role);
+      navigate("/unauthorized");
+      return;
+    }
+
+    console.log("Fetching all leaves and pending leaves for role:", role, "user_id:", user_id);
+    dispatch(fetchAllLeaves());
+    dispatch(fetchPendingLeaves());
+  }, [dispatch, navigate, token, role, user_id]);
 
   useEffect(() => {
     if (successMessage || error) {
-      const timer = setTimeout(() => dispatch(clearState()), 3000);
+      const timer = setTimeout(() => {
+        console.log("Clearing state due to success or error");
+        dispatch(clearState());
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [successMessage, error, dispatch]);
@@ -75,14 +101,19 @@ const LeaveTracker = () => {
   const calculateDays = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    if (isNaN(start) || isNaN(end)) return 0;
+    if (isNaN(start) || isNaN(end)) {
+      console.warn("Invalid dates for days calculation:", { startDate, endDate });
+      return 0;
+    }
     const diffTime = Math.abs(end - start);
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   };
 
   const filteredLeaveData = useMemo(() => {
-    const leaves = Array.isArray(pendingLeaves) ? pendingLeaves : [];
-    return leaves
+    const sourceLeaves = filterStatus === "pending" ? pendingLeaves : leaves;
+    const leavesArray = Array.isArray(sourceLeaves) ? sourceLeaves : [];
+    console.log(`Filtered leave data source (${filterStatus}):`, leavesArray);
+    const filtered = leavesArray
       .map((req) => ({
         ...req,
         days: req.days || calculateDays(req.start_date, req.end_date),
@@ -91,22 +122,29 @@ const LeaveTracker = () => {
         const from = fromDate ? new Date(fromDate) : new Date("1970-01-01");
         const to = toDate ? new Date(toDate) : new Date("9999-12-31");
         const reqFrom = new Date(req.start_date);
+        if (isNaN(reqFrom)) {
+          console.warn("Invalid start_date for leave:", req);
+          return false;
+        }
         return (
           (filterStatus === "all" || req.status?.toLowerCase() === filterStatus) &&
           reqFrom >= from &&
           reqFrom <= to
         );
       });
-  }, [pendingLeaves, filterStatus, fromDate, toDate]);
+    console.log("Filtered leave data output:", filtered);
+    return filtered;
+  }, [leaves, pendingLeaves, filterStatus, fromDate, toDate]);
 
   const summary = useMemo(() => {
-    const leaves = Array.isArray(pendingLeaves) ? pendingLeaves : [];
+    const leavesArray = Array.isArray(leaves) ? leaves : [];
     const counts = {
-      pending: leaves.filter((req) => req.status?.toLowerCase() === "pending").length,
-      approved: leaves.filter((req) => req.status?.toLowerCase() === "approved").length,
-      rejected: leaves.filter((req) => req.status?.toLowerCase() === "rejected").length,
-      total: leaves.length,
+      pending: pendingLeaves.length,
+      approved: leavesArray.filter((req) => req.status?.toLowerCase() === "approved").length,
+      rejected: leavesArray.filter((req) => req.status?.toLowerCase() === "rejected").length,
+      total: leavesArray.length,
     };
+    console.log("Summary counts:", counts);
 
     return [
       {
@@ -138,13 +176,21 @@ const LeaveTracker = () => {
         status: "all",
       },
     ];
-  }, [pendingLeaves]);
+  }, [leaves, pendingLeaves]);
 
   const handleApprove = useCallback(
     (id) => {
+      console.log("Approving leave ID:", id);
       dispatch(approveLeave(id)).then((result) => {
-        if (result.error && result.error.message.includes("No authentication token")) {
-          navigate("/login");
+        if (result.error) {
+          console.error("approveLeave error:", result.error.message);
+          if (result.error.message.includes("No authentication token")) {
+            navigate("/login");
+          }
+        } else {
+          console.log("Leave approved, refetching leaves");
+          dispatch(fetchAllLeaves());
+          dispatch(fetchPendingLeaves());
         }
       });
     },
@@ -153,9 +199,17 @@ const LeaveTracker = () => {
 
   const handleReject = useCallback(
     (id) => {
+      console.log("Rejecting leave ID:", id);
       dispatch(rejectLeave(id)).then((result) => {
-        if (result.error && result.error.message.includes("No authentication token")) {
-          navigate("/login");
+        if (result.error) {
+          console.error("rejectLeave error:", result.error.message);
+          if (result.error.message.includes("No authentication token")) {
+            navigate("/login");
+          }
+        } else {
+          console.log("Leave rejected, refetching leaves");
+          dispatch(fetchAllLeaves());
+          dispatch(fetchPendingLeaves());
         }
       });
     },
@@ -163,6 +217,7 @@ const LeaveTracker = () => {
   );
 
   const handleFilter = useCallback((status) => {
+    console.log("Setting filter status:", status);
     setFilterStatus(status);
   }, []);
 
@@ -269,7 +324,9 @@ const LeaveTracker = () => {
           </div>
         </div>
         <div className="space-y-6 p-6">
-          {filteredLeaveData.length > 0 ? (
+          {loading && leaves.length === 0 && pendingLeaves.length === 0 ? (
+            <p className="text-gray-600 text-center">Loading leave requests...</p>
+          ) : filteredLeaveData.length > 0 ? (
             filteredLeaveData.map((req) => (
               <div
                 key={req.id}

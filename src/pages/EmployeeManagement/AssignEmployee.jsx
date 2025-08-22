@@ -89,7 +89,6 @@ const AssignEmployee = () => {
     { name: "Employee", icon: <User className="w-6 h-6" />, description: "Standard employee role" },
   ];
 
-  // Real-time mobile vs. emergency phone validation
   useEffect(() => {
     if (
       employee.emergencyPhone &&
