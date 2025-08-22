@@ -39,6 +39,8 @@ import EmployeeTimeTracking from "./pages/timetracking/EmployeeTimeTracking";
 import VisitingCardForm from "./form/VisitingCardForm";
 import ViewGoals from "./pages/PerformanceManagement/ViewGoals";
 import EmployeeTravelExpenses from "./pages/TravelExpenses/EmployeeTravelExpenses";
+import { ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 const App = () => {
   return (
