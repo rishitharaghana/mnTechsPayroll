@@ -12,6 +12,9 @@ import {
   LogOut,
   CalendarClock,
   IdCardIcon,
+  Rocket,
+  RouteOff,
+  Waypoints,
 } from "lucide-react";
 
 const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
@@ -180,6 +183,13 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       icon: IdCardIcon,
       path: "/idcard",
       allowedRoles: ["super_admin", "hr", "dept_head"],
+    },
+    {
+      id: "travelexpenses",
+      label: "Travel Expenses",
+      icon: Waypoints,
+      path: "/employee/travel-expenses",
+      allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
     },
   ];
 

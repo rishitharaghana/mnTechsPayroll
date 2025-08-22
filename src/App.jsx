@@ -38,6 +38,7 @@ import ProtectedRoute from "./context/ProtectedRoute";
 import EmployeeTimeTracking from "./pages/timetracking/EmployeeTimeTracking";
 import VisitingCardForm from "./form/VisitingCardForm";
 import ViewGoals from "./pages/PerformanceManagement/ViewGoals";
+import EmployeeTravelExpenses from "./pages/TravelExpenses/EmployeeTravelExpenses";
 
 const App = () => {
   return (
@@ -112,11 +113,13 @@ const App = () => {
             />
             <Route path="/employee/emp-timetracking" element={<EmployeeTimeTracking />} />
             <Route path="/visitingcard-form" element={<VisitingCardForm />} />
+            <Route path="/employee/travel-expenses" element={<EmployeeTravelExpenses />} />
           </Route>
         </Route>
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
+        
       
       </BrowserRouter>
     </GoogleOAuthProvider>
