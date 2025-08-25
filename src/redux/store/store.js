@@ -6,6 +6,7 @@ import payrollReducer from '../slices/payrollSlice'
 import payslipReducer from '../slices/payslipSlice';
 import userReducer from '../slices/userSlice';
 import attendanceReducer from '../slices/attendanceSlice';
+import employeeDetailsReducer from '../slices/employeeDetailsSlice';
 
 const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
     payslip: payslipReducer,
     user: userReducer,
     attendance: attendanceReducer,
+    employeeDetails: employeeDetailsReducer,
   },
 });
 export default store;
