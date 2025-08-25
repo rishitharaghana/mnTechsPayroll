@@ -5,6 +5,7 @@ import {
   applyLeave,
   fetchMyLeaves,
   fetchRecipientOptions,
+  fetchLeaveBalances,
   clearState,
 } from "../../redux/slices/leaveSlice";
 import { FileText, Calendar } from "lucide-react";
@@ -17,6 +18,7 @@ const LeaveApplication = () => {
   const {
     leaves = [],
     recipients = [],
+    leaveBalances = { vacation: 0, sick: 0, casual: 0, maternity: 0 },
     loading,
     error,
     successMessage,
@@ -31,7 +33,6 @@ const LeaveApplication = () => {
   });
 
   useEffect(() => {
-    // Synchronize token with localStorage
     const userToken = localStorage.getItem("userToken");
     if (!token || !userToken) {
       console.log("No token found, redirecting to login");
@@ -51,12 +52,11 @@ const LeaveApplication = () => {
       return;
     }
 
-    // Fetch leaves and recipients on mount
-    console.log("Fetching leaves and recipient options");
+    console.log("Fetching leaves, recipient options, and balances");
     dispatch(fetchMyLeaves());
     dispatch(fetchRecipientOptions());
+    dispatch(fetchLeaveBalances());
 
-    // Set up polling for leaves
     const interval = setInterval(() => {
       console.log("Polling fetchMyLeaves");
       dispatch(fetchMyLeaves());
@@ -99,6 +99,7 @@ const LeaveApplication = () => {
           recipient_id: "",
         });
         dispatch(fetchMyLeaves());
+        dispatch(fetchLeaveBalances());
       }
     });
   };
@@ -179,10 +180,10 @@ const LeaveApplication = () => {
                 required
               >
                 <option value="">Select Leave Type</option>
-                <option value="vacation">Vacation</option>
-                <option value="sick">Sick</option>
-                <option value="casual">Casual</option>
-                <option value="maternity">Maternity</option>
+                <option value="vacation">Vacation ({leaveBalances.vacation} days)</option>
+                <option value="sick">Sick ({leaveBalances.sick} days)</option>
+                <option value="casual">Casual ({leaveBalances.casual} days)</option>
+                <option value="maternity">Maternity ({leaveBalances.maternity} days)</option>
               </select>
             </div>
             <div className="col-span-1">
@@ -234,9 +235,7 @@ const LeaveApplication = () => {
                 className="flex items-center space-x-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white px-6 py-3 rounded-xl hover:from-teal-700 hover:to-slate-800 disabled:opacity-50"
               >
                 <FileText size={20} />
-                <span>
-                  {loading ? "Submitting..." : "Submit "}
-                </span>
+                <span>{loading ? "Submitting..." : "Submit"}</span>
               </button>
             </div>
           </div>

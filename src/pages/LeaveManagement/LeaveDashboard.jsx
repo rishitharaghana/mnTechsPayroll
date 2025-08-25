@@ -44,7 +44,6 @@ const LeaveDashboard = () => {
     },
   ];
 
-  // 🔢 Helper to calculate days between two dates
   const calculateDays = (from, to) =>
     (new Date(to) - new Date(from)) / (1000 * 60 * 60 * 24) + 1;
 
@@ -66,13 +65,12 @@ const LeaveDashboard = () => {
   );
 
   const totalUsed = paidUsed + unpaidUsed;
-  const deductionAmount = unpaidUsed * 500; // Change logic as needed
+  const deductionAmount = unpaidUsed * 500; 
 
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white shadow rounded-md space-y-6">
       <h2 className="text-2xl font-semibold mb-4">🗓️ Leave Dashboard</h2>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div className="bg-green-100 text-green-800 px-4 py-3 rounded shadow">
           <p className="text-lg font-medium">✅ Paid Leaves Used</p>
@@ -92,7 +90,6 @@ const LeaveDashboard = () => {
         </div>
       </div>
 
-      {/* Unpaid Deduction Notice */}
       {unpaidUsed > 0 && (
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded">
           <p>
@@ -101,7 +98,6 @@ const LeaveDashboard = () => {
         </div>
       )}
 
-      {/* Leave Balance Table */}
       <div>
         <h3 className="text-lg font-medium mb-2">Leave Balance</h3>
         <table className="w-full text-left border rounded overflow-hidden">

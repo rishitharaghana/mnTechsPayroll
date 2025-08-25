@@ -21,7 +21,7 @@ export const applyLeave = createAsyncThunk(
         }
       );
       console.log("applyLeave response:", response.data);
-      return response.data; // Expecting { leave: {...}, message: string }
+      return response.data;
     } catch (error) {
       console.error("applyLeave error:", error.response?.data || error.message);
       return rejectWithValue(
@@ -188,12 +188,42 @@ export const fetchRecipientOptions = createAsyncThunk(
   }
 );
 
+export const fetchLeaveBalances = createAsyncThunk(
+  "leaves/fetchLeaveBalances",
+  async (_, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get(
+        "http://localhost:3007/api/leaves/balances",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("fetchLeaveBalances response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error(
+        "fetchLeaveBalances error:",
+        error.response?.data || error.message
+      );
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch leave balances"
+      );
+    }
+  }
+);
+
 const leaveSlice = createSlice({
   name: "leaves",
   initialState: {
-    leaves: [], // All leaves (like employees in employeeSlice)
-    pendingLeaves: [], // Pending leaves for hr/super_admin
+    leaves: [],
+    pendingLeaves: [],
     recipients: [],
+    leaveBalances: { vacation: 0, sick: 0, casual: 0, maternity: 0 },
     loading: false,
     error: null,
     successMessage: null,
@@ -320,6 +350,21 @@ const leaveSlice = createSlice({
         console.log("fetchRecipientOptions fulfilled, recipients:", action.payload);
       })
       .addCase(fetchRecipientOptions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchLeaveBalances.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(fetchLeaveBalances.fulfilled, (state, action) => {
+        state.loading = false;
+        state.leaveBalances = action.payload;
+        state.successMessage = "Leave balances fetched successfully";
+        console.log("fetchLeaveBalances fulfilled, leaveBalances:", action.payload);
+      })
+      .addCase(fetchLeaveBalances.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
