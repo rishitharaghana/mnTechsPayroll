@@ -5,7 +5,7 @@ import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 import PageMeta from '../../Components/common/PageMeta';
 import { Calendar } from 'lucide-react';
 import Button from '../../Components/ui/date/Button';
-import Download from '../../../public/assets/download.png';
+import Download from '/assets/download.png';
 
 const steps = ['Employee Info', 'Performance', 'Review', 'Summary'];
 

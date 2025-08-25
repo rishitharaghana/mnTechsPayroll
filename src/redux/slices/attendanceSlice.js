@@ -1,90 +1,85 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
 
 export const markAttendance = createAsyncThunk(
-  "attendance/markAttendance",
-  async (attendanceData, { rejectWithValue }) => {
+  'attendance/markAttendance',
+  async ({ employee_id, date, login_time, logout_time, recipient, location }, { rejectWithValue }) => {
     try {
-      const userToken = localStorage.getItem("userToken");
+      const userToken = localStorage.getItem('userToken');
       if (!userToken) {
-        return rejectWithValue("No authentication token found. Please log in.");
+        return rejectWithValue('No authentication token found. Please log in.');
       }
 
       const { token } = JSON.parse(userToken);
       const response = await axios.post(
-        "http://localhost:3007/api/attendance",
-        attendanceData,
+        'http://localhost:3007/api/attendance',
+        { employee_id, date, login_time, logout_time, recipient, location },
         {
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
         }
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to mark attendance"
-      );
+      return rejectWithValue(error.response?.data?.error || 'Failed to mark attendance');
     }
   }
 );
 
 export const fetchEmployeeAttendance = createAsyncThunk(
-  "attendance/fetchEmployeeAttendance",
+  'attendance/fetchEmployeeAttendance',
   async (_, { rejectWithValue }) => {
     try {
-      const userToken = localStorage.getItem("userToken");
+      const userToken = localStorage.getItem('userToken');
       if (!userToken) {
-        return rejectWithValue("No authentication token found. Please log in.");
+        return rejectWithValue('No authentication token found. Please log in.');
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get("http://localhost:3007/api/attendance", {
+      const response = await axios.get('http://localhost:3007/api/attendance/employee', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to fetch attendance"
-      );
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch attendance');
     }
   }
 );
 
 export const fetchAllAttendance = createAsyncThunk(
-  "attendance/fetchAllAttendance",
+  'attendance/fetchAllAttendance',
   async (_, { rejectWithValue }) => {
     try {
-      const userToken = localStorage.getItem("userToken");
+      const userToken = localStorage.getItem('userToken');
       if (!userToken) {
-        return rejectWithValue("No authentication token found. Please log in.");
+        return rejectWithValue('No authentication token found. Please log in.');
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get("http://localhost:3007/api/attendance/getAll", {
+      const response = await axios.get('http://localhost:3007/api/attendance/getAll', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log('fetchAllAttendance response:', response.data); // Debug: Log API response
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to fetch all attendance records"
-      );
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch all attendance records');
     }
   }
 );
 
 export const updateAttendanceStatus = createAsyncThunk(
-  "attendance/updateAttendanceStatus",
+  'attendance/updateAttendanceStatus',
   async ({ id, status }, { rejectWithValue }) => {
     try {
-      const userToken = localStorage.getItem("userToken");
+      const userToken = localStorage.getItem('userToken');
       if (!userToken) {
-        return rejectWithValue("No authentication token found. Please log in.");
+        return rejectWithValue('No authentication token found. Please log in.');
       }
 
       const { token } = JSON.parse(userToken);
@@ -93,22 +88,20 @@ export const updateAttendanceStatus = createAsyncThunk(
         { status },
         {
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
         }
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to update attendance status"
-      );
+      return rejectWithValue(error.response?.data?.error || 'Failed to update attendance status');
     }
   }
 );
 
 const attendanceSlice = createSlice({
-  name: "attendance",
+  name: 'attendance',
   initialState: {
     submissions: [],
     loading: false,
@@ -126,6 +119,8 @@ const attendanceSlice = createSlice({
     builder
       .addCase(markAttendance.pending, (state) => {
         state.loading = true;
+        state.error = null;
+        state.successMessage = null;
       })
       .addCase(markAttendance.fulfilled, (state, action) => {
         state.loading = false;
@@ -138,6 +133,7 @@ const attendanceSlice = createSlice({
       })
       .addCase(fetchEmployeeAttendance.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchEmployeeAttendance.fulfilled, (state, action) => {
         state.loading = false;
@@ -149,6 +145,7 @@ const attendanceSlice = createSlice({
       })
       .addCase(fetchAllAttendance.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchAllAttendance.fulfilled, (state, action) => {
         state.loading = false;
@@ -160,13 +157,13 @@ const attendanceSlice = createSlice({
       })
       .addCase(updateAttendanceStatus.pending, (state) => {
         state.loading = true;
+        state.error = null;
+        state.successMessage = null;
       })
       .addCase(updateAttendanceStatus.fulfilled, (state, action) => {
         state.loading = false;
         state.successMessage = action.payload.message;
-        const updatedSubmission = state.submissions.find(
-          (sub) => sub.id === action.payload.data.id
-        );
+        const updatedSubmission = state.submissions.find((sub) => sub.id === parseInt(action.payload.data.id));
         if (updatedSubmission) {
           updatedSubmission.status = action.payload.data.status;
         }

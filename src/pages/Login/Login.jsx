@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../../redux/slices/authSlice';
 import { Lock, Mail, UserCircle, Phone, Eye, EyeOff } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Login = () => {
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
   const [uiRole, setUiRole] = useState('Admin');
-  const [showPassword, setShowPassword] = useState(false); // New state for password visibility
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
@@ -17,13 +18,9 @@ const Login = () => {
     e.preventDefault();
     try {
       const backendRole =
-        uiRole === 'Admin'
-          ? 'super_admin'
-          : uiRole === 'HR'
-          ? 'hr'
-          : uiRole === 'Department Head'
-          ? 'dept_head'
-          : 'employee';
+        uiRole === 'Admin' ? 'super_admin' :
+        uiRole === 'HR' ? 'hr' :
+        uiRole === 'Department Head' ? 'dept_head' : 'employee';
 
       const result = await dispatch(
         login({ mobileNumber, password, role: backendRole })
@@ -38,32 +35,33 @@ const Login = () => {
             email: result.email || null,
             mobile: result.mobile || mobileNumber,
             name: result.name || null,
+            id: result.id, // Changed from employee_id to id
+            isTemporaryPassword: result.isTemporaryPassword || false,
           })
         );
       }
 
       if (result.success) {
-        switch (backendRole) {
-          case 'employee':
-            navigate('/emp-dashboard', { replace: true });
-            break;
-          case 'hr':
-          case 'super_admin':
-          case 'dept_head':
-            navigate('/admin/dashboard', { replace: true });
-            break;
-          default:
-            navigate('/', { replace: true });
+        if (result.isTemporaryPassword) {
+          navigate('/change-password', { replace: true });
+        } else {
+          switch (backendRole) {
+            case 'employee':
+              navigate('/emp-dashboard', { replace: true });
+              break;
+            case 'hr':
+            case 'super_admin':
+            case 'dept_head':
+              navigate('/admin/dashboard', { replace: true });
+              break;
+            default:
+              navigate('/', { replace: true });
+          }
         }
       }
     } catch (err) {
       console.error('Login failed:', err);
     }
-  };
-
-  const handleForgotPassword = (e) => {
-    e.preventDefault();
-    alert(`Password reset link sent to your ${uiRole} registered mobile (mock action).`);
   };
 
   const togglePasswordVisibility = () => {
@@ -126,7 +124,7 @@ const Login = () => {
             <div className="flex items-center space-x-2 relative">
               <Lock size={18} className="text-slate-400" />
               <input
-                type={showPassword ? 'text' : 'password'} // Toggle input type
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -155,14 +153,13 @@ const Login = () => {
         </form>
 
         <div className="mt-3 text-center">
-          <a
-            href="#"
-            onClick={handleForgotPassword}
+          <Link
+            to="/forgot-password"
             className="text-sm text-teal-600 hover:text-teal-700 flex items-center justify-center space-x-1.5 transition-colors duration-200"
           >
             <Mail size={16} />
             <span>Forgot Password?</span>
-          </a>
+          </Link>
         </div>
       </div>
     </div>

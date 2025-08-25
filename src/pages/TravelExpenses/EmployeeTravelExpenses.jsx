@@ -377,7 +377,7 @@ const EmployeeTravelExpenses = () => {
           </div>
 
           {/* Signature */}
-          <div className="border border-slate-300 p-4 rounded-lg shadow-sm">
+          {/* <div className="border border-slate-300 p-4 rounded-lg shadow-sm">
             <label className="text-md font-semibold text-slate-700 mb-1 block">
               Employee Signature
             </label>
@@ -408,7 +408,7 @@ const EmployeeTravelExpenses = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Submit */}
           <div className="flex justify-end">

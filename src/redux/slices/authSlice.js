@@ -16,6 +16,36 @@ export const login = createAsyncThunk(
     }
   }
 );
+
+export const changePassword = createAsyncThunk(
+  "auth/changePassword",
+  async ({ currentPassword, newPassword }, { rejectWithValue }) => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("userToken"));
+      const token = storedUser?.token;
+
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response = await axios.post(
+        "http://localhost:3007/api/change-password",
+        { currentPassword, newPassword },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.error || "Password change failed"
+      );
+    }
+  }
+);
+
 const storedUser = JSON.parse(localStorage.getItem("userToken"));
 
 const authSlice = createSlice({
@@ -26,7 +56,7 @@ const authSlice = createSlice({
       : null,
     token: storedUser?.token || null,
     role: storedUser?.role || null,
-    isAuthenticated: !!storedUser, 
+    isAuthenticated: !!storedUser,
     loading: false,
     error: null,
   },
@@ -49,12 +79,13 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.user = {
-          id: action.payload._id,
+          id: action.payload.id,
           name: action.payload.name || "",
           mobile: action.payload.mobile,
           role: action.payload.role,
           email: action.payload.email || null,
           department: action.payload.department || null,
+          isTemporaryPassword: action.payload.isTemporaryPassword || false,
         };
         state.token = action.payload.token;
         state.role = action.payload.role;
@@ -64,11 +95,34 @@ const authSlice = createSlice({
             token: action.payload.token,
             role: action.payload.role,
             email: action.payload.email || null,
-            id: action.payload._id,
+            id: action.payload.id,
+            isTemporaryPassword: action.payload.isTemporaryPassword || false,
           })
         );
       })
       .addCase(login.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(changePassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.loading = false;
+        if (state.user) {
+          state.user.isTemporaryPassword = false;
+          const storedUser = JSON.parse(localStorage.getItem("userToken"));
+          localStorage.setItem(
+            "userToken",
+            JSON.stringify({
+              ...storedUser,
+              isTemporaryPassword: false,
+            })
+          );
+        }
+      })
+      .addCase(changePassword.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

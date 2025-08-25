@@ -1,23 +1,22 @@
-import React, { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { Clock, CheckCircle, XCircle, Users } from "lucide-react";
-import DatePicker from "../../Components/ui/date/DatePicker";
-import PageMeta from "../../Components/common/PageMeta";
-import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
-import { fetchAllAttendance, updateAttendanceStatus, clearState } from "../../redux/slices/attendanceSlice";
+import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Clock, CheckCircle, XCircle, Users, MapPin } from 'lucide-react';
+import DatePicker from '../../Components/ui/date/DatePicker';
+import PageMeta from '../../Components/common/PageMeta';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import { fetchAllAttendance, updateAttendanceStatus, clearState } from '../../redux/slices/attendanceSlice';
 
 const Attendance = () => {
   const dispatch = useDispatch();
   const { submissions, loading, error, successMessage } = useSelector((state) => state.attendance);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); // Default to today (2025-08-25)
 
-  const userToken = localStorage.getItem("userToken");
-  const user = userToken ? JSON.parse(userToken).user : null;
+  const userToken = localStorage.getItem('userToken');
+  const user = userToken ? JSON.parse(userToken) : null;
   const userRole = user?.role;
 
-  +
   useEffect(() => {
-    if (["super_admin", "hr", "dept_head"].includes(userRole)) {
+    if (['super_admin', 'hr', 'dept_head'].includes(userRole)) {
       dispatch(fetchAllAttendance());
     }
     return () => {
@@ -26,6 +25,10 @@ const Attendance = () => {
   }, [dispatch, userRole]);
 
   useEffect(() => {
+    console.log('Submissions:', submissions);
+    console.log('Selected Date:', selectedDate);
+    console.log('User Role:', userRole);
+    console.log('Submission Recipients:', submissions.map(s => s.recipient));
     if (successMessage) {
       alert(successMessage);
       dispatch(clearState());
@@ -34,7 +37,7 @@ const Attendance = () => {
       alert(error);
       dispatch(clearState());
     }
-  }, [successMessage, error, dispatch]);
+  }, [successMessage, error, dispatch, submissions, userRole, selectedDate]);
 
   const handleStatusUpdate = (id, status) => {
     dispatch(updateAttendanceStatus({ id, status }));
@@ -42,51 +45,69 @@ const Attendance = () => {
 
   const getStatusColor = (status) =>
     ({
-      Present: "bg-green-100 text-green-800",
-      Absent: "bg-red-100 text-red-800",
-      Late: "bg-yellow-100 text-yellow-800",
-      Pending: "bg-blue-100 text-blue-800",
-      Approved: "bg-green-100 text-green-800",
-      Rejected: "bg-red-100 text-red-800",
-    }[status] || "bg-slate-100 text-slate-800");
+      Pending: 'bg-blue-100 text-blue-800',
+      Approved: 'bg-green-100 text-green-800',
+      Rejected: 'bg-red-100 text-red-800',
+    }[status] || 'bg-slate-100 text-slate-800');
 
   const getLocationColor = (location) =>
     ({
-      Office: "bg-blue-100 text-blue-800",
-      Remote: "bg-purple-100 text-purple-800",
-    }[location] || "bg-slate-100 text-slate-800");
+      Office: 'bg-blue-100 text-blue-800',
+      Remote: 'bg-purple-100 text-purple-800',
+    }[location] || 'bg-slate-100 text-slate-800');
+
+  // Normalize date for comparison (YYYY-MM-DD)
+  const normalizeDate = (isoDate) => {
+    return new Date(isoDate).toISOString().split('T')[0];
+  };
+
+  const filteredSubmissions = submissions.filter(
+    (submission) =>
+      normalizeDate(submission.date) === selectedDate &&
+      (userRole === 'dept_head' ? submission.recipient === 'hr' : submission.recipient === userRole)
+  );
+
+  console.log('Filtered Submissions:', filteredSubmissions);
 
   const stats = [
     {
-      title: "Present Today",
-      value: submissions.filter((s) => s.status === "Approved" && s.date === selectedDate).length,
-      total: submissions.length,
-      percentage: submissions.length ? ((submissions.filter((s) => s.status === "Approved" && s.date === selectedDate).length / submissions.length) * 100).toFixed(1) + "%" : "0%",
-      color: "bg-gradient-to-r from-teal-600 to-slate-700",
+      title: 'Present Today',
+      value: filteredSubmissions.filter((s) => s.status === 'Approved').length,
+      total: filteredSubmissions.length,
+      percentage: filteredSubmissions.length
+        ? ((filteredSubmissions.filter((s) => s.status === 'Approved').length / filteredSubmissions.length) * 100).toFixed(1) + '%'
+        : '0%',
+      color: 'bg-gradient-to-r from-teal-600 to-slate-700',
       icon: CheckCircle,
     },
     {
-      title: "Absent Today",
-      value: submissions.filter((s) => s.status === "Rejected" && s.date === selectedDate).length,
-      total: submissions.length,
-      percentage: submissions.length ? ((submissions.filter((s) => s.status === "Rejected" && s.date === selectedDate).length / submissions.length) * 100).toFixed(1) + "%" : "0%",
-      color: "bg-gradient-to-r from-teal-600 to-slate-700",
+      title: 'Absent Today',
+      value: filteredSubmissions.filter((s) => s.status === 'Rejected').length,
+      total: filteredSubmissions.length,
+      percentage: filteredSubmissions.length
+        ? ((filteredSubmissions.filter((s) => s.status === 'Rejected').length / filteredSubmissions.length) * 100).toFixed(1) + '%'
+        : '0%',
+      color: 'bg-gradient-to-r from-teal-600 to-slate-700',
       icon: XCircle,
     },
     {
-      title: "Pending Approvals",
-      value: submissions.filter((s) => s.status === "Pending" && s.date === selectedDate).length,
-      total: submissions.length,
-      percentage: submissions.length ? ((submissions.filter((s) => s.status === "Pending" && s.date === selectedDate).length / submissions.length) * 100).toFixed(1) + "%" : "0%",
-      color: "bg-gradient-to-r from-teal-600 to-slate-700",
+      title: 'Pending Approvals',
+      value: filteredSubmissions.filter((s) => s.status === 'Pending').length,
+      total: filteredSubmissions.length,
+      percentage: filteredSubmissions.length
+        ? ((filteredSubmissions.filter((s) => s.status === 'Pending').length / filteredSubmissions.length) * 100).toFixed(1) + '%'
+        : '0%',
+      color: 'bg-gradient-to-r from-teal-600 to-slate-700',
       icon: Clock,
     },
     {
-      title: "Remote Workers",
-      value: submissions.filter((s) => s.location === "Remote" && s.date === selectedDate).length,
-      total: submissions.length,
-      percentage: submissions.length ? ((submissions.filter((s) => s.location === "Remote" && s.date === selectedDate).length / submissions.length) * 100).toFixed(1) + "%" : "0%",
-      color: "bg-gradient-to-r from-teal-600 to-slate-700",
+      title: 'Remote Workers',
+      value: filteredSubmissions.filter((s) => s.location === 'Remote').length,
+      total: filteredSubmissions.length,
+      percentage: filteredSubmissions.length
+        ? ((filteredSubmissions.filter((s) => s.location === 'Remote').length / filteredSubmissions.length) * 100).toFixed(1) + '%'
+        : '0%',
+      color: 'bg-gradient-to-r from-teal-600 to-slate-700',
       icon: Users,
     },
   ];
@@ -97,8 +118,8 @@ const Attendance = () => {
         <PageMeta title="Attendance Management" description="Track and manage employee attendance efficiently." />
         <PageBreadcrumb
           items={[
-            { label: "Home", link: "/" },
-            { label: "Attendance", link: "/admin/attendance" },
+            { label: 'Home', link: '/' },
+            { label: 'Attendance', link: '/admin/attendance' },
           ]}
         />
       </div>
@@ -160,7 +181,7 @@ const Attendance = () => {
           <table className="w-full table-fixed text-sm" aria-label="Employee Attendance Table">
             <thead className="bg-gradient-to-r from-teal-600 to-slate-700">
               <tr>
-                <th className="w-1/5 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                   Employee
                 </th>
                 <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
@@ -173,74 +194,83 @@ const Attendance = () => {
                   Check Out
                 </th>
                 <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                  Location
+                </th>
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                   Status
                 </th>
-                {["super_admin", "hr", "dept_head"].includes(userRole) && (
-                  <th className="w-1/5 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                {['super_admin', 'hr'].includes(userRole) && (
+                  <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                     Actions
                   </th>
                 )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200/50">
-              {submissions.length === 0 ? (
+              {filteredSubmissions.length === 0 ? (
                 <tr>
-                  <td colSpan={["super_admin", "hr", "dept_head"].includes(userRole) ? 6 : 5} className="px-4 py-3 text-sm text-slate-500 text-center">
-                    No attendance records found
+                  <td
+                    colSpan={['super_admin', 'hr'].includes(userRole) ? 7 : 6}
+                    className="px-4 py-3 text-sm text-slate-500 text-center"
+                  >
+                    No attendance records found for {new Date(selectedDate).toLocaleDateString()}.
                   </td>
                 </tr>
               ) : (
-                submissions
-                  .filter((submission) => submission.date === selectedDate)
-                  .map(({ id, employee_name, date, login_time, logout_time, status }) => (
-                    <tr key={id} className="hover:bg-slate-100/80 transition-colors duration-200">
+                filteredSubmissions.map(({ id, employee_name, date, login_time, logout_time, location, status }) => (
+                  <tr key={id} className="hover:bg-slate-100/80 transition-colors duration-200">
+                    <td className="px-4 py-3">
+                      <div className="text-sm font-medium text-slate-900">{employee_name}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm text-slate-900">{new Date(date).toLocaleDateString()}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center space-x-2">
+                        <Clock size={14} className="text-slate-400" />
+                        <span className="text-sm text-slate-900">{login_time}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center space-x-2">
+                        <Clock size={14} className="text-slate-400" />
+                        <span className="text-sm text-slate-900">{logout_time || 'N/A'}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLocationColor(location)}`}>
+                        {location}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(status)}`}>
+                        {status}
+                      </span>
+                    </td>
+                    {['super_admin', 'hr'].includes(userRole) && (
                       <td className="px-4 py-3">
-                        <div className="text-sm font-medium text-slate-900">{employee_name}</div>
+                        {status === 'Pending' && (
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleStatusUpdate(id, 'Approved')}
+                              className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 transition-transform duration-300"
+                              disabled={loading}
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleStatusUpdate(id, 'Rejected')}
+                              className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-400 transition-transform duration-300"
+                              disabled={loading}
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        )}
                       </td>
-                      <td className="px-4 py-3">
-                        <span className="text-sm text-slate-900">{new Date(date).toLocaleDateString()}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center space-x-2">
-                          <Clock size={14} className="text-slate-400" />
-                          <span className="text-sm text-slate-900">{login_time}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center space-x-2">
-                          <Clock size={14} className="text-slate-400" />
-                          <span className="text-sm text-slate-900">{logout_time || "N/A"}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(status)}`}>
-                          {status}
-                        </span>
-                      </td>
-                      {["super_admin", "hr", "dept_head"].includes(userRole) && (
-                        <td className="px-4 py-3">
-                          {status === "Pending" && (
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => handleStatusUpdate(id, "Approved")}
-                                className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 transition-transform duration-300"
-                                disabled={loading}
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => handleStatusUpdate(id, "Rejected")}
-                                className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-400 transition-transform duration-300"
-                                disabled={loading}
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      )}
-                    </tr>
-                  ))
+                    )}
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -251,11 +281,13 @@ const Attendance = () => {
       <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <h2 className="text-xl font-bold text-slate-900 mb-4">Weekly Attendance Overview</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
-          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => {
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
             const daySubmissions = submissions.filter(
-              (s) => new Date(s.date).getDay() === (index + 1) % 7
+              (s) =>
+                new Date(s.date).getDay() === (index + 1) % 7 &&
+                (userRole === 'dept_head' ? s.recipient === 'hr' : s.recipient === userRole)
             );
-            const presentCount = daySubmissions.filter((s) => s.status === "Approved").length;
+            const presentCount = daySubmissions.filter((s) => s.status === 'Approved').length;
             const percentage = daySubmissions.length ? ((presentCount / daySubmissions.length) * 100).toFixed(1) : 0;
 
             return (

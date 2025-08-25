@@ -226,7 +226,7 @@ const LeaveApplication = () => {
                 }}
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
               >
-                Refresh Leaves
+                Refresh
               </button>
               <button
                 type="submit"
@@ -235,7 +235,7 @@ const LeaveApplication = () => {
               >
                 <FileText size={20} />
                 <span>
-                  {loading ? "Submitting..." : "Submit Leave Request"}
+                  {loading ? "Submitting..." : "Submit "}
                 </span>
               </button>
             </div>

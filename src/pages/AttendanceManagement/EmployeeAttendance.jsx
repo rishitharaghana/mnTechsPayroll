@@ -1,45 +1,43 @@
-import React, { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { Calendar, Clock, FileText } from "lucide-react";
-import { toast } from "react-toastify";
-import { markAttendance, fetchEmployeeAttendance, clearState } from "../../redux/slices/attendanceSlice";
-import { fetchEmployees } from "../../redux/slices/employeeSlice";
-import { fetchUserProfile } from "../../redux/slices/userSlice";
+import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Calendar, Clock, FileText, MapPin } from 'lucide-react';
+import { toast } from 'react-toastify';
+import { markAttendance, fetchEmployeeAttendance, clearState } from '../../redux/slices/attendanceSlice';
+import { fetchUserProfile } from '../../redux/slices/userSlice';
 
 const EmployeeAttendance = () => {
   const dispatch = useDispatch();
   const { submissions, loading, error, successMessage } = useSelector((state) => state.attendance);
-  const { employees, error: employeeError } = useSelector((state) => state.employee);
   const { profile, error: userError } = useSelector((state) => state.user);
 
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [loginTime, setLoginTime] = useState("");
-  const [logoutTime, setLogoutTime] = useState("");
-  const [recipient, setRecipient] = useState("hr");
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [loginTime, setLoginTime] = useState('');
+  const [logoutTime, setLogoutTime] = useState('');
+  const [recipient, setRecipient] = useState('hr');
+  const [location, setLocation] = useState('Office');
 
-  const recipients = ["super_admin", "hr"];
+  const recipients = ['super_admin', 'hr'];
+  const locations = ['Office', 'Remote'];
 
-  const userToken = localStorage.getItem("userToken");
-  const user = userToken ? JSON.parse(userToken).user : null;
-  const employee = user?.role === "employee" ? profile : employees.find((emp) => emp.employee_id === user?.employee_id);
-  const employeeName = employee ? `${employee.name} (${employee.employee_id})` : "Unknown";
+  const stored = localStorage.getItem('userToken');
+  const parsed = stored ? JSON.parse(stored) : null;
+  const userRole = parsed?.role || null;
+  const employeeId = parsed?.id || null;
+
+  const employee = profile;
+  const employeeName = employee ? `${employee.name} (${employee.employee_id})` : 'Unknown';
 
   useEffect(() => {
-    if (user?.role === "employee") {
+    if (['employee', 'dept_head', 'hr', 'super_admin'].includes(userRole)) {
       dispatch(fetchEmployeeAttendance());
       if (!profile) {
         dispatch(fetchUserProfile());
-      }
-    } else if (["super_admin", "hr"].includes(user?.role)) {
-      dispatch(fetchEmployeeAttendance());
-      if (!employees.length) {
-        dispatch(fetchEmployees());
       }
     }
     return () => {
       dispatch(clearState());
     };
-  }, [dispatch, employees.length, profile, user]);
+  }, [dispatch, userRole, profile]);
 
   useEffect(() => {
     if (successMessage) {
@@ -50,42 +48,42 @@ const EmployeeAttendance = () => {
       toast.error(error);
       dispatch(clearState());
     }
-    if (employeeError) {
-      toast.error(employeeError);
-      dispatch(clearState());
-    }
     if (userError) {
       toast.error(userError);
       dispatch(clearState());
     }
-  }, [successMessage, error, employeeError, userError, dispatch]);
+  }, [successMessage, error, userError, dispatch]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!date || !loginTime || !recipient) {
-      toast.error("Please fill in all required fields.");
+    if (!date || !loginTime || !recipient || !location) {
+      toast.error('Please fill in all required fields.');
       return;
     }
     if (logoutTime) {
       const login = new Date(`1970-01-01T${loginTime}:00`);
       const logout = new Date(`1970-01-01T${logoutTime}:00`);
       if (logout <= login) {
-        toast.error("Logout time must be after login time.");
+        toast.error('Logout time must be after login time.');
         return;
       }
     }
+
     dispatch(
       markAttendance({
-        employee_id: user.employee_id,
+        employee_id: employee?.employee_id,
         date,
         login_time: loginTime,
         logout_time: logoutTime || null,
         recipient,
+        location,
       })
     );
-    setLoginTime("");
-    setLogoutTime("");
-    setRecipient("hr");
+
+    setLoginTime('');
+    setLogoutTime('');
+    setRecipient('hr');
+    setLocation('Office');
   };
 
   return (
@@ -120,7 +118,7 @@ const EmployeeAttendance = () => {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                max={new Date().toISOString().split("T")[0]}
+                max={new Date().toISOString().split('T')[0]}
                 className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 transition-all duration-300"
                 required
                 aria-label="Date"
@@ -155,6 +153,25 @@ const EmployeeAttendance = () => {
             </div>
           </div>
           <div className="flex flex-col">
+            <label className="mb-1 text-sm font-bold text-black tracking-tight">Location</label>
+            <div className="flex items-center space-x-2">
+              <MapPin size={20} className="text-black" />
+              <select
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 transition-all duration-300"
+                required
+                aria-label="Location"
+              >
+                {locations.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex flex-col">
             <label className="mb-1 text-sm font-bold text-black tracking-tight">Submit To</label>
             <div className="flex items-center space-x-2">
               <FileText size={20} className="text-black" />
@@ -167,7 +184,7 @@ const EmployeeAttendance = () => {
               >
                 {recipients.map((rec) => (
                   <option key={rec} value={rec}>
-                    {rec === "super_admin" ? "Super Admin" : "HR"}
+                    {rec === 'super_admin' ? 'Super Admin' : 'HR'}
                   </option>
                 ))}
               </select>
@@ -178,7 +195,7 @@ const EmployeeAttendance = () => {
               type="submit"
               disabled={loading}
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-                loading ? "bg-gray-400 cursor-not-allowed" : "bg-black text-white hover:bg-gray-800 hover:scale-105"
+                loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800 hover:scale-105'
               }`}
               aria-label="Submit Attendance"
             >
@@ -195,19 +212,22 @@ const EmployeeAttendance = () => {
           <table className="w-full table-fixed border-collapse">
             <thead className="bg-gray-50">
               <tr>
-                <th className="w-1/5 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
                   Date
                 </th>
-                <th className="w-1/5 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
                   Login Time
                 </th>
-                <th className="w-1/5 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
                   Logout Time
                 </th>
-                <th className="w-1/5 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
+                  Location
+                </th>
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
                   Submitted To
                 </th>
-                <th className="w-1/5 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
                   Status
                 </th>
               </tr>
@@ -215,20 +235,21 @@ const EmployeeAttendance = () => {
             <tbody className="divide-y divide-gray-200">
               {submissions.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-4 py-3 text-sm text-gray-500 text-center">
+                  <td colSpan="6" className="px-4 py-3 text-sm text-gray-500 text-center">
                     No attendance records found
                   </td>
                 </tr>
               ) : (
-                submissions.map(({ id, date, login_time, logout_time, recipient, status }) => (
+                submissions.map(({ id, date, login_time, logout_time, location, recipient, status }) => (
                   <tr key={id} className="hover:bg-gray-50 transition">
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {new Date(date).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">{login_time}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{logout_time || "N/A"}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{logout_time || 'N/A'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{location}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {recipient === "super_admin" ? "Super Admin" : "HR"}
+                      {recipient === 'super_admin' ? 'Super Admin' : 'HR'}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">{status}</td>
                   </tr>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Download from "../../../public/assets/download.png";
-import { Briefcase, User, Building, Calendar } from "lucide-react"; // Import Lucide icons
+import Download from "/assets/download.png";
+import { Briefcase, User, Building, Calendar } from "lucide-react";
 
 const ViewGoals = () => {
   const [selfReviewComments, setSelfReviewComments] = useState("");
@@ -14,7 +14,7 @@ const ViewGoals = () => {
     manager: "Sarah Johnson",
     department: "Engineering",
     startDate: "January 15, 2022",
-    image: Download, // Placeholder for employee image
+    image: Download, 
   };
 
   const goals = [

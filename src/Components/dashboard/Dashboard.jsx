@@ -114,7 +114,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-8 bg-slate-50 min-h-screen p-6">
-      {/* Welcome */}
       <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-8 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
@@ -135,7 +134,6 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Stats */}
       {stats.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => {
@@ -162,7 +160,6 @@ const AdminDashboard = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Activities */}
         {recentActivities.length > 0 ? (
           <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
             <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-t-lg -mx-6 -mt-6 p-4">
