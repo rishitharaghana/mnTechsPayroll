@@ -60,6 +60,21 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
         },
       ],
     },
+     {
+      id: "employees",
+      label: "Employee",
+      icon: Users,
+      allowedRoles: ["employee"],
+      children: [
+        {
+          id: "view-employees",
+          label: "Add Details",
+          path: "/employee/employee-details",
+          allowedRoles: ["employee"],
+        },
+       
+      ],
+    },
     {
       id: "attendance",
       label: "Attendance",
