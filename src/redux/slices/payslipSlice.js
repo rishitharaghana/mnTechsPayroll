@@ -39,7 +39,7 @@ export const fetchPayslips = createAsyncThunk(
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       console.log("Fetched payslips:", response.data);
-      return response.data || []; // Ensure array is returned
+      return response.data || [];
     } catch (error) {
       console.error("Fetch payslips error:", error);
       const message = error.response?.data?.message || "Failed to fetch payslips";
@@ -54,7 +54,7 @@ const payslipSlice = createSlice({
     loading: false,
     error: null,
     lastDownloaded: null,
-    payslips: [], // Ensure initial state is an array
+    payslips: [], 
   },
   reducers: {
     clearError: (state) => {

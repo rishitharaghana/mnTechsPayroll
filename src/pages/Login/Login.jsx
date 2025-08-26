@@ -35,7 +35,7 @@ const Login = () => {
             email: result.email || null,
             mobile: result.mobile || mobileNumber,
             name: result.name || null,
-            id: result.id, // Changed from employee_id to id
+            id: result.id,
             isTemporaryPassword: result.isTemporaryPassword || false,
           })
         );

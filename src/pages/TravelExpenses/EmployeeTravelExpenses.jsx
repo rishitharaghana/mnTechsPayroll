@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Trash, Trash2, Upload } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Trash2, Upload } from "lucide-react";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 
@@ -15,16 +15,22 @@ const debounce = (func, wait) => {
   return debounced;
 };
 
+const expenseCategories = [
+  "Transportation",
+  "Lodging",
+  "Meals",
+  "Conference Fees",
+  "Miscellaneous",
+];
+
 const EmployeeTravelExpenses = () => {
   const [expenses, setExpenses] = useState([
-    { date: "", purpose: "", amount: "" },
+    { date: "", category: "", purpose: "", amount: "", receipt: null },
   ]);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [files, setFiles] = useState([]);
+  const [employeeId, setEmployeeId] = useState("");
+  const [submissionStatus, setSubmissionStatus] = useState("draft");
   const [showToast, setShowToast] = useState(false);
-  const canvasRef = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const ctxRef = useRef(null);
 
   const calculateTotal = debounce(() => {
     const total = expenses.reduce(
@@ -46,8 +52,18 @@ const EmployeeTravelExpenses = () => {
     setExpenses(newExpenses);
   };
 
+  const handleFileChange = (index, file) => {
+    if (file && file.size <= 5 * 1024 * 1024) {
+      const newExpenses = [...expenses];
+      newExpenses[index].receipt = file;
+      setExpenses(newExpenses);
+    } else {
+      alert("File size exceeds 5MB limit.");
+    }
+  };
+
   const addExpenseRow = () => {
-    setExpenses([...expenses, { date: "", purpose: "", amount: "" }]);
+    setExpenses([...expenses, { date: "", category: "", purpose: "", amount: "", receipt: null }]);
   };
 
   const removeExpenseRow = (index) => {
@@ -57,98 +73,42 @@ const EmployeeTravelExpenses = () => {
     }
   };
 
-  const handleFileDrop = (e) => {
-    e.preventDefault();
-    const newFiles = Array.from(e.dataTransfer.files).filter(
-      (file) => file.size <= 5 * 1024 * 1024
-    );
-    if (newFiles.length < e.dataTransfer.files.length) {
-      alert("Some files were ignored due to size exceeding 5MB.");
-    }
-    setFiles([...files, ...newFiles]);
-  };
-
-  const handleFileSelect = (e) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files).filter(
-        (file) => file.size <= 5 * 1024 * 1024
-      );
-      if (newFiles.length < e.target.files.length) {
-        alert("Some files were ignored due to size exceeding 5MB.");
-      }
-      setFiles([...files, ...newFiles]);
-    }
-  };
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = canvas.offsetWidth * dpr;
-      canvas.height = 150 * dpr;
-      canvas.style.height = "150px";
-      const ctx = canvas.getContext("2d");
-      ctx.scale(dpr, dpr);
-      ctx.lineWidth = 1; // Thinner line
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.strokeStyle = "#0f766e";
-      ctxRef.current = ctx;
-    }
-  }, []);
-
-  const getCoordinates = (e, canvas) => {
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0]?.clientY);
-    const x = (clientX - rect.left) * (canvas.width / rect.width);
-    const y = (clientY - rect.top) * (canvas.height / rect.height);
-    return { x, y };
-  };
-
-  const startDrawing = (e) => {
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const { x, y } = getCoordinates(e, canvas);
-    ctxRef.current.beginPath();
-    ctxRef.current.moveTo(x, y);
-    setIsDrawing(true);
-  };
-
-  const draw = (e) => {
-    e.preventDefault();
-    if (!isDrawing || !ctxRef.current) return;
-    const canvas = canvasRef.current;
-    const { x, y } = getCoordinates(e, canvas);
-    ctxRef.current.lineTo(x, y);
-    ctxRef.current.stroke();
-  };
-
-  const stopDrawing = () => {
-    if (ctxRef.current) ctxRef.current.closePath();
-    setIsDrawing(false);
-  };
-
-  const clearSignature = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (expenses.some((exp) => !exp.date || !exp.purpose || !exp.amount)) {
-      alert("Please fill in all expense fields.");
+    if (!employeeId) {
+      alert("Please enter your Employee ID.");
       return;
     }
+    if (
+      expenses.some(
+        (exp) =>
+          !exp.date ||
+          !exp.category ||
+          !exp.purpose ||
+          !exp.amount ||
+          (!exp.receipt && exp.category !== "Miscellaneous")
+      )
+    ) {
+      alert("Please fill in all required fields and upload receipts for non-miscellaneous expenses.");
+      return;
+    }
+
+    // Simulate API call to submit expenses
+    const submission = {
+      employeeId,
+      expenses,
+      totalAmount,
+      status: "pending",
+      submissionDate: new Date().toISOString(),
+    };
+    console.log("Submitting:", submission); // Replace with actual API call
+    setSubmissionStatus("pending");
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2000);
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-end">
         <PageMeta title="Travel Expenses" />
         <PageBreadcrumb
@@ -158,15 +118,27 @@ const EmployeeTravelExpenses = () => {
           ]}
         />
       </div>
-      <div className="max-w-4xl mx-auto p-6 bg-white rounded-2xl shadow-lg">
+      <div className="bg-white rounded-2xl shadow-lg p-6">
         <h2 className="text-2xl font-semibold text-slate-700 mb-6">
           Travel Expenses Form
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Personal Details */}
           <div className="border border-slate-300 p-4 rounded-lg shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-md font-semibold text-slate-700 mb-1 block">
+                  Employee ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter employee ID"
+                  className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
+                  value={employeeId}
+                  onChange={(e) => setEmployeeId(e.target.value)}
+                  required
+                />
+              </div>
               <div>
                 <label className="text-md font-semibold text-slate-700 mb-1 block">
                   Travel Date
@@ -175,56 +147,6 @@ const EmployeeTravelExpenses = () => {
                   type="date"
                   className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
                   required
-                />
-              </div>
-              <div>
-                <label className="text-md font-semibold text-slate-700 mb-1 block">
-                  Employer Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter employer name"
-                  className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
-                />
-              </div>
-              <div>
-                <label className="text-md font-semibold text-slate-700 mb-1 block">
-                  Unit/Department
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter department"
-                  className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
-                />
-              </div>
-              <div>
-                <label className="text-md font-semibold text-slate-700 mb-1 block">
-                  Position/Title
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter position"
-                  className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
-                />
-              </div>
-              <div>
-                <label className="text-md font-semibold text-slate-700 mb-1 block">
-                  Phone Number
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter phone number"
-                  className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
-                />
-              </div>
-              <div>
-                <label className="text-md font-semibold text-slate-700 mb-1 block">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  placeholder="Enter email address"
-                  className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
                 />
               </div>
               <div>
@@ -239,11 +161,11 @@ const EmployeeTravelExpenses = () => {
               </div>
               <div>
                 <label className="text-md font-semibold text-slate-700 mb-1 block">
-                  Receiver's Name
+                  Department
                 </label>
                 <input
                   type="text"
-                  placeholder="Enter receiver name"
+                  placeholder="Enter department"
                   className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
                 />
               </div>
@@ -259,7 +181,6 @@ const EmployeeTravelExpenses = () => {
             </div>
           </div>
 
-          {/* Expenses Table */}
           <div className="border border-slate-300 p-4 rounded-lg shadow-sm">
             <label className="text-md font-semibold text-slate-700 mb-1 block">
               Travel Expenses
@@ -267,18 +188,12 @@ const EmployeeTravelExpenses = () => {
             <table className="w-full border mt-2 rounded-lg shadow-sm bg-white">
               <thead className="bg-teal-700 text-white">
                 <tr>
-                  <th className="border border-teal-800 p-2 text-sm font-medium">
-                    Date
-                  </th>
-                  <th className="border border-teal-800 p-2 text-sm font-medium">
-                    Purpose
-                  </th>
-                  <th className="border border-teal-800 p-2 text-sm font-medium">
-                    Amount
-                  </th>
-                  <th className="border border-teal-800 p-2 text-sm font-medium">
-                    Action
-                  </th>
+                  <th className="border border-teal-800 p-2 text-sm font-medium">Date</th>
+                  <th className="border border-teal-800 p-2 text-sm font-medium">Category</th>
+                  <th className="border border-teal-800 p-2 text-sm font-medium">Purpose</th>
+                  <th className="border border-teal-800 p-2 text-sm font-medium">Amount</th>
+                  <th className="border border-teal-800 p-2 text-sm font-medium">Receipt</th>
+                  <th className="border border-teal-800 p-2 text-sm font-medium">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -289,10 +204,20 @@ const EmployeeTravelExpenses = () => {
                         type="date"
                         className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
                         value={exp.date}
-                        onChange={(e) =>
-                          handleExpenseChange(index, "date", e.target.value)
-                        }
+                        onChange={(e) => handleExpenseChange(index, "date", e.target.value)}
                       />
+                    </td>
+                    <td className="border border-teal-200 p-2">
+                      <select
+                        className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
+                        value={exp.category}
+                        onChange={(e) => handleExpenseChange(index, "category", e.target.value)}
+                      >
+                        <option value="">Select Category</option>
+                        {expenseCategories.map((cat) => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
                     </td>
                     <td className="border border-teal-200 p-2">
                       <input
@@ -300,9 +225,7 @@ const EmployeeTravelExpenses = () => {
                         className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
                         placeholder="Purpose"
                         value={exp.purpose}
-                        onChange={(e) =>
-                          handleExpenseChange(index, "purpose", e.target.value)
-                        }
+                        onChange={(e) => handleExpenseChange(index, "purpose", e.target.value)}
                       />
                     </td>
                     <td className="border border-teal-200 p-2">
@@ -313,10 +236,17 @@ const EmployeeTravelExpenses = () => {
                         placeholder="0.00"
                         className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
                         value={exp.amount}
-                        onChange={(e) =>
-                          handleExpenseChange(index, "amount", e.target.value)
-                        }
+                        onChange={(e) => handleExpenseChange(index, "amount", e.target.value)}
                       />
+                    </td>
+                    <td className="border border-teal-200 p-2">
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        className="text-sm text-gray-500"
+                        onChange={(e) => handleFileChange(index, e.target.files[0])}
+                      />
+                      {exp.receipt && <span className="text-xs text-teal-600">{exp.receipt.name}</span>}
                     </td>
                     <td className="border border-teal-200 p-2 text-center">
                       {index > 0 && (
@@ -345,86 +275,25 @@ const EmployeeTravelExpenses = () => {
             </div>
           </div>
 
-          {/* File Upload */}
-          <div className="border border-slate-300 p-4 rounded-lg shadow-sm">
-            <label className="text-md font-semibold text-slate-700 mb-1 block">
-              Upload Receipts
-            </label>
-            <div
-              className="border-dashed border-2 border-slate-300 rounded-lg p-6 text-center shadow-sm"
-              onDrop={handleFileDrop}
-              onDragOver={(e) => e.preventDefault()}
-            >
-              <p className="text-sm text-gray-500">Drag & drop receipts here</p>
-              <p className="text-sm text-gray-500">or</p>
-              <label className="cursor-pointer mt-2 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-lg text-sm shadow-md hover:from-teal-700 hover:to-teal-900 transition">
-                <Upload size={16} /> Browse
-                <input
-                  type="file"
-                  multiple
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-              </label>
-              <ul className="mt-2 text-sm text-gray-500">
-                {files.map((file, i) => (
-                  <li key={i} className="truncate">
-                    {file.name}
-                  </li>
-                ))}
-              </ul>
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-500">
+              Status: <span className="font-semibold">{submissionStatus}</span>
             </div>
-          </div>
-
-          {/* Signature */}
-          {/* <div className="border border-slate-300 p-4 rounded-lg shadow-sm">
-            <label className="text-md font-semibold text-slate-700 mb-1 block">
-              Employee Signature
-            </label>
-            <div className="relative w-full">
-              <canvas
-                ref={canvasRef}
-                height={150}
-                className="w-full border border-slate-300 rounded mt-2 bg-white shadow-sm"
-                onMouseDown={startDrawing}
-                onMouseMove={draw}
-                onMouseUp={stopDrawing}
-                onMouseLeave={stopDrawing}
-                onTouchStart={startDrawing}
-                onTouchMove={draw}
-                onTouchEnd={stopDrawing}
-              />
-              <div className="flex items-center justify-between mt-2">
-                <p className="text-sm text-gray-500 mt-1">
-                  Sign above using your mouse or touch screen
-                </p>
-                <button
-                  type="button"
-                  className="flex items-center gap-1 px-2 py-2 bg-gradient-to-r from-slate-600 to-teal-700 text-white rounded-lg text-sm shadow-md hover:from-slate-700 hover:to-teal-800 transition"
-                  onClick={clearSignature}
-                  title="Clear Signature"
-                >
-                  <Trash size={14} /> Clear
-                </button>
-              </div>
-            </div>
-          </div> */}
-
-          {/* Submit */}
-          <div className="flex justify-end">
             <button
               type="submit"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-lg text-sm shadow-md hover:from-teal-700 hover:to-teal-900 transition"
+              disabled={submissionStatus !== "draft"}
+              className={`inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-lg text-sm shadow-md hover:from-teal-700 hover:to-teal-900 transition ${
+                submissionStatus !== "draft" ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
-              Submit
+              Submit for Approval
             </button>
           </div>
         </form>
 
-        {/* Toast Message */}
         {showToast && (
           <div className="fixed bottom-4 right-4 bg-teal-700 text-white px-4 py-2 rounded-lg shadow-lg transition-opacity duration-300">
-            ✅ Thank You! Your submission has been received.
+            ✅ Your submission has been sent for approval.
           </div>
         )}
       </div>

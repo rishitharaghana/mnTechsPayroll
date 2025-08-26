@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Fetch payrolls for a given month
 export const fetchPayroll = createAsyncThunk(
   "payroll/fetchPayroll",
   async ({ month }, { rejectWithValue }) => {
@@ -14,10 +13,10 @@ export const fetchPayroll = createAsyncThunk(
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("fetchPayroll response:", response.data); // Debug log
+      console.log("fetchPayroll response:", response.data); 
       return response.data;
     } catch (error) {
-      console.error("fetchPayroll error:", error.response?.data || error.message); // Debug log
+      console.error("fetchPayroll error:", error.response?.data || error.message); 
       return rejectWithValue(error.response?.data?.error || "Failed to fetch payroll");
     }
   }
@@ -67,10 +66,10 @@ export const generatePayroll = createAsyncThunk(
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("generatePayroll response:", response.data); // Debug log
+      console.log("generatePayroll response:", response.data); 
       return response.data;
     } catch (error) {
-      console.error("generatePayroll error:", error.response?.data || error.message); // Debug log
+      console.error("generatePayroll error:", error.response?.data || error.message);
       return rejectWithValue(error.response?.data?.error || "Failed to generate payroll");
     }
   }
@@ -130,7 +129,6 @@ const payrollSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Payroll
       .addCase(fetchPayroll.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -147,7 +145,6 @@ const payrollSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Create Payroll
       .addCase(createPayroll.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -164,7 +161,6 @@ const payrollSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Generate Payroll
       .addCase(generatePayroll.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -181,7 +177,6 @@ const payrollSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Download Payroll PDF
       .addCase(downloadPayrollPDF.pending, (state) => {
         state.loading = true;
         state.error = null;

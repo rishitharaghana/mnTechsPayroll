@@ -41,7 +41,6 @@ const EmployeePayslip = () => {
   const [error, setError] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
 
-  // Filter payslips within the selected date range
   const filteredPayslips = useMemo(() => {
     const from = new Date(fromDate + '-01');
     const to = new Date(toDate + '-01');
@@ -54,7 +53,6 @@ const EmployeePayslip = () => {
       .sort((a, b) => new Date(a.key) - new Date(b.key));
   }, [fromDate, toDate]);
 
-  // Calculate totals for each payslip
   const payslipData = useMemo(() => {
     return filteredPayslips.map((payslip) => {
       const { earnings, deductions } = payslip;

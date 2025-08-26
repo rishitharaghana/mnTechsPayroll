@@ -42,7 +42,8 @@ import EmployeeTravelExpenses from './pages/TravelExpenses/EmployeeTravelExpense
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ChangePassword from './pages/Login/ChangePassword';
-
+import TravelExpenseApproval from './pages/TravelExpenses/TravelExpenseApproval';
+import TravelExpenseSubmission from './pages/TravelExpenses/TravelExpensesSubmission';
 
 const App = () => {
   return (
@@ -56,11 +57,9 @@ const App = () => {
           <Route path="/reset-password" element={<ResetPassword />} /> */}
           <Route path="/change-password" element={<ChangePassword />} />
 
-          {/* Protected Routes */}
           <Route element={<ProtectedRoute allowedRoles={['super_admin', 'hr', 'dept_head', 'employee']} />}>
             <Route element={<AppLayout />}>
               <Route path="/" element={<Home />} />
-              {/* Admin Routes (super_admin, hr, dept_head) */}
               <Route element={<ProtectedRoute allowedRoles={['super_admin', 'hr', 'dept_head']} />}>
                 <Route path="/admin/dashboard" element={<Dashboard />} />
                 <Route path="/admin/employees" element={<Employee />} />
@@ -80,9 +79,10 @@ const App = () => {
                 <Route path="/admin/calendar" element={<CalendarIntegration />} />
                 <Route path="/admin/time-tracking" element={<TimeTracking />} />
                 <Route path="/admin/admin-form" element={<AdminForm />} />
+                <Route path='/admin/travel-expense' element={<TravelExpenseApproval/>} />
+                <Route path='/admin/travel-expsense/details' element={<TravelExpenseSubmission/>} />
               </Route>
 
-              {/* Employee Routes */}
               <Route element={<ProtectedRoute allowedRoles={['employee']} />}>
                 <Route path="/emp-dashboard" element={<EmployeeDashboard />} />
                 <Route path="/employee/employee-attendance" element={<EmployeeAttendance />} />
@@ -95,7 +95,6 @@ const App = () => {
                 <Route path="/employee/travel-expenses" element={<EmployeeTravelExpenses />} />
               </Route>
 
-              {/* Routes Accessible to All Roles */}
               <Route path="/userprofile" element={<UserProfile />} />
               <Route path="/profile" element={<EditProfile />} />
               <Route path="/idcard" element={<IdCard />} />
@@ -105,7 +104,7 @@ const App = () => {
             </Route>
           </Route>
 
-=          <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

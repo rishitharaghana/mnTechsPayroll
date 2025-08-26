@@ -9,6 +9,9 @@ export const createPersonalDetails = createAsyncThunk(
       if (!auth.token) {
         return rejectWithValue('No authentication token found. Please log in.');
       }
+      if (auth.user?.id && personalData.employee_id !== auth.user.id) {
+        return rejectWithValue('Cannot submit details for another employee');
+      }
 
       const response = await axios.post(
         'http://localhost:3007/api/employee-details/personal-details',

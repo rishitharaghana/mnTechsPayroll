@@ -287,36 +287,42 @@ const EmployeeDetails = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user?.id) {
+      dispatch(setErrors({ general: 'Please log in to submit details' }));
+      return;
+    }
     if (validateStep(currentStep)) {
       const success = await submitStep(currentStep);
       if (success) {
         try {
-          const result = await dispatch(downloadEmployeeDetailsPDF(employeeId)).unwrap();
+          const result = await dispatch(downloadEmployeeDetailsPDF(user.id)).unwrap();
           const url = window.URL.createObjectURL(new Blob([result]));
           const link = document.createElement('a');
           link.href = url;
-          link.setAttribute('download', `Employee_Details_${employeeId}.pdf`);
+          link.setAttribute('download', `Employee_Details_${user.id}.pdf`);
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
           dispatch(resetForm());
         } catch (error) {
-          // Error is handled by the slice
+          console.error('Download PDF error:', error);
+          dispatch(setErrors({ general: error.message || 'Failed to download PDF' }));
         }
       }
     }
   };
 
-  const openPreview = () => {
-    if (employeeId) {
-      dispatch(fetchPreviewData(employeeId));
+    const openPreview = () => {
+    if (user?.id) {
+      dispatch(fetchPreviewData(user.id));
       dispatch(setPreviewOpen(true));
     } else {
-      dispatch(setErrors({ general: 'Please complete personal details first' }));
+      dispatch(setErrors({ general: 'Please log in to view preview' }));
     }
   };
 
   const closePreview = () => dispatch(setPreviewOpen(false));
+
 
   const PreviewPopup = () => {
     if (!previewData) return null;

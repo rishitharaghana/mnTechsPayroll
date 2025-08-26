@@ -8,7 +8,7 @@ import {
   Calendar,
   TrendingUp,
   CreditCard,
-  PersonStanding,
+  PersonStanding,         
   LogOut,
   CalendarClock,
   IdCardIcon,
@@ -204,7 +204,14 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Travel Expenses",
       icon: Waypoints,
       path: "/employee/travel-expenses",
-      allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
+      allowedRoles: [ "dept_head", "employee"],
+    },
+     {
+      id: "travelexpenses",
+      label: "Travel Expenses",
+      icon: Waypoints,
+      path: "/admin/travel-expense",
+      allowedRoles: ["super_admin", "hr",],
     },
   ];
 

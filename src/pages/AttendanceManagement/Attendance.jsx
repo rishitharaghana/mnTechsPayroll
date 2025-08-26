@@ -9,7 +9,7 @@ import { fetchAllAttendance, updateAttendanceStatus, clearState } from '../../re
 const Attendance = () => {
   const dispatch = useDispatch();
   const { submissions, loading, error, successMessage } = useSelector((state) => state.attendance);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); // Default to today (2025-08-25)
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); 
 
   const userToken = localStorage.getItem('userToken');
   const user = userToken ? JSON.parse(userToken) : null;
@@ -56,7 +56,6 @@ const Attendance = () => {
       Remote: 'bg-purple-100 text-purple-800',
     }[location] || 'bg-slate-100 text-slate-800');
 
-  // Normalize date for comparison (YYYY-MM-DD)
   const normalizeDate = (isoDate) => {
     return new Date(isoDate).toISOString().split('T')[0];
   };
@@ -142,7 +141,6 @@ const Attendance = () => {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map(({ title, value, total, percentage, color, icon: Icon }, index) => (
           <div
@@ -163,7 +161,6 @@ const Attendance = () => {
         ))}
       </div>
 
-      {/* Attendance Table */}
       <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
         <div className="p-6 border-b border-slate-200/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-xl font-bold text-slate-900">Attendance Records</h2>
@@ -277,7 +274,6 @@ const Attendance = () => {
         </div>
       </div>
 
-      {/* Weekly Attendance Overview */}
       <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <h2 className="text-xl font-bold text-slate-900 mb-4">Weekly Attendance Overview</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
