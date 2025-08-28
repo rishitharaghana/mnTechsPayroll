@@ -15,6 +15,7 @@ import {
   Rocket,
   RouteOff,
   Waypoints,
+  Radio,
 } from "lucide-react";
 
 const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
@@ -184,6 +185,26 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           allowedRoles: ["super_admin", "hr"],
         },
       ],
+    },
+    {
+      id: "time-tracking",
+      label: "Time Tracking",
+      icon: RouteOff,
+      allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
+      children: [
+        {
+          id: "time-tracking-admin",
+          label: "Time Tracking",
+          path: "/admin/time-tracking",
+          allowedRoles: ["super_admin", "hr", "dept_head"],
+        },
+        {
+          id: "time-tracking-employee",
+          label: "Time Tracking",
+          path: "/employee/emp-timetracking",
+          allowedRoles: ["employee"],
+        },
+        ]
     },
     {
       id: "visitingcards",
