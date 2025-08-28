@@ -8,6 +8,7 @@ import userReducer from '../slices/userSlice';
 import attendanceReducer from '../slices/attendanceSlice';
 import employeeDetailsReducer from '../slices/employeeDetailsSlice';
 import travelExpensesReducer from '../slices/travelExpensesSlice';
+import performanceReducer from '../slices/performanceSlice';
 
 const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ const store = configureStore({
     attendance: attendanceReducer,
     employeeDetails: employeeDetailsReducer,
     travelExpenses: travelExpensesReducer,
+    performance: performanceReducer,
   },
 });
 export default store;

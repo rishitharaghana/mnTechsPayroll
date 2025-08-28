@@ -1,773 +1,601 @@
-import { useState } from 'react';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
-import PageMeta from '../../Components/common/PageMeta';
-import { Calendar } from 'lucide-react';
-import Button from '../../Components/ui/date/Button';
-import Download from '/assets/download.png';
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { Calendar } from "lucide-react";
+import { setEmployeeGoal, conductAppraisal, fetchEmployeePerformance } from "../../redux/slices/performanceSlice";
+import { fetchEmployees } from "../../redux/slices/employeeSlice";
 
-const steps = ['Employee Info', 'Performance', 'Review', 'Summary'];
+const steps = ["Employee Info", "Goals & Tasks", "Competencies", "Appraisal", "Summary"];
 
 const AddEmployeeReview = () => {
+  const dispatch = useDispatch();
+  const { employees, loading: empLoading, error: empError } = useSelector((state) => state.employee);
+  const { loading: perfLoading, error: perfError, successMessage } = useSelector((state) => state.performance);
+  const { role, employee_id: loggedInUserId, name: loggedInUserName } = useSelector((state) => state.auth);
+
   const initialFormData = {
-    employeeDetails: {
-      name: '',
-      id: '',
-      email: '',
-      jobTitle: '',
-      department: '',
-      reviewerName: '',
-      reviewDate: '',
-      image: Download,
-    },
-    goals: {
-      title: '',
-      due: '',
-      progress: '',
-      status: ''
-    },
-    competencies: {
-      skill: '',
-      selfRating: '',
-      managerRating: '',
-      feedback: ''
-    },
-    feedback: {
-      source: '',
-      date: '',
-      comment: ''
-    },
-    achievements: {
-      title: '',
-      date: '',
-      type: ''
-    },
-    learningGrowth: {
-      title: '',
-      progressStatus: 'Progress',
-      progress: '',
-      completed: ''
-    },
-    reviewedBy: '',
-    reviewedDate: '',
+    employeeDetails: { employee_id: "", name: "", email: "", jobTitle: "", department: "", reviewDate: "" },
+    goals: [{ title: "", description: "", due_date: "", tasks: [{ title: "", description: "", due_date: "", priority: "Medium" }] }],
+    competencies: [{ skill: "", manager_rating: "", feedback: "" }],
+    appraisal: { performance_score: "", manager_comments: "", achievements: [{ title: "", date: "", type: "Achievement" }], bonus_eligible: false, promotion_recommended: false, salary_hike_percentage: "" },
   };
 
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState(initialFormData);
-  const [errors, setErrors] = useState({});
+  const [formErrors, setFormErrors] = useState({});
 
-  // Department-to-reviewer mapping
-  const departmentReviewers = {
-    Admin: ['John Smith', 'Alice Brown'],
-    Manager: ['Sarah Johnson', 'Michael Lee'],
-    HR: ['Emma Davis', 'Robert Wilson'],
-    TeamLead: ['Lisa Taylor', 'James Clark'],
-    Employee: ['Tom White', 'Sophie Green']
-  };
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
 
-  // Role hierarchy to prevent lower roles from reviewing higher roles
-  const roleHierarchy = {
-    Admin: 4,
-    Manager: 3,
-    HR: 2,
-    TeamLead: 1,
-    Employee: 0
-  };
-
-  const handleChange = (e, section, field = null) => {
+  const handleChange = (e, section, field, index = null, subField = null) => {
     const { name, value } = e.target;
-    if (section === 'employeeDetails' && field === 'department') {
-      // Update department and reset reviewerName
+    if (section === "employeeDetails" && field === "employee_id") {
+      const employee = employees.find((emp) => emp.employee_id === value);
       setFormData((prev) => ({
         ...prev,
-        employeeDetails: { ...prev.employeeDetails, department: value, reviewerName: '' },
-        competencies: { ...prev.competencies, selfRating: value, managerRating: value },
-        feedback: { ...prev.feedback, source: `${value} Feedback` }
+        employeeDetails: {
+          ...prev.employeeDetails,
+          employee_id: value,
+          name: employee?.name || "",
+          email: employee?.email || "",
+          jobTitle: employee?.designation_name || "N/A",
+          department: employee?.department_name || "N/A",
+        },
       }));
+    } else if (index !== null && subField) {
+      setFormData((prev) => {
+        const updatedSection = [...prev[section]];
+        updatedSection[index] = { ...updatedSection[index], [subField]: value };
+        return { ...prev, [section]: updatedSection };
+      });
     } else if (section) {
       setFormData((prev) => ({
         ...prev,
         [section]: { ...prev[section], [field || name]: value },
       }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
     }
-    setErrors((prev) => ({ ...prev, [name]: '' }));
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleDateChange = (date, section, field) => {
-    const formattedDate = date ? date.toISOString().split('T')[0] : '';
-    if (section) {
+  const handleDateChange = (date, section, field, index = null) => {
+    const formattedDate = date ? date.toISOString().split("T")[0] : "";
+    if (index !== null) {
+      setFormData((prev) => {
+        const updatedSection = [...prev[section]];
+        updatedSection[index] = { ...updatedSection[index], [field]: formattedDate };
+        return { ...prev, [section]: updatedSection };
+      });
+    } else {
       setFormData((prev) => ({
         ...prev,
         [section]: { ...prev[section], [field]: formattedDate },
       }));
-    } else {
-      setFormData((prev) => ({ ...prev, [field]: formattedDate }));
     }
-    setErrors((prev) => ({ ...prev, [field]: '' }));
+    setFormErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
+  const addItem = (section) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: [...prev[section], section === "goals" ? { title: "", description: "", due_date: "", tasks: [] } : section === "competencies" ? { skill: "", manager_rating: "", feedback: "" } : { title: "", date: "", type: "Achievement" }],
+    }));
+  };
+
+  const addTask = (goalIndex) => {
+    setFormData((prev) => {
+      const updatedGoals = [...prev.goals];
+      updatedGoals[goalIndex] = {
+        ...updatedGoals[goalIndex],
+        tasks: [...updatedGoals[goalIndex].tasks, { title: "", description: "", due_date: "", priority: "Medium" }],
+      };
+      return { ...prev, goals: updatedGoals };
+    });
+  };
+
+  const validateStep = () => {
+    const newErrors = {};
+    if (currentStep === 0) {
+      const { employee_id, name, email, department, reviewDate } = formData.employeeDetails;
+      if (!employee_id) newErrors.employee_id = "Employee ID is required";
+      if (!name) newErrors.name = "Employee name is required";
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = "Valid email is required";
+      if (!department) newErrors.department = "Department is required";
+      if (!reviewDate) newErrors.reviewDate = "Review date is required";
+      if (employee_id) {
+        const employee = employees.find((e) => e.employee_id === employee_id);
+        if (!employee) newErrors.employee_id = "Selected employee not found";
+      }
+    } else if (currentStep === 1) {
+      formData.goals.forEach((goal, index) => {
+        if (!goal.title) newErrors[`goal_title_${index}`] = `Goal ${index + 1}: Title is required`;
+        if (!goal.due_date) newErrors[`goal_due_date_${index}`] = `Goal ${index + 1}: Due date is required`;
+        goal.tasks.forEach((task, taskIndex) => {
+          if (!task.title) newErrors[`task_title_${index}_${taskIndex}`] = `Goal ${index + 1}, Task ${taskIndex + 1}: Title is required`;
+          if (!task.due_date) newErrors[`task_due_date_${index}_${taskIndex}`] = `Goal ${index + 1}, Task ${taskIndex + 1}: Due date is required`;
+        });
+      });
+    } else if (currentStep === 2) {
+      formData.competencies.forEach((comp, index) => {
+        if (!comp.skill) newErrors[`comp_skill_${index}`] = `Competency ${index + 1}: Skill is required`;
+        if (!comp.manager_rating || comp.manager_rating < 0 || comp.manager_rating > 10) newErrors[`comp_rating_${index}`] = `Competency ${index + 1}: Valid rating (0-10) is required`;
+      });
+    } else if (currentStep === 3) {
+      const { performance_score, manager_comments, achievements } = formData.appraisal;
+      if (!performance_score || performance_score < 0 || performance_score > 100) newErrors.performance_score = "Valid performance score (0-100) is required";
+      if (!manager_comments) newErrors.manager_comments = "Manager comments are required";
+      achievements.forEach((ach, index) => {
+        if (!ach.title) newErrors[`ach_title_${index}`] = `Achievement ${index + 1}: Title is required`;
+        if (!ach.date) newErrors[`ach_date_${index}`] = `Achievement ${index + 1}: Date is required`;
+      });
+    }
+    console.log("Validation errors:", newErrors);
+    setFormErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const nextStep = () => {
-    // Validate hierarchy before moving to next step
-    if (currentStep === 0 && formData.employeeDetails.department && formData.employeeDetails.reviewerName) {
-      const reviewerRole = Object.keys(departmentReviewers).find(dep => 
-        departmentReviewers[dep].includes(formData.employeeDetails.reviewerName)
-      );
-      const employeeRole = formData.employeeDetails.department;
-      if (reviewerRole && employeeRole && roleHierarchy[reviewerRole] < roleHierarchy[employeeRole]) {
-        setErrors((prev) => ({
-          ...prev,
-          reviewerName: 'Lower roles cannot review higher roles.'
-        }));
-        return;
-      }
+    if (!validateStep()) {
+      console.log("Validation failed, cannot proceed to next step");
+      return;
+    }
+    if (currentStep === 0) {
+      dispatch(fetchEmployeePerformance(formData.employeeDetails.employee_id));
     }
     setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
   };
 
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
-  const goToStep = (index) => setCurrentStep(index);
 
-  const handleKeyDown = (e, index) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      goToStep(index);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateStep()) return;
+
+    try {
+      if (["hr", "super_admin"].includes(role)) {
+        for (const goal of formData.goals) {
+          await dispatch(
+            setEmployeeGoal({
+              employee_id: formData.employeeDetails.employee_id,
+              title: goal.title,
+              description: goal.description,
+              due_date: goal.due_date,
+              tasks: goal.tasks,
+            })
+          ).unwrap();
+        }
+        if (currentStep === steps.length - 1) {
+          await dispatch(
+            conductAppraisal({
+              employee_id: formData.employeeDetails.employee_id,
+              reviewer_id: loggedInUserId,
+              ...formData.appraisal,
+              competencies: formData.competencies,
+            })
+          ).unwrap();
+          setFormData(initialFormData);
+          setCurrentStep(0);
+        } else {
+          nextStep();
+        }
+      } else {
+        setFormErrors({ form: "Only HR or Admin can submit reviews" });
+      }
+    } catch (err) {
+      console.error("Submission error:", err);
+      setFormErrors({ form: err.message || "Failed to submit review" });
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form Data:', formData);
-    setFormData(initialFormData);
-    setCurrentStep(0);
-  };
-
   return (
-    <div>
-      <style>
-        {`
-          .react-datepicker-wrapper {
-            width: 100%;
-          }
-          .react-datepicker__input-container input {
-            width: 100%;
-            padding: 0.75rem 2.5rem 0.75rem 1rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            transition: all 0.3s ease;
-          }
-          .react-datepicker__input-container input:focus {
-            outline: none;
-            border-color: #14b8a6;
-            box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2);
-          }
-          .step-transition {
-            animation: slideIn 0.3s ease-in-out;
-          }
-          @keyframes slideIn {
-            from {
-              opacity: 0;
-              transform: translateX(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateX(0);
-            }
-          }
-        `}
-      </style>
-      <div className="flex justify-end px-4 sm:px-6 lg:px-8">
-        <PageMeta title="Add/Edit Employee Review" description="Add or edit an employee performance review" />
-        <PageBreadcrumb
-          items={[
-            { label: 'Home', link: '/' },
-            { label: 'Add/Edit Employee Review', link: '/admin/add-performance' },
-          ]}
-        />
-      </div>
-      <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 py-6">
-        <div className="w-full max-w-4xl bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8 transform transition-all duration-500">
-          <h2 className="text-xl sm:text-2xl font-bold text-center text-gray-900 mb-8 tracking-tight">
-            Employee Performance Review
-          </h2>
+    <div className="min-h-screen p-6 bg-gray-100">
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Add Employee Review</h2>
+        {formErrors.form && <p className="text-red-600 text-sm mb-4">{formErrors.form}</p>}
+        {(empError || perfError) && <p className="text-red-600 text-sm mb-4">{empError || perfError}</p>}
+        {successMessage && <p className="text-green-600 text-sm mb-4">{successMessage}</p>}
 
-          {/* Stepper */}
-          <div className="flex items-center justify-between mb-10 relative">
-            {steps.map((step, index) => (
-              <div key={index} className="flex flex-col items-center z-10 group">
-                <button
-                  onClick={() => goToStep(index)}
-                  onKeyDown={(e) => handleKeyDown(e, index)}
-                  className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full font-semibold text-xs sm:text-sm transition-all duration-300 ${
-                    currentStep === index
-                      ? 'bg-teal-600 text-white ring-2 ring-teal-600 ring-offset-2'
-                      : currentStep > index
-                      ? 'bg-teal-600 text-white'
-                      : 'bg-slate-700 text-white'
-                  } focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2`}
-                  aria-current={currentStep === index ? 'step' : undefined}
-                  aria-label={`Go to ${step}`}
-                >
-                  {index + 1}
-                </button>
-                <span
-                  className={`mt-2 text-xs sm:text-sm font-bold text-black tracking-tight transition-all duration-300 group-hover:scale-105 ${
-                    currentStep === index ? 'scale-105 text-teal-600' : 'text-slate-700'
-                  }`}
-                >
-                  {step}
-                </span>
+        <div className="flex justify-between mb-6">
+          {steps.map((step, index) => (
+            <div key={index} className="flex-1 text-center">
+              <div className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center ${currentStep >= index ? "bg-teal-600 text-white" : "bg-gray-300 text-gray-600"}`}>
+                {index + 1}
               </div>
-            ))}
-            <div className="absolute top-4 sm:top-5 left-0 right-0 h-0.5 bg-slate-700 z-0">
-              <div
-                className="h-full bg-teal-600 transition-all duration-500 ease-in-out"
-                style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
-              ></div>
+              <p className="text-sm mt-2">{step}</p>
             </div>
-          </div>
+          ))}
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 step-transition" key={currentStep}>
-              {currentStep === 0 && (
-                <>
-                  <div className="flex flex-col">
-                    <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="employee-name">
-                      Employee Name
-                    </label>
-                    <input
-                      id="employee-name"
-                      type="text"
-                      name="name"
-                      value={formData.employeeDetails.name}
-                      onChange={(e) => handleChange(e, 'employeeDetails')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 text-sm"
-                      placeholder="Enter employee name"
-                      aria-label="Employee Name"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="employee-id">
-                      Employee ID
-                    </label>
-                    <input
-                      id="employee-id"
-                      type="text"
-                      name="id"
-                      value={formData.employeeDetails.id}
-                      onChange={(e) => handleChange(e, 'employeeDetails')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 text-sm"
-                      placeholder="Enter employee ID"
-                      aria-label="Employee ID"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="employee-email">
-                      Email Address
-                    </label>
-                    <input
-                      id="employee-email"
-                      type="email"
-                      name="email"
-                      value={formData.employeeDetails.email}
-                      onChange={(e) => handleChange(e, 'employeeDetails')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 text-sm"
-                      placeholder="Enter email address"
-                      aria-label="Email Address"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="job-title">
-                      Job Title
-                    </label>
-                    <input
-                      id="job-title"
-                      type="text"
-                      name="jobTitle"
-                      value={formData.employeeDetails.jobTitle}
-                      onChange={(e) => handleChange(e, 'employeeDetails')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 text-sm"
-                      placeholder="Enter job title"
-                      aria-label="Job Title"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="department">
-                      Select Department
-                    </label>
-                    <select
-                      id="department"
-                      name="department"
-                      value={formData.employeeDetails.department}
-                      onChange={(e) => handleChange(e, 'employeeDetails', 'department')}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 text-sm text-gray-500 font-medium"
-                      aria-label="Select Department"
-                    >
-                      <option value="">Select Department</option>
-                      <option value="Admin">Admin</option>
-                      <option value="Manager">Manager</option>
-                      <option value="HR">HR</option>
-                      <option value="TeamLead">Team Lead</option>
-                    </select>
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="reviewerName">
-                      Reviewer Name
-                    </label>
-                    <select
-                      id="reviewerName"
-                      name="reviewerName"
-                      value={formData.employeeDetails.reviewerName}
-                      onChange={(e) => handleChange(e, 'employeeDetails', 'reviewerName')}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 text-sm text-gray-500 font-medium"
-                      aria-label="Reviewer Name"
-                      disabled={!formData.employeeDetails.department}
-                    >
-                      <option value="">Select Reviewer</option>
-                      {formData.employeeDetails.department &&
-                        departmentReviewers[formData.employeeDetails.department]?.map((reviewer) => (
-                          <option key={reviewer} value={reviewer}>
-                            {reviewer}
-                          </option>
-                        ))}
-                    </select>
-                    {errors.reviewerName && (
-                      <p className="text-sm text-red-600">{errors.reviewerName}</p>
-                    )}
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="start-date">
-                      Review Date
-                    </label>
-                    <div className="relative">
-                      <DatePicker
-                        id="start-date"
-                        selected={formData.employeeDetails.reviewDate ? new Date(formData.employeeDetails.reviewDate) : null}
-                        onChange={(date) => handleDateChange(date, 'employeeDetails', 'reviewDate')}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-500 text-sm font-medium transition-all duration-300 pr-10"
-                        placeholderText="Select start date"
-                        dateFormat="yyyy-MM-dd"
-                        aria-label="Review Date"
-                      />
-                      <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {currentStep === 1 && (
-                <>
-                  <div className="flex flex-col col-span-1 sm:col-span-2">
-                    <label className="mb-1 text-md font-semibold text-slate-700">Goals & Targets</label>
-                    <div className="mb-4 p-4 border border-gray-200 rounded-lg">
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="goal-title">
-                        Goal Title
-                      </label>
-                      <select
-                        id="goal-title"
-                        name="title"
-                        value={formData.goals.title}
-                        onChange={(e) => handleChange(e, 'goals', 'title')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 text-sm text-gray-500 font-medium"
-                        aria-label="Goal Title"
-                      >
-                        <option value="">Select Goal</option>
-                        <option value="Customer Satisfaction">Customer Satisfaction</option>
-                        <option value="Leadership and Training">Leadership and Training</option>
-                        <option value="Team Productivity">Team Productivity</option>
-                      </select>
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="goal-due">
-                        Due Date
-                      </label>
-                      <div className="relative mb-2">
-                        <DatePicker
-                          id="goal-due"
-                          selected={formData.goals.due ? new Date(formData.goals.due) : null}
-                          onChange={(date) => handleDateChange(date, 'goals', 'due')}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-500 text-sm font-medium"
-                          placeholderText="Select due date"
-                          dateFormat="yyyy-MM-dd"
-                          aria-label="Goal Due Date"
-                        />
-                        <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                      </div>
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="goal-progress">
-                        Progress (%)
-                      </label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {currentStep === 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Employee</label>
+                <select
+                  value={formData.employeeDetails.employee_id}
+                  onChange={(e) => handleChange(e, "employeeDetails", "employee_id")}
+                  className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                >
+                  <option value="">Select Employee</option>
+                  {employees.map((emp) => (
+                    <option key={emp.employee_id} value={emp.employee_id}>
+                      {emp.employee_id} - {emp.name}
+                    </option>
+                  ))}
+                </select>
+                {formErrors.employee_id && <p className="text-red-600 text-xs mt-1">{formErrors.employee_id}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input
+                  type="text"
+                  value={formData.employeeDetails.name}
+                  disabled
+                  className="mt-1 block w-full border border-gray-300 rounded-lg p-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  value={formData.employeeDetails.email}
+                  disabled
+                  className="mt-1 block w-full border border-gray-300 rounded-lg p-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Job Title</label>
+                <input
+                  type="text"
+                  value={formData.employeeDetails.jobTitle}
+                  disabled
+                  className="mt-1 block w-full border border-gray-300 rounded-lg p-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Department</label>
+                <input
+                  type="text"
+                  value={formData.employeeDetails.department}
+                  disabled
+                  className="mt-1 block w-full border border-gray-300 rounded-lg p-2 bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Review Date</label>
+                <div className="relative">
+                  <DatePicker
+                    selected={formData.employeeDetails.reviewDate ? new Date(formData.employeeDetails.reviewDate) : null}
+                    onChange={(date) => handleDateChange(date, "employeeDetails", "reviewDate")}
+                    dateFormat="yyyy-MM-dd"
+                    className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                    placeholderText="Select review date"
+                  />
+                  <Calendar className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
+                </div>
+                {formErrors.reviewDate && <p className="text-red-600 text-xs mt-1">{formErrors.reviewDate}</p>}
+              </div>
+            </div>
+          )}
+          {currentStep === 1 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Goals & Tasks</h3>
+              {formData.goals.map((goal, index) => (
+                <div key={index} className="mb-6 p-4 border rounded-lg">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Goal Title</label>
                       <input
-                        id="goal-progress"
-                        type="number"
-                        name="progress"
-                        value={formData.goals.progress}
-                        onChange={(e) => handleChange(e, 'goals', 'progress')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 text-sm"
-                        placeholder="Enter progress (0-100)"
-                        min="0"
-                        max="100"
-                        aria-label="Goal Progress"
+                        type="text"
+                        value={goal.title}
+                        onChange={(e) => handleChange(e, "goals", "title", index)}
+                        className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
                       />
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="goal-status">
-                        Status
-                      </label>
-                      <select
-                        id="goal-status"
-                        name="status"
-                        value={formData.goals.status}
-                        onChange={(e) => handleChange(e, 'goals', 'status')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-500 font-medium"
-                        aria-label="Goal Status"
-                      >
-                        <option value="">Select Status</option>
-                        <option value="On Track">On Track</option>
-                        <option value="At Risk">At Risk</option>
-                      </select>
+                      {formErrors[`goal_title_${index}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`goal_title_${index}`]}</p>}
                     </div>
-                  </div>
-                  <div className="flex flex-col col-span-1 sm:col-span-2">
-                    <label className="mb-1 text-md font-semibold text-slate-700">Competencies</label>
-                    <div className="mb-4 p-4 border border-gray-200 rounded-lg">
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="comp-skill">
-                        Skill
-                      </label>
-                      <select
-                        id="comp-skill"
-                        name="skill"
-                        value={formData.competencies.skill}
-                        onChange={(e) => handleChange(e, 'competencies', 'skill')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 text-sm text-gray-500 font-medium"
-                        aria-label="Competency Skill"
-                      >
-                        <option value="">Select Skill</option>
-                        <option value="Communication">Communication</option>
-                        <option value="Leadership">Leadership</option>
-                        <option value="Technical Skills">Technical Skills</option>
-                      </select>
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="comp-selfRating">
-                        Self Rating Source
-                      </label>
-                      <select
-                        id="comp-selfRating"
-                        name="selfRating"
-                        value={formData.competencies.selfRating}
-                        onChange={(e) => handleChange(e, 'competencies', 'selfRating')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 text-sm text-gray-500 font-medium"
-                        aria-label="Competency Self Rating Source"
-                      >
-                        <option value="">Select Source</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Manager">Manager</option>
-                        <option value="HR">HR</option>
-                        <option value="TeamLead">Team Lead</option>
-                      </select>
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="comp-managerRating">
-                        Manager Rating Source
-                      </label>
-                      <select
-                        id="comp-managerRating"
-                        name="managerRating"
-                        value={formData.competencies.managerRating}
-                        onChange={(e) => handleChange(e, 'competencies', 'managerRating')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 text-sm text-gray-500 font-medium"
-                        aria-label="Competency Manager Rating Source"
-                      >
-                        <option value="">Select Source</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Manager">Manager</option>
-                        <option value="HR">HR</option>
-                        <option value="TeamLead">Team Lead</option>
-                      </select>
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="comp-feedback">
-                        Feedback
-                      </label>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Due Date</label>
+                      <DatePicker
+                        selected={goal.due_date ? new Date(goal.due_date) : null}
+                        onChange={(date) => handleDateChange(date, "goals", "due_date", index)}
+                        dateFormat="yyyy-MM-dd"
+                        className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                        placeholderText="Select due date"
+                      />
+                      {formErrors[`goal_due_date_${index}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`goal_due_date_${index}`]}</p>}
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700">Description</label>
                       <textarea
-                        id="comp-feedback"
-                        name="feedback"
-                        value={formData.competencies.feedback}
-                        onChange={(e) => handleChange(e, 'competencies', 'feedback')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm"
-                        placeholder="Enter feedback"
-                        rows={2}
-                        aria-label="Competency Feedback"
-                      />
+                        value={goal.description}
+                        onChange={(e) => handleChange(e, "goals", "description", index)}
+                        className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                        rows="3"
+                      ></textarea>
                     </div>
                   </div>
-                </>
-              )}
-
-              {currentStep === 2 && (
-                <>
-                  <div className="flex flex-col col-span-1 sm:col-span-2">
-                    <label className="mb-1 text-md font-semibold text-slate-700">Feedback Received</label>
-                    <div className="mb-4 p-4 border border-gray-200 rounded-lg">
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="feedback-source">
-                        Feedback Source
-                      </label>
-                      <select
-                        id="feedback-source"
-                        name="source"
-                        value={formData.feedback.source}
-                        onChange={(e) => handleChange(e, 'feedback', 'source')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 text-sm text-gray-500 font-medium"
-                        aria-label="Feedback Source"
-                      >
-                        <option value="">Select Source</option>
-                        <option value="Admin Feedback">Admin Feedback</option>
-                        <option value="Manager Feedback">Manager Feedback</option>
-                        <option value="HR Feedback">HR Feedback</option>
-                        <option value="Team Lead Feedback">Team Lead Feedback</option>
-                      </select>
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="feedback-date">
-                        Feedback Date
-                      </label>
-                      <div className="relative mb-2">
-                        <DatePicker
-                          id="feedback-date"
-                          selected={formData.feedback.date ? new Date(formData.feedback.date) : null}
-                          onChange={(date) => handleDateChange(date, 'feedback', 'date')}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-500 text-sm font-medium"
-                          placeholderText="Select feedback date"
-                          dateFormat="yyyy-MM-dd"
-                          aria-label="Feedback Date"
-                        />
-                        <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                      </div>
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="feedback-comment">
-                        Feedback Comment
-                      </label>
-                      <textarea
-                        id="feedback-comment"
-                        name="comment"
-                        value={formData.feedback.comment}
-                        onChange={(e) => handleChange(e, 'feedback', 'comment')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm"
-                        placeholder="Enter feedback comment"
-                        rows={3}
-                        aria-label="Feedback Comment"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-col col-span-1 sm:col-span-2">
-                    <label className="mb-1 text-md font-semibold text-slate-700">Achievements</label>
-                    <div className="mb-4 p-4 border border-gray-200 rounded-lg">
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="ach-title">
-                        Achievement Title
-                      </label>
-                      <select
-                        id="ach-title"
-                        name="title"
-                        value={formData.achievements.title}
-                        onChange={(e) => handleChange(e, 'achievements', 'title')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 text-sm text-gray-500 font-medium"
-                        aria-label="Achievement Title"
-                      >
-                        <option value="">Select Achievement</option>
-                        <option value="Employee of the Month">Employee of the Month</option>
-                        <option value="Team Leadership Award">Team Leadership Award</option>
-                        <option value="Project Alpha Success">Project Alpha Success</option>
-                      </select>
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="ach-date">
-                        Achievement Date
-                      </label>
-                      <div className="relative mb-2">
-                        <DatePicker
-                          id="ach-date"
-                          selected={formData.achievements.date ? new Date(formData.achievements.date) : null}
-                          onChange={(date) => handleDateChange(date, 'achievements', 'date')}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-500 text-sm font-medium"
-                          placeholderText="Select achievement date"
-                          dateFormat="yyyy-MM-dd"
-                          aria-label="Achievement Date"
-                        />
-                        <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                      </div>
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="ach-type">
-                        Achievement Type
-                      </label>
-                      <select
-                        id="ach-type"
-                        name="type"
-                        value={formData.achievements.type}
-                        onChange={(e) => handleChange(e, 'achievements', 'type')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-500 font-medium"
-                        aria-label="Achievement Type"
-                      >
-                        <option value="">Select Type</option>
-                        <option value="Recognition">Recognition</option>
-                        <option value="Achievement">Achievement</option>
-                        <option value="Award">Award</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="flex flex-col col-span-1 sm:col-span-2">
-                    <label className="mb-1 text-md font-semibold text-slate-700">Learning & Growth</label>
-                    <div className="mb-4 p-4 border border-gray-200 rounded-lg">
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="lg-title">
-                        Learning Title
-                      </label>
-                      <select
-                        id="lg-title"
-                        name="title"
-                        value={formData.learningGrowth.title}
-                        onChange={(e) => handleChange(e, 'learningGrowth', 'title')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 text-sm text-gray-500 font-medium"
-                        aria-label="Learning Title"
-                      >
-                        <option value="">Select Learning</option>
-                        <option value="Project Management Fundamentals">Project Management Fundamentals</option>
-                        <option value="Leadership Certification">Leadership Certification</option>
-                      </select>
-                      <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="lg-progressStatus">
-                        Progress Status
-                      </label>
-                      <select
-                        id="lg-progressStatus"
-                        name="progressStatus"
-                        value={formData.learningGrowth.progressStatus}
-                        onChange={(e) => handleChange(e, 'learningGrowth', 'progressStatus')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 text-sm text-gray-500 font-medium"
-                        aria-label="Learning Progress Status"
-                      >
-                        <option value="Progress">Progress</option>
-                        <option value="Completed">Completed</option>
-                      </select>
-                      {formData.learningGrowth.progressStatus === 'Progress' ? (
-                        <>
-                          <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="lg-progress">
-                            Progress (%)
-                          </label>
+                  <h4 className="text-md font-semibold text-gray-800 mt-4">Tasks</h4>
+                  {goal.tasks.map((task, taskIndex) => (
+                    <div key={taskIndex} className="mt-2 p-3 bg-gray-50 rounded-lg">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Task Title</label>
                           <input
-                            id="lg-progress"
-                            type="number"
-                            name="progress"
-                            value={formData.learningGrowth.progress}
-                            onChange={(e) => handleChange(e, 'learningGrowth', 'progress')}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 text-sm"
-                            placeholder="Enter progress (0-100)"
-                            min="0"
-                            max="100"
-                            aria-label="Learning Progress"
+                            type="text"
+                            value={task.title}
+                            onChange={(e) => handleChange(e, "goals", "tasks", index, `title_${taskIndex}`)}
+                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
                           />
-                        </>
-                      ) : (
-                        <>
-                          <label className="mb-1 text-md font-semibold text-slate-700" htmlFor="lg-completed">
-                            Completion Date
-                          </label>
-                          <div className="relative">
-                            <DatePicker
-                              id="lg-completed"
-                              selected={formData.learningGrowth.completed ? new Date(formData.learningGrowth.completed) : null}
-                              onChange={(date) => handleDateChange(date, 'learningGrowth', 'completed')}
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-500 text-sm font-medium"
-                              placeholderText="Select completion date"
-                              dateFormat="yyyy-MM-dd"
-                              aria-label="Learning Completion Date"
-                            />
-                            <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                          </div>
-                        </>
-                      )}
+                          {formErrors[`task_title_${index}_${taskIndex}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`task_title_${index}_${taskIndex}`]}</p>}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Due Date</label>
+                          <DatePicker
+                            selected={task.due_date ? new Date(task.due_date) : null}
+                            onChange={(date) => handleDateChange(date, "goals", "due_date", index, `tasks_${taskIndex}`)}
+                            dateFormat="yyyy-MM-dd"
+                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                            placeholderText="Select due date"
+                          />
+                          {formErrors[`task_due_date_${index}_${taskIndex}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`task_due_date_${index}_${taskIndex}`]}</p>}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Priority</label>
+                          <select
+                            value={task.priority}
+                            onChange={(e) => handleChange(e, "goals", "tasks", index, `priority_${taskIndex}`)}
+                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                          >
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </>
-              )}
-
-              {currentStep === 3 && (
-                <div className="col-span-1 sm:col-span-2 space-y-6">
-                  <h3 className="text-lg font-semibold text-slate-700">Review Submitted Information</h3>
-                  <div className="space-y-4">
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addTask(index)}
+                    className="mt-2 text-teal-600 hover:underline"
+                  >
+                    + Add Task
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addItem("goals")}
+                className="text-teal-600 hover:underline"
+              >
+                + Add Goal
+              </button>
+            </div>
+          )}
+          {currentStep === 2 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Competencies</h3>
+              {formData.competencies.map((comp, index) => (
+                <div key={index} className="mb-4 p-4 border rounded-lg">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <h4 className="text-md font-semibold text-slate-700">Employee Details</h4>
-                      <p className="text-sm text-gray-600">Name: {formData.employeeDetails.name || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">ID: {formData.employeeDetails.id || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Email: {formData.employeeDetails.email || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Job Title: {formData.employeeDetails.jobTitle || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Department: {formData.employeeDetails.department || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Reviewer Name: {formData.employeeDetails.reviewerName || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Review Date: {formData.employeeDetails.reviewDate || 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-md font-semibold text-slate-700">Goals & Targets</h4>
-                      <p className="text-sm text-gray-600">Title: {formData.goals.title || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Due Date: {formData.goals.due || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Progress: {formData.goals.progress ? `${formData.goals.progress}%` : 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Status: {formData.goals.status || 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-md font-semibold text-slate-700">Competencies</h4>
-                      <p className="text-sm text-gray-600">Skill: {formData.competencies.skill || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Self Rating Source: {formData.competencies.selfRating || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Manager Rating Source: {formData.competencies.managerRating || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Feedback: {formData.competencies.feedback || 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-md font-semibold text-slate-700">Feedback Received</h4>
-                      <p className="text-sm text-gray-600">Source: {formData.feedback.source || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Date: {formData.feedback.date || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Comment: {formData.feedback.comment || 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-md font-semibold text-slate-700">Achievements</h4>
-                      <p className="text-sm text-gray-600">Title: {formData.achievements.title || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Date: {formData.achievements.date || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Type: {formData.achievements.type || 'Not provided'}</p>
+                      <label className="block text-sm font-medium text-gray-700">Skill</label>
+                      <input
+                        type="text"
+                        value={comp.skill}
+                        onChange={(e) => handleChange(e, "competencies", "skill", index)}
+                        className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                      />
+                      {formErrors[`comp_skill_${index}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`comp_skill_${index}`]}</p>}
                     </div>
                     <div>
-                      <h4 className="text-md font-semibold text-slate-700">Learning & Growth</h4>
-                      <p className="text-sm text-gray-600">Title: {formData.learningGrowth.title || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Progress Status: {formData.learningGrowth.progressStatus || 'Not provided'}</p>
-                      {formData.learningGrowth.progressStatus === 'Progress' ? (
-                        <p className="text-sm text-gray-600">Progress: {formData.learningGrowth.progress ? `${formData.learningGrowth.progress}%` : 'Not provided'}</p>
-                      ) : (
-                        <p className="text-sm text-gray-600">Completion Date: {formData.learningGrowth.completed || 'Not provided'}</p>
-                      )}
+                      <label className="block text-sm font-medium text-gray-700">Manager Rating (0-10)</label>
+                      <input
+                        type="number"
+                        value={comp.manager_rating}
+                        onChange={(e) => handleChange(e, "competencies", "manager_rating", index)}
+                        className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                      />
+                      {formErrors[`comp_rating_${index}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`comp_rating_${index}`]}</p>}
                     </div>
-                    <div>
-                      <h4 className="text-md font-semibold text-slate-700">Review Details</h4>
-                      <p className="text-sm text-gray-600">Reviewed By: {formData.reviewedBy || 'Not provided'}</p>
-                      <p className="text-sm text-gray-600">Reviewed Date: {formData.reviewedDate || 'Not provided'}</p>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700">Feedback</label>
+                      <textarea
+                        value={comp.feedback}
+                        onChange={(e) => handleChange(e, "competencies", "feedback", index)}
+                        className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                        rows="3"
+                      ></textarea>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-
-            <div className="flex flex-col sm:flex-row justify-between mt-8 gap-4">
-              <Button
+              ))}
+              <button
                 type="button"
-                onClick={prevStep}
-                disabled={currentStep === 0}
-                variant="secondary"
-                size="medium"
-                className="w-full sm:w-auto px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-800 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 text-sm font-medium"
-                aria-label="Previous step"
+                onClick={() => addItem("competencies")}
+                className="text-teal-600 hover:underline"
               >
-                Back
-              </Button>
-              {currentStep < steps.length - 1 ? (
-                <Button
-                  type="button"
-                  onClick={nextStep}
-                  className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 text-sm font-medium"
-                  aria-label="Next step"
-                >
-                  Next
-                </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  className="w-full sm:w-auto px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 text-sm font-medium"
-                  aria-label="Submit form"
-                >
-                  Submit
-                </Button>
-              )}
+                + Add Competency
+              </button>
             </div>
-          </form>
-        </div>
+          )}
+          {currentStep === 3 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Appraisal</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Performance Score (0-100)</label>
+                  <input
+                    type="number"
+                    value={formData.appraisal.performance_score}
+                    onChange={(e) => handleChange(e, "appraisal", "performance_score")}
+                    className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                  />
+                  {formErrors.performance_score && <p className="text-red-600 text-xs mt-1">{formErrors.performance_score}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Manager Comments</label>
+                  <textarea
+                    value={formData.appraisal.manager_comments}
+                    onChange={(e) => handleChange(e, "appraisal", "manager_comments")}
+                    className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                    rows="3"
+                  ></textarea>
+                  {formErrors.manager_comments && <p className="text-red-600 text-xs mt-1">{formErrors.manager_comments}</p>}
+                </div>
+                <div className="col-span-2">
+                  <h4 className="text-md font-semibold text-gray-800">Achievements</h4>
+                  {formData.appraisal.achievements.map((ach, index) => (
+                    <div key={index} className="mt-2 p-3 bg-gray-50 rounded-lg">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Title</label>
+                          <input
+                            type="text"
+                            value={ach.title}
+                            onChange={(e) => handleChange(e, "appraisal", "achievements", index, "title")}
+                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                          />
+                          {formErrors[`ach_title_${index}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`ach_title_${index}`]}</p>}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Date</label>
+                          <DatePicker
+                            selected={ach.date ? new Date(ach.date) : null}
+                            onChange={(date) => handleDateChange(date, "appraisal", "achievements", index, "date")}
+                            dateFormat="yyyy-MM-dd"
+                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                            placeholderText="Select date"
+                          />
+                          {formErrors[`ach_date_${index}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`ach_date_${index}`]}</p>}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Type</label>
+                          <select
+                            value={ach.type}
+                            onChange={(e) => handleChange(e, "appraisal", "achievements", index, "type")}
+                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                          >
+                            <option value="Recognition">Recognition</option>
+                            <option value="Achievement">Achievement</option>
+                            <option value="Award">Award</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addItem("achievements")}
+                    className="mt-2 text-teal-600 hover:underline"
+                  >
+                    + Add Achievement
+                  </button>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.appraisal.bonus_eligible}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, appraisal: { ...prev.appraisal, bonus_eligible: e.target.checked } }))}
+                    className="h-4 w-4 text-teal-600 border-gray-300 rounded"
+                  />
+                  <label className="ml-2 text-sm font-medium text-gray-700">Bonus Eligible</label>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.appraisal.promotion_recommended}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, appraisal: { ...prev.appraisal, promotion_recommended: e.target.checked } }))}
+                    className="h-4 w-4 text-teal-600 border-gray-300 rounded"
+                  />
+                  <label className="ml-2 text-sm font-medium text-gray-700">Promotion Recommended</label>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Salary Hike Percentage</label>
+                  <input
+                    type="number"
+                    value={formData.appraisal.salary_hike_percentage}
+                    onChange={(e) => handleChange(e, "appraisal", "salary_hike_percentage")}
+                    className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          {currentStep === 4 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Summary</h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-800">Employee Details</h4>
+                  <p><strong>ID:</strong> {formData.employeeDetails.employee_id}</p>
+                  <p><strong>Name:</strong> {formData.employeeDetails.name}</p>
+                  <p><strong>Email:</strong> {formData.employeeDetails.email}</p>
+                  <p><strong>Job Title:</strong> {formData.employeeDetails.jobTitle}</p>
+                  <p><strong>Department:</strong> {formData.employeeDetails.department}</p>
+                  <p><strong>Review Date:</strong> {formData.employeeDetails.reviewDate}</p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-800">Goals & Tasks</h4>
+                  {formData.goals.map((goal, index) => (
+                    <div key={index} className="mb-2">
+                      <p><strong>Goal {index + 1}:</strong> {goal.title} (Due: {goal.due_date})</p>
+                      <p>{goal.description || "No description"}</p>
+                      <ul className="list-disc pl-5">
+                        {goal.tasks.map((task, taskIndex) => (
+                          <li key={taskIndex}>
+                            {task.title} (Due: {task.due_date}, Priority: {task.priority})
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-800">Competencies</h4>
+                  {formData.competencies.map((comp, index) => (
+                    <p key={index}>
+                      <strong>{comp.skill}:</strong> Rating {comp.manager_rating}/10, {comp.feedback || "No feedback"}
+                    </p>
+                  ))}
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="text-md font-semibold text-gray-800">Appraisal</h4>
+                  <p><strong>Performance Score:</strong> {formData.appraisal.performance_score}</p>
+                  <p><strong>Manager Comments:</strong> {formData.appraisal.manager_comments}</p>
+                  <p><strong>Achievements:</strong></p>
+                  <ul className="list-disc pl-5">
+                    {formData.appraisal.achievements.map((ach, index) => (
+                      <li key={index}>{ach.title} ({ach.date}, {ach.type})</li>
+                    ))}
+                  </ul>
+                  <p><strong>Bonus Eligible:</strong> {formData.appraisal.bonus_eligible ? "Yes" : "No"}</p>
+                  <p><strong>Promotion Recommended:</strong> {formData.appraisal.promotion_recommended ? "Yes" : "No"}</p>
+                  <p><strong>Salary Hike:</strong> {formData.appraisal.salary_hike_percentage || 0}%</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-between mt-6">
+            <button
+              type="button"
+              onClick={prevStep}
+              disabled={currentStep === 0}
+              className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              type={currentStep === steps.length - 1 ? "submit" : "button"}
+              onClick={currentStep === steps.length - 1 ? undefined : nextStep}
+              disabled={empLoading || perfLoading}
+              className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:bg-teal-400 disabled:cursor-not-allowed"
+            >
+              {currentStep === steps.length - 1 ? "Submit" : "Next"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
