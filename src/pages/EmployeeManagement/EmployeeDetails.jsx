@@ -705,7 +705,7 @@ const EmployeeDetails = () => {
           }
           .react-datepicker__input-container {
             position: relative;
-          }
+          } 
           .react-datepicker__input-container input {
             width: 100%;
             padding: 0.75rem 1rem;

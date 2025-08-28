@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Trash2, Upload } from "lucide-react";
+import { Trash2, Upload, FileText, Calendar, MapPin } from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import { toast } from "react-toastify";
+import { submitTravelExpense, clearState } from "../../redux/slices/travelExpensesSlice";
+import { fetchUserProfile } from "../../redux/slices/userSlice";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 
@@ -9,41 +13,68 @@ const debounce = (func, wait) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
   };
-  debounced.cancel = () => {
-    clearTimeout(timeout);
-  };
+  debounced.cancel = () => clearTimeout(timeout);
   return debounced;
 };
 
-const expenseCategories = [
-  "Transportation",
-  "Lodging",
-  "Meals",
-  "Conference Fees",
-  "Miscellaneous",
-];
-
 const EmployeeTravelExpenses = () => {
+  const dispatch = useDispatch();
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const { profile, error: userError } = useSelector((state) => state.user);
+  const { loading, error, successMessage } = useSelector((state) => state.travelExpenses);
+
   const [expenses, setExpenses] = useState([
-    { date: "", category: "", purpose: "", amount: "", receipt: null },
+    { date: "", purpose: "", amount: "", receipt: null, hasReceipt: false },
   ]);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [employeeId, setEmployeeId] = useState("");
+  const [travelDate, setTravelDate] = useState("");
+  const [destination, setDestination] = useState("");
+  const [travelPurpose, setTravelPurpose] = useState("");
+  const [department, setDepartment] = useState(profile?.department_name || "");
   const [submissionStatus, setSubmissionStatus] = useState("draft");
-  const [showToast, setShowToast] = useState(false);
+
+  const employeeName = profile ? `${profile.name} (${profile.employee_id})` : "Unknown";
 
   const calculateTotal = debounce(() => {
-    const total = expenses.reduce(
-      (sum, exp) => sum + (parseFloat(exp.amount) || 0),
-      0
-    );
+    const total = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
     setTotalAmount(total);
   }, 300);
 
   useEffect(() => {
+    if (["employee", "hr", "super_admin"].includes(user?.role)) {
+      if (!profile) {
+        dispatch(fetchUserProfile());
+      }
+    }
     calculateTotal();
-    return () => calculateTotal.cancel();
-  }, [expenses]);
+    return () => {
+      calculateTotal.cancel();
+      dispatch(clearState());
+    };
+  }, [dispatch, expenses, profile, user?.role]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      setTimeout(() => dispatch(clearState()), 2000);
+    }
+    if (userError) {
+      toast.error(userError);
+      setTimeout(() => dispatch(clearState()), 2000);
+    }
+    if (successMessage) {
+      setSubmissionStatus(user?.role === "employee" ? "Pending" : "Approved");
+      toast.success(successMessage);
+      setTimeout(() => {
+        dispatch(clearState());
+        setExpenses([{ date: "", purpose: "", amount: "", receipt: null, hasReceipt: false }]);
+        setTravelDate("");
+        setDestination("");
+        setTravelPurpose("");
+        setSubmissionStatus("draft");
+      }, 2000);
+    }
+  }, [error, userError, successMessage, dispatch, user?.role]);
 
   const handleExpenseChange = (index, field, value) => {
     const newExpenses = [...expenses];
@@ -56,14 +87,15 @@ const EmployeeTravelExpenses = () => {
     if (file && file.size <= 5 * 1024 * 1024) {
       const newExpenses = [...expenses];
       newExpenses[index].receipt = file;
+      newExpenses[index].hasReceipt = true;
       setExpenses(newExpenses);
     } else {
-      alert("File size exceeds 5MB limit.");
+      toast.error("File size exceeds 5MB limit.");
     }
   };
 
   const addExpenseRow = () => {
-    setExpenses([...expenses, { date: "", category: "", purpose: "", amount: "", receipt: null }]);
+    setExpenses([...expenses, { date: "", purpose: "", amount: "", receipt: null, hasReceipt: false }]);
   };
 
   const removeExpenseRow = (index) => {
@@ -75,37 +107,34 @@ const EmployeeTravelExpenses = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!employeeId) {
-      alert("Please enter your Employee ID.");
+    if (!profile?.employee_id || !travelDate || !destination || !travelPurpose) {
+      toast.error("Please fill in all required fields.");
       return;
     }
     if (
       expenses.some(
-        (exp) =>
-          !exp.date ||
-          !exp.category ||
-          !exp.purpose ||
-          !exp.amount ||
-          (!exp.receipt && exp.category !== "Miscellaneous")
+        (exp) => !exp.date || !exp.purpose || !exp.amount || (exp.hasReceipt && !exp.receipt)
       )
     ) {
-      alert("Please fill in all required fields and upload receipts for non-miscellaneous expenses.");
+      toast.error("Please fill in all required fields and upload receipts where indicated.");
       return;
     }
 
-    // Simulate API call to submit expenses
-    const submission = {
-      employeeId,
-      expenses,
-      totalAmount,
-      status: "pending",
-      submissionDate: new Date().toISOString(),
-    };
-    console.log("Submitting:", submission); // Replace with actual API call
-    setSubmissionStatus("pending");
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 2000);
+    dispatch(
+      submitTravelExpense({
+        employee_id: profile.employee_id,
+        travel_date: travelDate,
+        destination,
+        travel_purpose: travelPurpose,
+        total_amount: totalAmount,
+        expenses,
+      })
+    );
   };
+
+  if (!isAuthenticated) {
+    return <div>Please log in to submit travel expenses.</div>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -119,77 +148,90 @@ const EmployeeTravelExpenses = () => {
         />
       </div>
       <div className="bg-white rounded-2xl shadow-lg p-6">
-        <h2 className="text-2xl font-semibold text-slate-700 mb-6">
-          Travel Expenses Form
-        </h2>
+        <h2 className="text-2xl font-semibold text-slate-700 mb-6">Travel Expenses Form</h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="border border-slate-300 p-4 rounded-lg shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-md font-semibold text-slate-700 mb-1 block">
-                  Employee ID
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter employee ID"
-                  className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
-                  value={employeeId}
-                  onChange={(e) => setEmployeeId(e.target.value)}
-                  required
-                />
+                <label className="text-md font-semibold text-slate-700 mb-1 block">Employee</label>
+                <div className="flex items-center space-x-2">
+                  <FileText size={20} className="text-teal-600" />
+                  <input
+                    type="text"
+                    value={employeeName}
+                    disabled
+                    className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 cursor-not-allowed"
+                    aria-label="Employee"
+                  />
+                </div>
               </div>
               <div>
-                <label className="text-md font-semibold text-slate-700 mb-1 block">
-                  Travel Date
-                </label>
-                <input
-                  type="date"
-                  className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
-                  required
-                />
+                <label className="text-md font-semibold text-slate-700 mb-1 block">Travel Date</label>
+                <div className="flex items-center space-x-2">
+                  <Calendar size={20} className="text-teal-600" />
+                  <input
+                    type="date"
+                    className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
+                    value={travelDate}
+                    onChange={(e) => setTravelDate(e.target.value)}
+                    required
+                    aria-label="Travel Date"
+                  />
+                </div>
               </div>
               <div>
-                <label className="text-md font-semibold text-slate-700 mb-1 block">
-                  Travel Destination
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter travel destination"
-                  className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
-                />
+                <label className="text-md font-semibold text-slate-700 mb-1 block">Travel Destination</label>
+                <div className="flex items-center space-x-2">
+                  <MapPin size={20} className="text-teal-600" />
+                  <input
+                    type="text"
+                    placeholder="Enter travel destination"
+                    className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
+                    value={destination}
+                    onChange={(e) => setDestination(e.target.value)}
+                    required
+                    aria-label="Travel Destination"
+                  />
+                </div>
               </div>
               <div>
-                <label className="text-md font-semibold text-slate-700 mb-1 block">
-                  Department
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter department"
-                  className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
-                />
+                <label className="text-md font-semibold text-slate-700 mb-1 block">Department</label>
+                <div className="flex items-center space-x-2">
+                  <FileText size={20} className="text-teal-600" />
+                  <input
+                    type="text"
+                    placeholder="Enter department"
+                    className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    aria-label="Department"
+                  />
+                </div>
               </div>
             </div>
             <div className="pt-4">
-              <label className="text-md font-semibold text-slate-700 mb-1 block">
-                Purpose of the Travel
-              </label>
-              <textarea
-                className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition resize"
-                placeholder="Enter travel purpose"
-              />
+              <label className="text-md font-semibold text-slate-700 mb-1 block">Purpose of the Travel</label>
+              <div className="flex items-start space-x-2">
+                <FileText size={20} className="text-teal-600 mt-2" />
+                <textarea
+                  className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition resize"
+                  placeholder="Enter travel purpose"
+                  value={travelPurpose}
+                  onChange={(e) => setTravelPurpose(e.target.value)}
+                  required
+                  aria-label="Purpose of the Travel"
+                />
+              </div>
             </div>
           </div>
 
           <div className="border border-slate-300 p-4 rounded-lg shadow-sm">
-            <label className="text-md font-semibold text-slate-700 mb-1 block">
-              Travel Expenses
-            </label>
+            <label className="text-md font-semibold text-slate-700 mb-1 block">Travel Expenses</label>
             <table className="w-full border mt-2 rounded-lg shadow-sm bg-white">
               <thead className="bg-teal-700 text-white">
                 <tr>
                   <th className="border border-teal-800 p-2 text-sm font-medium">Date</th>
-                  <th className="border border-teal-800 p-2 text-sm font-medium">Category</th>
                   <th className="border border-teal-800 p-2 text-sm font-medium">Purpose</th>
                   <th className="border border-teal-800 p-2 text-sm font-medium">Amount</th>
                   <th className="border border-teal-800 p-2 text-sm font-medium">Receipt</th>
@@ -205,19 +247,8 @@ const EmployeeTravelExpenses = () => {
                         className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
                         value={exp.date}
                         onChange={(e) => handleExpenseChange(index, "date", e.target.value)}
+                        aria-label={`Expense Date ${index + 1}`}
                       />
-                    </td>
-                    <td className="border border-teal-200 p-2">
-                      <select
-                        className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
-                        value={exp.category}
-                        onChange={(e) => handleExpenseChange(index, "category", e.target.value)}
-                      >
-                        <option value="">Select Category</option>
-                        {expenseCategories.map((cat) => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                      </select>
                     </td>
                     <td className="border border-teal-200 p-2">
                       <input
@@ -226,6 +257,7 @@ const EmployeeTravelExpenses = () => {
                         placeholder="Purpose"
                         value={exp.purpose}
                         onChange={(e) => handleExpenseChange(index, "purpose", e.target.value)}
+                        aria-label={`Expense Purpose ${index + 1}`}
                       />
                     </td>
                     <td className="border border-teal-200 p-2">
@@ -237,14 +269,16 @@ const EmployeeTravelExpenses = () => {
                         className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
                         value={exp.amount}
                         onChange={(e) => handleExpenseChange(index, "amount", e.target.value)}
+                        aria-label={`Expense Amount ${index + 1}`}
                       />
                     </td>
                     <td className="border border-teal-200 p-2">
                       <input
                         type="file"
-                        accept="image/*,application/pdf"
+                        accept="image/jpeg,image/png,application/pdf"
                         className="text-sm text-gray-500"
                         onChange={(e) => handleFileChange(index, e.target.files[0])}
+                        aria-label={`Receipt Upload ${index + 1}`}
                       />
                       {exp.receipt && <span className="text-xs text-teal-600">{exp.receipt.name}</span>}
                     </td>
@@ -254,6 +288,7 @@ const EmployeeTravelExpenses = () => {
                           type="button"
                           onClick={() => removeExpenseRow(index)}
                           className="text-slate-500 hover:text-slate-700 transition"
+                          aria-label={`Remove Expense Row ${index + 1}`}
                         >
                           <Trash2 size={18} />
                         </button>
@@ -267,6 +302,7 @@ const EmployeeTravelExpenses = () => {
               type="button"
               className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-lg text-sm shadow-md hover:from-teal-700 hover:to-teal-900 transition"
               onClick={addExpenseRow}
+              aria-label="Add Expense Row"
             >
               Add Row
             </button>
@@ -281,21 +317,16 @@ const EmployeeTravelExpenses = () => {
             </div>
             <button
               type="submit"
-              disabled={submissionStatus !== "draft"}
+              disabled={submissionStatus !== "draft" || loading}
               className={`inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-lg text-sm shadow-md hover:from-teal-700 hover:to-teal-900 transition ${
-                submissionStatus !== "draft" ? "opacity-50 cursor-not-allowed" : ""
+                submissionStatus !== "draft" || loading ? "opacity-50 cursor-not-allowed" : ""
               }`}
+              aria-label="Submit Travel Expenses"
             >
-              Submit for Approval
+              {loading ? "Submitting..." : "Submit for Approval"}
             </button>
           </div>
         </form>
-
-        {showToast && (
-          <div className="fixed bottom-4 right-4 bg-teal-700 text-white px-4 py-2 rounded-lg shadow-lg transition-opacity duration-300">
-            ✅ Your submission has been sent for approval.
-          </div>
-        )}
       </div>
     </div>
   );

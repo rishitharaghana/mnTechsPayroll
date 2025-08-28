@@ -10,7 +10,6 @@ import {
 import { Link } from "react-router-dom";
 import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
-import Button from "../../Components/ui/date/Button";
 
 const Employee = () => {
   const [employees, setEmployees] = useState([
@@ -67,12 +66,9 @@ const Employee = () => {
             { label: "Employees", link: "/admin/employees" },
           ]}
         />
-        {/* Page Meta */}
         <PageMeta title="Employee Management" description="Manage your employees efficiently." />
-        {/* Breadcrumb */}
       </div>
 
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Employees</h1>
@@ -87,7 +83,6 @@ const Employee = () => {
         </Link>
       </div>
 
-      {/* Search */}
       <div className="mb-4">
         <input
           type="text"
@@ -98,7 +93,6 @@ const Employee = () => {
         />
       </div>
 
-      {/* Employee Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filtered.map((emp) => (
           <div

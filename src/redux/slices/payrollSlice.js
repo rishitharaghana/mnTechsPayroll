@@ -138,7 +138,7 @@ const payrollSlice = createSlice({
         state.loading = false;
         state.payrollList = action.payload.data || [];
         state.successMessage = action.payload.message || "Payroll fetched successfully";
-        console.log("fetchPayroll fulfilled, payrollList:", state.payrollList); // Debug log
+        console.log("fetchPayroll fulfilled, payrollList:", state.payrollList); 
       })
       .addCase(fetchPayroll.rejected, (state, action) => {
         state.loading = false;
@@ -154,7 +154,7 @@ const payrollSlice = createSlice({
         state.loading = false;
         state.payrollList = [...state.payrollList, action.payload.data];
         state.successMessage = action.payload.message || "Payroll created successfully";
-        console.log("createPayroll fulfilled, payrollList:", state.payrollList); // Debug log
+        console.log("createPayroll fulfilled, payrollList:", state.payrollList);
       })
       .addCase(createPayroll.rejected, (state, action) => {
         state.loading = false;
@@ -170,7 +170,7 @@ const payrollSlice = createSlice({
         state.loading = false;
         state.payrollList = action.payload.data || state.payrollList;
         state.successMessage = action.payload.message || "Payroll generated successfully";
-        console.log("generatePayroll fulfilled, payrollList:", state.payrollList); // Debug log
+        console.log("generatePayroll fulfilled, payrollList:", state.payrollList); 
       })
       .addCase(generatePayroll.rejected, (state, action) => {
         state.loading = false;
