@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Users, UserCog } from "lucide-react";
+import { User, Users, UserCog, Briefcase } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { createEmployee, clearState } from "../../redux/slices/employeeSlice";
 
@@ -31,61 +31,43 @@ const AssignEmployee = () => {
   const [step, setStep] = useState(1);
 
   const departments = [
-    "IT",
-    "Graphic Designing",
-    "Digital Marketing",
-    "Telecalling Operations",
-    "Marketing",
+    "Administration",
     "Business Management",
+    "Digital Marketing",
+    "Graphic Designing",
+    "HR",
+    "IT",
+    "Marketing",
+    "Telecalling Operations",
   ];
 
-  const deptHeadDesignations = {
-    IT: "Technical Lead",
-    "Graphic Designing": "Design Manager",
-    "Digital Marketing": "Digital Marketing Manager",
-    "Telecalling Operations": "Telemarketing Manager",
-    Marketing: "Marketing Manager",
-    "Business Management": "General Manager",
+  const designations = {
+    Administration: ["Facility Manager", "Office Administrator"],
+    "Business Management": ["General Manager"],
+    "Digital Marketing": ["Digital Marketing Manager"],
+    "Graphic Designing": ["Design Manager"],
+    HR: ["HR Manager"],
+    IT: ["Technical Lead"], // Assuming Technical Lead as a managerial role
+    Marketing: ["Marketing Manager"],
+    "Telecalling Operations": ["Telemarketing Manager"],
   };
 
   const employeeDesignations = {
-    IT: [
-      "Senior Software Engineer",
-      "Associate Software Engineer",
-      "Front End Developer",
-      "Full Stack Developer",
-      "Intern",
-    ],
-    "Graphic Designing": [
-      "UI UX Designer",
-      "Senior Graphic Designer",
-      "Junior Graphic Designer",
-      "Intern",
-    ],
-    "Digital Marketing": [
-      "Senior Digital Marketer",
-      "Junior Digital Marketer",
-      "Intern",
-    ],
-    "Telecalling Operations": [
-      "Senior Tele Associate",
-      "Junior Tele Associate",
-      "Intern",
-    ],
+    Administration: ["Admin Assistant", "Front Desk Executive", "Operations Executive"],
+    "Business Management": ["Intern", "Junior BDE", "Junior BDM", "Senior BDE", "Senior BDM"],
+    "Digital Marketing": ["Intern", "Junior Digital Marketer", "Senior Digital Marketer"],
+    "Graphic Designing": ["Intern", "Junior Graphic Designer", "Senior Graphic Designer", "UI UX Designer"],
+    HR: ["HR Executive", "Payroll Executive", "Recruitment Specialist", "Training & Development Officer"],
+    IT: ["Senior Software Engineer", "Associate Software Engineer", "Front End Developer", "Full Stack Developer", "Intern"],
     Marketing: ["Marketing Executive"],
-    "Business Management": [
-      "Senior BDM",
-      "Junior BDM",
-      "Senior BDE",
-      "Junior BDE",
-      "Intern",
-    ],
+    "Telecalling Operations": ["Senior Tele Associate", "Junior Tele Associate", "Intern"],
   };
 
   const employmentTypes = ["Full-time", "Part-time", "Internship", "Contract"];
   const roleTypes = [
     { name: "HR", icon: <UserCog className="w-6 h-6" />, description: "Manage HR-related tasks" },
     { name: "Department Head", icon: <Users className="w-6 h-6" />, description: "Lead a department" },
+    { name: "Manager", icon: <Briefcase className="w-6 h-6" />, description: "Manage a team" },
     { name: "Employee", icon: <User className="w-6 h-6" />, description: "Standard employee role" },
   ];
 
@@ -146,13 +128,13 @@ const AssignEmployee = () => {
     }
     if (step === 3) {
       if (!employee.joinDate) newErrors.joinDate = "Join Date is required";
-      if (["Department Head", "Employee"].includes(employee.roleType) && !employee.department) {
+      if (["Department Head", "Employee", "Manager"].includes(employee.roleType) && !employee.department) {
         newErrors.department = "Department is required";
       }
-      if (employee.roleType === "Employee" && !employee.position) {
+      if (["Employee", "Manager"].includes(employee.roleType) && !employee.position) {
         newErrors.position = "Position is required";
       }
-      if (employee.roleType === "Employee" && !employee.employmentType) {
+      if (["Employee", "Manager"].includes(employee.roleType) && !employee.employmentType) {
         newErrors.employmentType = "Employment Type is required";
       }
       if (employee.annualSalary && isNaN(employee.annualSalary)) {
@@ -179,16 +161,8 @@ const AssignEmployee = () => {
       const roleMap = {
         HR: "hr",
         "Department Head": "dept_head",
+        Manager: "manager",
         Employee: "employee",
-      };
-
-      const departmentMap = {
-        IT: "IT",
-        "Graphic Designing": "Graphic Designing",
-        "Digital Marketing": "Digital Marketing",
-        "Telecalling Operations": "Telecalling Operations",
-        Marketing: "Marketing",
-        "Business Management": "Business Management",
       };
 
       const employeeData = {
@@ -202,10 +176,17 @@ const AssignEmployee = () => {
       };
 
       if (employee.roleType === "Department Head") {
-        employeeData.department_name = departmentMap[employee.department] || employee.department;
-        employeeData.designation_name = deptHeadDesignations[employee.department];
+        employeeData.department_name = employee.department;
+        employeeData.designation_name = employee.position;
+      } else if (employee.roleType === "Manager") {
+        employeeData.department_name = employee.department;
+        employeeData.designation_name = employee.position;
+        employeeData.employment_type = employee.employmentType;
+        employeeData.basic_salary = employee.annualSalary ? parseFloat(employee.annualSalary) / 12 : 0;
+        employeeData.allowances = employee.allowances ? parseFloat(employee.allowances) : 0;
+        employeeData.join_date = employee.joinDate;
       } else if (employee.roleType === "Employee") {
-        employeeData.department_name = departmentMap[employee.department] || employee.department;
+        employeeData.department_name = employee.department;
         employeeData.designation_name = employee.position;
         employeeData.employment_type = employee.employmentType;
         employeeData.basic_salary = employee.annualSalary ? parseFloat(employee.annualSalary) / 12 : 0;
@@ -317,7 +298,7 @@ const AssignEmployee = () => {
               <label className="block text-sm font-medium text-gray-900 mb-4">
                 Select Role Type <span className="text-red-600 font-bold">*</span>
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {roleTypes.map((role) => (
                   <button
                     key={role.name}
@@ -437,7 +418,7 @@ const AssignEmployee = () => {
                       <p className="mt-1 text-sm text-red-600 font-medium">{errors.joinDate}</p>
                     )}
                   </div>
-                  {employee.roleType !== "HR" && (
+                  {["Department Head", "Manager", "Employee"].includes(employee.roleType) && (
                     <div className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
                         Department <span className="text-red-600 font-bold">*</span>
@@ -463,18 +444,30 @@ const AssignEmployee = () => {
                       )}
                     </div>
                   )}
-                  {employee.roleType === "Department Head" && employee.department && (
+                  {["Department Head", "Manager"].includes(employee.roleType) && employee.department && (
                     <div className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
                         Designation <span className="text-red-600 font-bold">*</span>
                       </label>
-                      <input
-                        type="text"
-                        value={deptHeadDesignations[employee.department] || ""}
-                        readOnly
-                        className="w-full px-4 py-3 border-0 border-b-2 border-gray-200 bg-gray-50 text-gray-900 z-10"
-                        aria-label="Department Head Designation"
-                      />
+                      <select
+                        value={employee.position}
+                        onChange={(e) => handleInput("position", e.target.value)}
+                        className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
+                          errors.position ? "border-red-500 animate-pulse" : ""
+                        }`}
+                        aria-label="Select designation"
+                        required
+                      >
+                        <option value="">Select Designation</option>
+                        {designations[employee.department]?.map((pos) => (
+                          <option key={pos} value={pos}>
+                            {pos}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.position && (
+                        <p className="mt-1 text-sm text-red-600 font-medium">{errors.position}</p>
+                      )}
                     </div>
                   )}
                   {employee.roleType === "Employee" && employee.department && (
@@ -503,7 +496,7 @@ const AssignEmployee = () => {
                       )}
                     </div>
                   )}
-                  {employee.roleType === "Employee" && (
+                  {["Employee", "Manager"].includes(employee.roleType) && (
                     <>
                       <div className="relative group z-10">
                         <label className="block text-sm font-medium text-gray-900 mb-2">

@@ -245,7 +245,6 @@ const ViewGoals = () => {
         </div>
       </div>
 
-      {/* Learning & Growth */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-6 transition-all duration-300 hover:shadow-xl">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Learning & Growth</h2>
         <div className="space-y-4">
