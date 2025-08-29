@@ -8,7 +8,7 @@ import {
   Calendar,
   TrendingUp,
   CreditCard,
-  PersonStanding,         
+  PersonStanding,
   LogOut,
   CalendarClock,
   IdCardIcon,
@@ -32,36 +32,36 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Dashboard",
       icon: TrendingUp,
       path: "/admin/dashboard",
-      allowedRoles: ["super_admin", "hr", "dept_head", 'manager' ]
+      allowedRoles: ["super_admin", "hr", "dept_head", "manager"],
     },
     {
       id: "dashboard",
       label: "Dashboard",
       icon: TrendingUp,
       path: "/emp-dashboard",
-      allowedRoles: ["employee", ],
+      allowedRoles: ["employee"],
     },
     {
       id: "employees",
       label: "Employees",
       icon: Users,
-      allowedRoles: ["super_admin", "hr", "dept_head", 'manager'],
+      allowedRoles: ["super_admin", "hr", "dept_head", "manager"],
       children: [
         {
           id: "view-employees",
           label: "View Employees",
           path: "/admin/employees",
-          allowedRoles: ["super_admin", "hr", "dept_head", 'manager'],
+          allowedRoles: ["super_admin", "hr", "dept_head", "manager"],
         },
         {
           id: "assign-employee",
           label: "Assign Employee",
           path: "/admin/assign-employee",
-          allowedRoles: ["super_admin", ],
+          allowedRoles: ["super_admin"],
         },
       ],
     },
-     {
+    {
       id: "employees",
       label: "Employee",
       icon: Users,
@@ -73,7 +73,6 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/employee/employee-details",
           allowedRoles: ["employee"],
         },
-       
       ],
     },
     {
@@ -81,13 +80,13 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Attendance",
       icon: Clock,
       path: "/admin/attendance",
-      allowedRoles: ["super_admin", "hr", "dept_head", "employee", 'manager'],
+      allowedRoles: ["super_admin", "hr", "dept_head", "employee", "manager"],
       children: [
         {
           id: "attendance",
           label: "Apply Attendance",
           path: "/employee/employee-attendance",
-          allowedRoles: ["employee", 'dept_head', 'manager'],
+          allowedRoles: ["employee", "dept_head", "manager"],
         },
       ],
     },
@@ -96,7 +95,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Leave Management",
       icon: CalendarClock,
       path: "/admin/leave-tracker",
-      allowedRoles: ["super_admin", "hr", "dept_head", "employee", 'manager'],
+      allowedRoles: ["super_admin", "hr", "dept_head", "employee", "manager"],
       children: [
         {
           id: "leave-dashboard",
@@ -110,7 +109,6 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/employee/leave-application",
           allowedRoles: ["employee"],
         },
-        
       ],
     },
     {
@@ -144,7 +142,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Payslips",
       icon: FileText,
       path: "/admin/payslip",
-      allowedRoles: ["super_admin", "hr", ],
+      allowedRoles: ["super_admin", "hr"],
     },
     {
       id: "payslips",
@@ -158,19 +156,19 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Calendar",
       icon: Calendar,
       path: "/admin/calendar",
-      allowedRoles: ["super_admin", "hr", "dept_head", 'manager',"employee"],
+      allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
     },
     {
       id: "performance",
       label: "Performance",
       icon: TrendingUp,
-      allowedRoles: ["super_admin", "hr", "dept_head",'manager', "employee"],
+      allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
       children: [
         {
           id: "view-performance",
           label: "View Performance",
           path: "/admin/performance",
-          allowedRoles: ["super_admin", "hr", "dept_head",'manager', "employee"],
+          allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
         },
         {
           id: "view-performance",
@@ -182,7 +180,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           id: "add-performance",
           label: "Add Employee Review",
           path: "/admin/add-performance",
-          allowedRoles: ["super_admin", "hr", 'manager'],
+          allowedRoles: ["super_admin", "hr", "manager"],
         },
       ],
     },
@@ -190,13 +188,13 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "time-tracking",
       label: "Time Tracking",
       icon: RouteOff,
-      allowedRoles: ["super_admin", "hr", "dept_head", 'manager',"employee"],
+      allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
       children: [
         {
           id: "time-tracking-admin",
           label: "Time Tracking",
           path: "/admin/time-tracking",
-          allowedRoles: ["super_admin", "hr", 'manager', "dept_head"],
+          allowedRoles: ["super_admin", "hr", "manager", "dept_head"],
         },
         {
           id: "time-tracking-employee",
@@ -204,7 +202,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/employee/emp-timetracking",
           allowedRoles: ["employee"],
         },
-        ]
+      ],
     },
     {
       id: "visitingcards",
@@ -218,27 +216,39 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "ID Card",
       icon: IdCardIcon,
       path: "/idcard",
-      allowedRoles: ["super_admin", "hr", 'manager', "dept_head"],
+      allowedRoles: ["super_admin", "hr", "manager", "dept_head"],
     },
     {
       id: "travelexpenses",
       label: "Travel Expenses",
       icon: Waypoints,
       path: "/employee/travel-expenses",
-      allowedRoles: [ "dept_head", "employee"],
+      allowedRoles: ["dept_head", "employee"],
     },
-     {
+    {
       id: "travelexpenses",
       label: "Travel Expenses",
       icon: Waypoints,
       path: "/admin/travel-expense",
-      allowedRoles: ["super_admin", "hr",],
+      allowedRoles: ["super_admin", "hr"],
     },
   ];
 
   const profileItems = [
-    { id: "profile", label: "Profile", icon: PersonStanding, path: "/profile" },
-    { id: "logout", label: "Logout", icon: LogOut, path: "/login" },
+    {
+      id: "profile",
+      label: "Profile",
+      icon: PersonStanding,
+      path: "/profile",
+      allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
+    },
+    {
+      id: "logout",
+      label: "Logout",
+      icon: LogOut,
+      path: "/login",
+      allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
+    },
   ];
 
   const filteredMenuItems = menuItems
@@ -252,6 +262,10 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       }
       return menu;
     });
+
+  const filteredProfileItems = profileItems.filter((item) =>
+    item.allowedRoles.includes(user?.role)
+  );
 
   return (
     <>
@@ -352,10 +366,8 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
               </NavLink>
             );
           })}
-        </nav>
-
-        <div className="p-4 border-t border-gray-200">
-          {profileItems.map((item) => {
+          <div className="p-4 border-t-2 border-slate-700">
+          {filteredProfileItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
@@ -383,6 +395,9 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
             );
           })}
         </div>
+        </nav>
+
+        
       </aside>
 
       {isMobileMenuOpen && (
