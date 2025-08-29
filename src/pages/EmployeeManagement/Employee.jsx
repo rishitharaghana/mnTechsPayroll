@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Edit,
   Trash2,
@@ -8,54 +8,46 @@ import {
   UserPlus,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
+import { fetchEmployees, clearState } from "../../redux/slices/employeeSlice";
 
 const Employee = () => {
-  const [employees, setEmployees] = useState([
-    {
-      id: "EMP001",
-      name: "John Smith",
-      joinDate: "2023-02-15",
-      position: "Software Engineer",
-      email: "john.smith@example.com",
-      phone: "9876543210",
-      department: "Engineering",
-      type: "Full-time",
-      salary: 75000,
-      image: "https://placehold.co/100x100?text=John&bg=4B5EAA",
-    },
-    {
-      id: "EMP002",
-      name: "Jane Doe",
-      joinDate: "2022-11-10",
-      position: "UI/UX Designer",
-      email: "jane.doe@example.com",
-      phone: "9876501234",
-      department: "Design",
-      type: "Part-time",
-      salary: 50000,
-      image: "https://placehold.co/100x100?text=Jane&bg=FF6F61",
-    },
-    {
-      id: "EMP003",
-      name: "Michael Brown",
-      joinDate: "2023-06-01",
-      position: "Data Analyst",
-      email: "michael.brown@example.com",
-      phone: "9876512345",
-      department: "Analytics",
-      type: "Full-time",
-      salary: 65000,
-      image: "https://placehold.co/100x100?text=Michael&bg=6B7280",
-    },
-  ]);
-
+  const dispatch = useDispatch();
+  const { employees, loading, error } = useSelector((state) => state.employee);
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    dispatch(fetchEmployees());
+    return () => {
+      dispatch(clearState());
+    };
+  }, [dispatch]);
 
   const filtered = employees.filter((emp) =>
     emp.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  const getSalary = (emp) => {
+    if (emp.role === "employee" || emp.role === "manager") {
+      // Assuming basic_salary is monthly, annualize it and add allowances
+      return (emp.basic_salary * 12) + (emp.allowances || 0);
+    }
+    return null; // Salary not displayed for dept_head or hr
+  };
+
+  const getImageUrl = (emp) => {
+    // Generate placeholder image based on name and role
+    const bgColors = {
+      dept_head: "4B5EAA",
+      manager: "FF6F61",
+      employee: "6B7280",
+    };
+    return `https://placehold.co/100x100?text=${encodeURIComponent(
+      emp.name.split(" ")[0]
+    )}&bg=${bgColors[emp.role] || "6B7280"}`;
+  };
 
   return (
     <div className="p-6">
@@ -93,15 +85,23 @@ const Employee = () => {
         />
       </div>
 
+      {loading && (
+        <div className="text-center text-gray-600">Loading employees...</div>
+      )}
+      {error && <div className="text-center text-red-600">{error}</div>}
+      {!loading && !error && filtered.length === 0 && (
+        <div className="text-center text-gray-600">No employees found.</div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filtered.map((emp) => (
           <div
-            key={emp.id}
+            key={`${emp.role}-${emp.id}`}
             className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:shadow-xl hover:-translate-y-1 transition"
           >
             <div className="flex flex-col items-center mb-4">
               <img
-                src={emp.image}
+                src={getImageUrl(emp)}
                 alt={emp.name}
                 className="w-40 h-40 rounded-full border-4 border-white shadow-md -mt-4"
               />
@@ -110,37 +110,53 @@ const Employee = () => {
             <div className="flex justify-between items-center mb-2">
               <h3 className="font-bold text-lg text-gray-900">{emp.name}</h3>
               <div className="flex space-x-2">
-                <button className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg">
+                <Link
+                  to={`/admin/employees/edit/${emp.role}/${emp.id}`}
+                  className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                >
                   <Edit size={16} />
-                </button>
+                </Link>
                 <button className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg">
                   <Trash2 size={16} />
                 </button>
               </div>
             </div>
 
-            <p className="text-indigo-600 font-medium">{emp.id}</p>
+            <p className="text-indigo-600 font-medium">{emp.employee_id}</p>
 
             <div className="space-y-2 text-gray-600 text-sm mt-2">
               <div className="flex items-center gap-2">
                 <Mail size={14} /> {emp.email}
               </div>
+              <div className="flex items-center gap-2">
+                <Phone size={14} /> {emp.mobile}
+              </div>
+              {(emp.role === "employee" || emp.role === "manager") && (
+                <div className="flex items-center gap-2">
+                  <Calendar size={14} /> {emp.join_date}
+                </div>
+              )}
             </div>
 
             <div className="pt-3 border-t border-gray-200 mt-3">
               <div className="flex justify-between mb-1">
-                <span className="text-sm text-gray-600">{emp.department}</span>
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    emp.type === "Full-time"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-blue-100 text-blue-800"
-                  }`}
-                >
-                  {emp.type}
-                </span>
+                <span className="text-sm text-gray-600">{emp.department_name}</span>
+                {(emp.role === "employee" || emp.role === "manager") && (
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      emp.employment_type === "Full-time"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    {emp.employment_type}
+                  </span>
+                )}
               </div>
-              <p className="font-medium text-gray-900">{emp.position}</p>
+              <p className="font-medium text-gray-900">{emp.designation_name}</p>
+              {(emp.role === "employee" || emp.role === "manager") && getSalary(emp) && (
+                <p className="text-sm text-gray-600">Salary: ${getSalary(emp).toLocaleString()}</p>
+              )}
             </div>
           </div>
         ))}
