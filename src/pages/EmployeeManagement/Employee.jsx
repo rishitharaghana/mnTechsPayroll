@@ -31,14 +31,12 @@ const Employee = () => {
 
   const getSalary = (emp) => {
     if (emp.role === "employee" || emp.role === "manager") {
-      // Assuming basic_salary is monthly, annualize it and add allowances
       return (emp.basic_salary * 12) + (emp.allowances || 0);
     }
-    return null; // Salary not displayed for dept_head or hr
+    return null; 
   };
 
   const getImageUrl = (emp) => {
-    // Generate placeholder image based on name and role
     const bgColors = {
       dept_head: "4B5EAA",
       manager: "FF6F61",

@@ -57,10 +57,10 @@ const App = () => {
           <Route path="/reset-password" element={<ResetPassword />} /> */}
           <Route path="/change-password" element={<ChangePassword />} />
 
-          <Route element={<ProtectedRoute allowedRoles={['super_admin', 'hr', 'dept_head', 'employee']} />}>
+          <Route element={<ProtectedRoute allowedRoles={['super_admin', 'hr', 'dept_head', 'manager','employee']} />}>
             <Route element={<AppLayout />}>
               <Route path="/" element={<Home />} />
-              <Route element={<ProtectedRoute allowedRoles={['super_admin', 'hr', 'dept_head']} />}>
+              <Route element={<ProtectedRoute allowedRoles={['super_admin', 'hr', 'manager', 'dept_head']} />}>
                 <Route path="/admin/dashboard" element={<Dashboard />} />
                 <Route path="/admin/employees" element={<Employee />} />
                 <Route path="/admin/assign-employee" element={<AssignEmployee />} />

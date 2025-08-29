@@ -32,7 +32,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Dashboard",
       icon: TrendingUp,
       path: "/admin/dashboard",
-      allowedRoles: ["super_admin", "hr", "dept_head", ]
+      allowedRoles: ["super_admin", "hr", "dept_head", 'manager' ]
     },
     {
       id: "dashboard",
@@ -45,13 +45,13 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "employees",
       label: "Employees",
       icon: Users,
-      allowedRoles: ["super_admin", "hr", "dept_head"],
+      allowedRoles: ["super_admin", "hr", "dept_head", 'manager'],
       children: [
         {
           id: "view-employees",
           label: "View Employees",
           path: "/admin/employees",
-          allowedRoles: ["super_admin", "hr", "dept_head"],
+          allowedRoles: ["super_admin", "hr", "dept_head", 'manager'],
         },
         {
           id: "assign-employee",
@@ -81,7 +81,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Attendance",
       icon: Clock,
       path: "/admin/attendance",
-      allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
+      allowedRoles: ["super_admin", "hr", "dept_head", "employee", 'manager'],
       children: [
         {
           id: "attendance",
@@ -96,7 +96,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Leave Management",
       icon: CalendarClock,
       path: "/admin/leave-tracker",
-      allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
+      allowedRoles: ["super_admin", "hr", "dept_head", "employee", 'manager'],
       children: [
         {
           id: "leave-dashboard",
@@ -158,19 +158,19 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Calendar",
       icon: Calendar,
       path: "/admin/calendar",
-      allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
+      allowedRoles: ["super_admin", "hr", "dept_head", 'manager',"employee"],
     },
     {
       id: "performance",
       label: "Performance",
       icon: TrendingUp,
-      allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
+      allowedRoles: ["super_admin", "hr", "dept_head",'manager', "employee"],
       children: [
         {
           id: "view-performance",
           label: "View Performance",
           path: "/admin/performance",
-          allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
+          allowedRoles: ["super_admin", "hr", "dept_head",'manager', "employee"],
         },
         {
           id: "view-performance",
@@ -182,7 +182,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           id: "add-performance",
           label: "Add Employee Review",
           path: "/admin/add-performance",
-          allowedRoles: ["super_admin", "hr"],
+          allowedRoles: ["super_admin", "hr", 'manager'],
         },
       ],
     },
@@ -190,13 +190,13 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "time-tracking",
       label: "Time Tracking",
       icon: RouteOff,
-      allowedRoles: ["super_admin", "hr", "dept_head", "employee"],
+      allowedRoles: ["super_admin", "hr", "dept_head", 'manager',"employee"],
       children: [
         {
           id: "time-tracking-admin",
           label: "Time Tracking",
           path: "/admin/time-tracking",
-          allowedRoles: ["super_admin", "hr", "dept_head"],
+          allowedRoles: ["super_admin", "hr", 'manager', "dept_head"],
         },
         {
           id: "time-tracking-employee",
@@ -218,7 +218,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "ID Card",
       icon: IdCardIcon,
       path: "/idcard",
-      allowedRoles: ["super_admin", "hr", "dept_head"],
+      allowedRoles: ["super_admin", "hr", 'manager', "dept_head"],
     },
     {
       id: "travelexpenses",

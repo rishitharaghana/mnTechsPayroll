@@ -20,7 +20,9 @@ const Login = () => {
       const backendRole =
         uiRole === 'Admin' ? 'super_admin' :
         uiRole === 'HR' ? 'hr' :
-        uiRole === 'Department Head' ? 'dept_head' : 'employee';
+        uiRole === 'Department Head' ? 'dept_head' :
+        uiRole === 'Manager' ? 'manager' : // Added Manager mapping
+        'employee';
 
       const result = await dispatch(
         login({ mobileNumber, password, role: backendRole })
@@ -52,6 +54,7 @@ const Login = () => {
             case 'hr':
             case 'super_admin':
             case 'dept_head':
+            case 'manager': // Added Manager to admin dashboard navigation
               navigate('/admin/dashboard', { replace: true });
               break;
             default:
@@ -97,6 +100,7 @@ const Login = () => {
                 <option value="Admin">Admin</option>
                 <option value="HR">HR</option>
                 <option value="Department Head">Department Head</option>
+                <option value="Manager">Manager</option> {/* Added Manager option */}
                 <option value="employee">Employee</option>
               </select>
             </div>
