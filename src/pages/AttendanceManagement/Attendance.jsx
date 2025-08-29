@@ -5,11 +5,16 @@ import DatePicker from '../../Components/ui/date/DatePicker';
 import PageMeta from '../../Components/common/PageMeta';
 import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 import { fetchAllAttendance, updateAttendanceStatus, clearState } from '../../redux/slices/attendanceSlice';
+import { format, parse, isValid } from 'date-fns';
 
 const Attendance = () => {
   const dispatch = useDispatch();
   const { submissions, loading, error, successMessage } = useSelector((state) => state.attendance);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); 
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const date = new Date();
+    const istDate = new Date(date.getTime() + 5.5 * 60 * 60 * 1000); // IST offset
+    return `${istDate.getFullYear()}-${String(istDate.getMonth() + 1).padStart(2, '0')}-${String(istDate.getDate()).padStart(2, '0')}`;
+  });
 
   const userToken = localStorage.getItem('userToken');
   const user = userToken ? JSON.parse(userToken) : null;
@@ -26,9 +31,9 @@ const Attendance = () => {
 
   useEffect(() => {
     console.log('Submissions:', submissions);
-    console.log('Selected Date:', selectedDate);
+    console.log('Selected Date:', selectedDate, typeof selectedDate);
     console.log('User Role:', userRole);
-    console.log('Submission Recipients:', submissions.map(s => s.recipient));
+    console.log('Submission Recipients:', submissions.map((s) => s.recipient));
     if (successMessage) {
       alert(successMessage);
       dispatch(clearState());
@@ -57,13 +62,29 @@ const Attendance = () => {
     }[location] || 'bg-slate-100 text-slate-800');
 
   const normalizeDate = (isoDate) => {
-    return new Date(isoDate).toISOString().split('T')[0];
+    try {
+      const date = parse(isoDate, 'yyyy-MM-dd', new Date());
+      if (!isValid(date)) {
+        console.error('Invalid date:', isoDate);
+        return '';
+      }
+      const istDate = new Date(date.getTime() + 5.5 * 60 * 60 * 1000);
+      return `${istDate.getFullYear()}-${String(istDate.getMonth() + 1).padStart(2, '0')}-${String(istDate.getDate()).padStart(2, '0')}`;
+    } catch (error) {
+      console.error('Invalid date:', isoDate);
+      return '';
+    }
   };
 
   const filteredSubmissions = submissions.filter(
-    (submission) =>
-      normalizeDate(submission.date) === selectedDate &&
-      (userRole === 'dept_head' ? submission.recipient === 'hr' : submission.recipient === userRole)
+    (submission) => {
+      const normalizedSubmissionDate = normalizeDate(submission.date);
+      return (
+        normalizedSubmissionDate === selectedDate &&
+        normalizedSubmissionDate !== '' &&
+        (userRole === 'dept_head' ? submission.recipient === 'hr' : submission.recipient === userRole)
+      );
+    }
   );
 
   console.log('Filtered Submissions:', filteredSubmissions);
@@ -131,7 +152,7 @@ const Attendance = () => {
           <div className="w-[35%] flex items-center space-x-4">
             <DatePicker
               name="attendanceDate"
-              singleDate
+              // title="Select Date (IST)"
               value={selectedDate}
               onChange={(date) => setSelectedDate(date)}
               className="w-full max-w-xs"
@@ -166,7 +187,7 @@ const Attendance = () => {
           <h2 className="text-xl font-bold text-slate-900">Attendance Records</h2>
           <div className="flex items-center space-x-4">
             <span className="text-sm text-slate-600">
-              Date: {new Date(selectedDate).toLocaleDateString()}
+              Date: {format(parse(selectedDate, 'yyyy-MM-dd', new Date()), 'dd/MM/yyyy')}
             </span>
             <button className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105">
               Export Report
@@ -210,7 +231,7 @@ const Attendance = () => {
                     colSpan={['super_admin', 'hr'].includes(userRole) ? 7 : 6}
                     className="px-4 py-3 text-sm text-slate-500 text-center"
                   >
-                    No attendance records found for {new Date(selectedDate).toLocaleDateString()}.
+                    No attendance records found for {format(parse(selectedDate, 'yyyy-MM-dd', new Date()), 'dd/MM/yyyy')}.
                   </td>
                 </tr>
               ) : (
@@ -220,7 +241,7 @@ const Attendance = () => {
                       <div className="text-sm font-medium text-slate-900">{employee_name}</div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm text-slate-900">{new Date(date).toLocaleDateString()}</span>
+                      <span className="text-sm text-slate-900">{format(parse(date, 'yyyy-MM-dd', new Date()), 'dd/MM/yyyy')}</span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center space-x-2">
@@ -280,7 +301,7 @@ const Attendance = () => {
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
             const daySubmissions = submissions.filter(
               (s) =>
-                new Date(s.date).getDay() === (index + 1) % 7 &&
+                new Date(new Date(s.date).getTime() + 5.5 * 60 * 60 * 1000).getDay() === (index + 1) % 7 &&
                 (userRole === 'dept_head' ? s.recipient === 'hr' : s.recipient === userRole)
             );
             const presentCount = daySubmissions.filter((s) => s.status === 'Approved').length;
