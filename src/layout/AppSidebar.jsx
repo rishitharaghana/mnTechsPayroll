@@ -87,7 +87,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           id: "attendance",
           label: "Apply Attendance",
           path: "/employee/employee-attendance",
-          allowedRoles: ["employee"],
+          allowedRoles: ["employee", 'dept_head', 'manager'],
         },
       ],
     },

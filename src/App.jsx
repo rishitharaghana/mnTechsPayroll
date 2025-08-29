@@ -85,7 +85,7 @@ const App = () => {
 
               <Route element={<ProtectedRoute allowedRoles={['employee']} />}>
                 <Route path="/emp-dashboard" element={<EmployeeDashboard />} />
-                <Route path="/employee/employee-attendance" element={<EmployeeAttendance />} />
+
                 <Route path="/employee-payslip" element={<EmployeePayslip />} />
                 <Route path="/employee/viewgoals" element={<ViewGoals />} />
                 <Route path="/employee/leave-application" element={<LeaveApplication />} />
@@ -94,7 +94,9 @@ const App = () => {
                 <Route path="/employee/emp-timetracking" element={<EmployeeTimeTracking />} />
                 <Route path="/employee/travel-expenses" element={<EmployeeTravelExpenses />} />
               </Route>
-
+<Route element={<ProtectedRoute allowedRoles={['employee', 'manager', 'dept_head']} />}>
+  <Route path="/employee/employee-attendance" element={<EmployeeAttendance />} />
+</Route>
               <Route path="/userprofile" element={<UserProfile />} />
               <Route path="/profile" element={<EditProfile />} />
               <Route path="/idcard" element={<IdCard />} />
