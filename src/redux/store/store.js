@@ -6,7 +6,6 @@ import payrollReducer from '../slices/payrollSlice'
 import payslipReducer from '../slices/payslipSlice';
 import userReducer from '../slices/userSlice';
 import attendanceReducer from '../slices/attendanceSlice';
-import employeeDetailsReducer from '../slices/employeeDetailsSlice';
 import travelExpensesReducer from '../slices/travelExpensesSlice';
 import performanceReducer from '../slices/performanceSlice';
 
@@ -19,7 +18,6 @@ const store = configureStore({
     payslip: payslipReducer,
     user: userReducer,
     attendance: attendanceReducer,
-    employeeDetails: employeeDetailsReducer,
     travelExpenses: travelExpensesReducer,
     performance: performanceReducer,
   },

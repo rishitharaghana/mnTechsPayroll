@@ -18,7 +18,7 @@ const ViewIdCard = () => {
     },
     {
       id: 2,
-      employee: "JANE DOE SMITH",
+      employee: "JANE DOE SMITH", 
       empId: "MO-EMP-009",
       designation: "UI/UX Designer",
       bloodGroup: "A+ve",

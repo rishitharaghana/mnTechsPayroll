@@ -1,22 +1,19 @@
 import { useSelector, useDispatch } from 'react-redux';
+import { useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Calendar } from 'lucide-react';
 import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
-import PageMeta from '../../Components/common/PageMeta';
+import PageMeta from '../../Components/common/PageMeta'
 import {
-  updateField,
-  setErrors,
-  setCurrentStep,
-  setPreviewOpen,
-  createPersonalDetails,
+  createEmployeePersonalDetails,
   createEducationDetails,
   createDocuments,
   createBankDetails,
-  fetchPreviewData,
-  downloadEmployeeDetailsPDF,
-  resetForm,
-} from '../../redux/slices/employeeDetailsSlice';
+  getCurrentUserProfile,
+  clearState,
+} from '../../redux/slices/employeeSlice';
+import { useState } from 'react';
 
 const FileUpload = ({ name, onChange, accept, label, preview, isPdf }) => (
   <div className="flex flex-col">
@@ -77,27 +74,118 @@ const steps = [
 
 const EmployeeDetails = () => {
   const dispatch = useDispatch();
-  const { currentStep, isPreviewOpen, formData, errors, employeeId, previewData, loading, successMessage } = useSelector(
-    (state) => state.employeeDetails
-  );
+  const { loading, error, successMessage, employeeId, employees } = useSelector((state) => state.employee);
+  const [currentStep, setCurrentStep] = useState(0); 
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    fatherName: '',
+    motherName: '',
+    phone: '',
+    email: '',
+    gender: '',
+    image: null,
+    presentAddress: '',
+    previousAddress: '',
+    positionType: '',
+    employerIdName: '',
+    positionTitle: '',
+    employmentType: '',
+    joiningDate: '',
+    contractEndDate: '',
+    tenthClassName: '',
+    tenthClassMarks: '',
+    intermediateName: '',
+    intermediateMarks: '',
+    graduationName: '',
+    graduationMarks: '',
+    postgraduationName: '',
+    postgraduationMarks: '',
+    tenthClassDoc: null,
+    intermediateDoc: null,
+    graduationDoc: null,
+    postgraduationDoc: null,
+    aadharDoc: null,
+    panDoc: null,
+    ifscNumber: '',
+    bankACnumber: '',
+  });
+  const [errors, setErrors] = useState({});
+
+  // Fetch current user profile for edit mode
+  useEffect(() => {
+    const userToken = localStorage.getItem('userToken');
+    if (userToken) {
+      try {
+        dispatch(getCurrentUserProfile());
+      } catch (err) {
+        setErrors({ general: 'Failed to fetch user profile. Please log in again.' });
+      }
+    } else {
+      setErrors({ general: 'No authentication token found. Please log in.' });
+    }
+  }, [dispatch]);
+
+  // Populate formData when profile is fetched
+  useEffect(() => {
+    if (employees.length > 0 && employeeId) {
+      const employee = employees.find((emp) => emp.id === employeeId);
+      if (employee) {
+        setFormData((prev) => ({
+          ...prev,
+                  employee_id: employeeId, // Set employee_id from Redux state
+          fullName: employee.fullName || '',
+          fatherName: employee.fatherName || '',
+          motherName: employee.motherName || '',
+          phone: employee.phone || '',
+          email: employee.email || '',
+          gender: employee.gender || '',
+          presentAddress: employee.presentAddress || '',
+          previousAddress: employee.previousAddress || '',
+          positionType: employee.positionType || '',
+          employerIdName: employee.employerIdName || '',
+          positionTitle: employee.positionTitle || '',
+          employmentType: employee.employmentType || '',
+          joiningDate: employee.joiningDate || '',
+          contractEndDate: employee.contractEndDate || '',
+          // Education and other details would need additional API endpoints to fetch
+        }));
+      }
+    }
+  }, [employees, employeeId]);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
     if (type === 'file' && files[0]) {
-      dispatch(updateField({ name, value: files[0] }));
+      setFormData((prev) => ({
+        ...prev,
+        [name]: files[0],
+      }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     } else if (type !== 'file') {
-      dispatch(updateField({ name, value }));
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
   const handleDateChange = (name, date) => {
     if (date && !isNaN(date)) {
-      dispatch(updateField({ name, value: date.toISOString().split('T')[0] }));
+      setFormData((prev) => ({
+        ...prev,
+        [name]: date.toISOString().split('T')[0],
+      }));
       if (name === 'joiningDate' && !formData.contractEndDate) {
         const joinDate = new Date(date);
         joinDate.setFullYear(joinDate.getFullYear() + 1);
-        dispatch(updateField({ name: 'contractEndDate', value: joinDate.toISOString().split('T')[0] }));
+        setFormData((prev) => ({
+          ...prev,
+          contractEndDate: joinDate.toISOString().split('T')[0],
+        }));
       }
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -106,48 +194,47 @@ const EmployeeDetails = () => {
     switch (stepIndex) {
       case 0: {
         const requiredFields = [
-          'fullName',
           'fatherName',
           'motherName',
-          'phone',
-          'email',
           'gender',
           'presentAddress',
           'positionType',
         ];
         requiredFields.forEach((field) => {
           if (!formData[field]?.trim()) {
-            newErrors[field] = `${field.replace(/([A-Z])/g, ' $1').trim()} is required`;
+            newErrors[field] = `${field.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())} is required`;
           }
         });
         if (formData.positionType === 'experienced') {
-          const experiencedFields = [
-            'employerIdName',
-            'positionTitle',
-            'employmentType',
-            'joiningDate',
-          ];
+          const experiencedFields = ['employerIdName', 'positionTitle', 'employmentType', 'joiningDate'];
           experiencedFields.forEach((field) => {
             if (!formData[field]?.trim()) {
-              newErrors[field] = `${field.replace(/([A-Z])/g, ' $1').trim()} is required`;
+              newErrors[field] = `${field.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())} is required`;
             }
           });
         }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          newErrors.email = 'Invalid email format';
+        if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          newErrors.email = 'Valid email is required';
+        }
+        if (!formData.phone || !/^\+?\d{10,15}$/.test(formData.phone)) {
+          newErrors.phone = 'Valid phone number is required';
         }
         break;
       }
       case 1: {
-        const numericFields = [
-          'tenthClassMarks',
-          'intermediateMarks',
-          'graduationMarks',
-          'postgraduationMarks',
-        ];
+        const numericFields = ['tenthClassMarks', 'intermediateMarks', 'graduationMarks', 'postgraduationMarks'];
         numericFields.forEach((field) => {
           if (formData[field] && (isNaN(formData[field]) || Number(formData[field]) < 0 || Number(formData[field]) > 100)) {
-            newErrors[field] = `Invalid ${field.replace(/([A-Z])/g, ' $1').trim()}`;
+            newErrors[field] = `Invalid ${field.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}`;
+          }
+        });
+        break;
+      }
+      case 2: {
+        const docFields = ['tenthClassDoc', 'intermediateDoc', 'graduationDoc', 'aadharDoc', 'panDoc'];
+        docFields.forEach((field) => {
+          if (formData[field] && !['image/jpeg', 'image/png', 'application/pdf'].includes(formData[field].type)) {
+            newErrors[field] = 'Only JPG, PNG, or PDF files are allowed';
           }
         });
         break;
@@ -156,15 +243,18 @@ const EmployeeDetails = () => {
         const requiredFields = ['ifscNumber', 'bankACnumber'];
         requiredFields.forEach((field) => {
           if (!formData[field]?.trim()) {
-            newErrors[field] = `${field.replace(/([A-Z])/g, ' $1').trim()} is required`;
+            newErrors[field] = `${field.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())} is required`;
           }
         });
+        if (formData.ifscNumber && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscNumber)) {
+          newErrors.ifscNumber = 'Invalid IFSC code';
+        }
         break;
       }
       default:
         break;
     }
-    dispatch(setErrors(newErrors));
+    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -173,33 +263,26 @@ const EmployeeDetails = () => {
       if (validateStep(currentStep)) {
         const success = await submitStep(currentStep);
         if (success) {
-          dispatch(setCurrentStep(currentStep + 1));
+          setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
         }
       }
     }
   };
 
-  const prevStep = () => {
-    dispatch(setCurrentStep(Math.max(currentStep - 1, 0)));
-  };
+  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
 
   const goToStep = async (index) => {
     if (index === steps.length - 1) {
-      if (employeeId) {
-        dispatch(fetchPreviewData(employeeId));
-        dispatch(setPreviewOpen(true));
-      } else {
-        dispatch(setErrors({ general: 'Please complete personal details first' }));
-      }
+      setIsPreviewOpen(true);
     } else if (index > currentStep) {
       if (validateStep(currentStep)) {
         const success = await submitStep(currentStep);
         if (success) {
-          dispatch(setCurrentStep(index));
+          setCurrentStep(index);
         }
       }
     } else {
-      dispatch(setCurrentStep(index));
+      setCurrentStep(index);
     }
   };
 
@@ -215,64 +298,65 @@ const EmployeeDetails = () => {
       switch (stepIndex) {
         case 0: {
           const personalData = {
-            employee_id: employeeId || `MO-EMP-${Math.random().toString(36).substr(2, 9)}`,
-            full_name: formData.fullName,
-            father_name: formData.fatherName,
-            mother_name: formData.motherName,
+            employee_id: employeeId,
+            fullName: formData.fullName,
+            fatherName: formData.fatherName,
+            motherName: formData.motherName,
             phone: formData.phone,
             email: formData.email,
             gender: formData.gender,
-            present_address: formData.presentAddress,
-            previous_address: formData.previousAddress,
-            position_type: formData.positionType,
-            employer_id_name: formData.employerIdName,
-            position_title: formData.positionTitle,
-            employment_type: formData.employmentType,
-            joining_date: formData.joiningDate,
-            contract_end_date: formData.contractEndDate,
+            presentAddress: formData.presentAddress,
+            previousAddress: formData.previousAddress,
+            positionType: formData.positionType,
+            employerIdName: formData.employerIdName,
+            positionTitle: formData.positionTitle,
+            employmentType: formData.employmentType,
+            joiningDate: formData.joiningDate,
+            contractEndDate: formData.contractEndDate,
           };
-          await dispatch(createPersonalDetails(personalData)).unwrap();
+          await dispatch(createEmployeePersonalDetails(personalData)).unwrap();
           return true;
         }
         case 1: {
           const educationData = {
             employee_id: employeeId,
-            tenth_class_name: formData.tenthClassName,
-            tenth_class_marks: formData.tenthClassMarks,
-            intermediate_name: formData.intermediateName,
-            intermediate_marks: formData.intermediateMarks,
-            graduation_name: formData.graduationName,
-            graduation_marks: formData.graduationMarks,
-            postgraduation_name: formData.postgraduationName,
-            postgraduation_marks: formData.postgraduationMarks,
+            tenthClassName: formData.tenthClassName,
+            tenthClassMarks: formData.tenthClassMarks,
+            intermediateName: formData.intermediateName,
+            intermediateMarks: formData.intermediateMarks,
+            graduationName: formData.graduationName,
+            graduationMarks: formData.graduationMarks,
+            postgraduationName: formData.postgraduationName,
+            postgraduationMarks: formData.postgraduationMarks,
           };
           await dispatch(createEducationDetails(educationData)).unwrap();
           return true;
         }
         case 2: {
           const formDataToSend = new FormData();
-          formDataToSend.append('employee_id', employeeId);
+          formDataToSend.append('employeeId', employeeId);
           const docFields = [
-            'tenthClassDoc',
-            'intermediateDoc',
-            'graduationDoc',
-            'postgraduationDoc',
-            'aadharDoc',
-            'panDoc',
+            { field: 'tenthClassDoc', documentType: 'tenthClassDoc' },
+            { field: 'intermediateDoc', documentType: 'intermediateDoc' },
+            { field: 'graduationDoc', documentType: 'graduationDoc' },
+            { field: 'postgraduationDoc', documentType: 'postgraduationDoc' },
+            { field: 'aadharDoc', documentType: 'aadharDoc' },
+            { field: 'panDoc', documentType: 'panDoc' },
           ];
-          docFields.forEach((field) => {
+          docFields.forEach(({ field, documentType }) => {
             if (formData[field]) {
-              formDataToSend.append(field, formData[field]);
+              formDataToSend.append('documentType', documentType);
+              formDataToSend.append('file', formData[field]);
+              dispatch(createDocuments({ employeeId, documentType, file: formData[field] }));
             }
           });
-          await dispatch(createDocuments(formDataToSend)).unwrap();
           return true;
         }
         case 3: {
           const bankData = {
             employee_id: employeeId,
-            bank_account_number: formData.bankACnumber,
-            ifsc_number: formData.ifscNumber,
+            bankACnumber: formData.bankACnumber,
+            ifscNumber: formData.ifscNumber,
           };
           await dispatch(createBankDetails(bankData)).unwrap();
           return true;
@@ -280,63 +364,76 @@ const EmployeeDetails = () => {
         default:
           return true;
       }
-    } catch (error) {
+    } catch (err) {
+      setErrors({ general: err.message || 'Failed to submit step' });
       return false;
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user?.id) {
-      dispatch(setErrors({ general: 'Please log in to submit details' }));
+    if (!employeeId) {
+      setErrors({ general: 'Please log in to submit details.' });
       return;
     }
     if (validateStep(currentStep)) {
       const success = await submitStep(currentStep);
       if (success) {
-        try {
-          const result = await dispatch(downloadEmployeeDetailsPDF(user.id)).unwrap();
-          const url = window.URL.createObjectURL(new Blob([result]));
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', `Employee_Details_${user.id}.pdf`);
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          dispatch(resetForm());
-        } catch (error) {
-          console.error('Download PDF error:', error);
-          dispatch(setErrors({ general: error.message || 'Failed to download PDF' }));
-        }
+        dispatch(clearState());
+        setFormData({
+          employee_id: formData.employee_id,
+          fullName: '',
+          fatherName: '',
+          motherName: '',
+          phone: '',
+          email: '',
+          gender: '',
+          image: null,
+          presentAddress: '',
+          previousAddress: '',
+          positionType: '',
+          employerIdName: '',
+          positionTitle: '',
+          employmentType: '',
+          joiningDate: '',
+          contractEndDate: '',
+          tenthClassName: '',
+          tenthClassMarks: '',
+          intermediateName: '',
+          intermediateMarks: '',
+          graduationName: '',
+          graduationMarks: '',
+          postgraduationName: '',
+          postgraduationMarks: '',
+          tenthClassDoc: null,
+          intermediateDoc: null,
+          graduationDoc: null,
+          postgraduationDoc: null,
+          aadharDoc: null,
+          panDoc: null,
+          ifscNumber: '',
+          bankACnumber: '',
+        });
+        setCurrentStep(0);
+        setIsPreviewOpen(false);
       }
     }
   };
 
-    const openPreview = () => {
-    if (user?.id) {
-      dispatch(fetchPreviewData(user.id));
-      dispatch(setPreviewOpen(true));
-    } else {
-      dispatch(setErrors({ general: 'Please log in to view preview' }));
-    }
-  };
-
-  const closePreview = () => dispatch(setPreviewOpen(false));
-
+  const openPreview = () => setIsPreviewOpen(true);
+  const closePreview = () => setIsPreviewOpen(false);
 
   const PreviewPopup = () => {
-    if (!previewData) return null;
-
     const stepGroups = [
       {
         title: 'Personal Details',
         fields: [
-          { label: 'Full Name', value: previewData.personal_details.full_name || 'N/A' },
-          { label: 'Father’s Name', value: previewData.personal_details.father_name || 'N/A' },
-          { label: 'Mother’s Name', value: previewData.personal_details.mother_name || 'N/A' },
-          { label: 'Phone', value: previewData.personal_details.phone || 'N/A' },
-          { label: 'Email', value: previewData.personal_details.email || 'N/A' },
-          { label: 'Gender', value: previewData.personal_details.gender || 'N/A' },
+          { label: 'Full Name', value: formData.fullName || 'N/A' },
+          { label: 'Father’s Name', value: formData.fatherName || 'N/A' },
+          { label: 'Mother’s Name', value: formData.motherName || 'N/A' },
+          { label: 'Phone', value: formData.phone || 'N/A' },
+          { label: 'Email', value: formData.email || 'N/A' },
+          { label: 'Gender', value: formData.gender || 'N/A' },
           {
             label: 'Image',
             value: formData.image ? (
@@ -352,21 +449,21 @@ const EmployeeDetails = () => {
               'N/A'
             ),
           },
-          { label: 'Present Address', value: previewData.personal_details.present_address || 'N/A' },
-          { label: 'Previous Address', value: previewData.personal_details.previous_address || 'N/A' },
+          { label: 'Present Address', value: formData.presentAddress || 'N/A' },
+          { label: 'Previous Address', value: formData.previousAddress || 'N/A' },
         ],
       },
       {
         title: 'Position Information',
         fields: [
-          { label: 'Position Type', value: previewData.personal_details.position_type || 'N/A' },
-          ...(previewData.personal_details.position_type === 'experienced'
+          { label: 'Position Type', value: formData.positionType || 'N/A' },
+          ...(formData.positionType === 'experienced'
             ? [
-                { label: 'Employer ID/Name', value: previewData.personal_details.employer_id_name || 'N/A' },
-                { label: 'Position Title', value: previewData.personal_details.position_title || 'N/A' },
-                { label: 'Employment Type', value: previewData.personal_details.employment_type || 'N/A' },
-                { label: 'Joining Date', value: previewData.personal_details.joining_date || 'N/A' },
-                { label: 'Contract End Date', value: previewData.personal_details.contract_end_date || 'N/A' },
+                { label: 'Employer ID/Name', value: formData.employerIdName || 'N/A' },
+                { label: 'Position Title', value: formData.positionTitle || 'N/A' },
+                { label: 'Employment Type', value: formData.employmentType || 'N/A' },
+                { label: 'Joining Date', value: formData.joiningDate || 'N/A' },
+                { label: 'Contract End Date', value: formData.contractEndDate || 'N/A' },
               ]
             : []),
         ],
@@ -374,33 +471,16 @@ const EmployeeDetails = () => {
       {
         title: 'Education Details',
         fields: [
-          { label: '10th Class Name', value: previewData.education_details.tenth_class_name || 'N/A' },
-          {
-            label: '10th Class Marks',
-            value: previewData.education_details.tenth_class_marks
-              ? `${previewData.education_details.tenth_class_marks}%`
-              : 'N/A',
-          },
-          { label: 'Intermediate Name', value: previewData.education_details.intermediate_name || 'N/A' },
-          {
-            label: 'Intermediate Marks',
-            value: previewData.education_details.intermediate_marks
-              ? `${previewData.education_details.intermediate_marks}%`
-              : 'N/A',
-          },
-          { label: 'Graduation Name', value: previewData.education_details.graduation_name || 'N/A' },
-          {
-            label: 'Graduation Marks',
-            value: previewData.education_details.graduation_marks
-              ? `${previewData.education_details.graduation_marks}%`
-              : 'N/A',
-          },
-          { label: 'Postgraduation Name', value: previewData.education_details.postgraduation_name || 'N/A' },
+          { label: '10th Class Name', value: formData.tenthClassName || 'N/A' },
+          { label: '10th Class Marks', value: formData.tenthClassMarks ? `${formData.tenthClassMarks}%` : 'N/A' },
+          { label: 'Intermediate Name', value: formData.intermediateName || 'N/A' },
+          { label: 'Intermediate Marks', value: formData.intermediateMarks ? `${formData.intermediateMarks}%` : 'N/A' },
+          { label: 'Graduation Name', value: formData.graduationName || 'N/A' },
+          { label: 'Graduation Marks', value: formData.graduationMarks ? `${formData.graduationMarks}%` : 'N/A' },
+          { label: 'Postgraduation Name', value: formData.postgraduationName || 'N/A' },
           {
             label: 'Postgraduation Marks',
-            value: previewData.education_details.postgraduation_marks
-              ? `${previewData.education_details.postgraduation_marks}%`
-              : 'N/A',
+            value: formData.postgraduationMarks ? `${formData.postgraduationMarks}%` : 'N/A',
           },
         ],
       },
@@ -409,17 +489,16 @@ const EmployeeDetails = () => {
         fields: [
           {
             label: '10th Class Document',
-            value: previewData.documents.tenth_class_doc_path ? (
+            value: formData.tenthClassDoc ? (
               <div className="flex flex-col items-center">
-                {previewData.documents.tenth_class_doc_path.endsWith('.jpg') ||
-                previewData.documents.tenth_class_doc_path.endsWith('.png') ? (
+                {formData.tenthClassDoc.type.startsWith('image/') ? (
                   <img
-                    src={`/uploads/${previewData.documents.tenth_class_doc_path}`}
+                    src={URL.createObjectURL(formData.tenthClassDoc)}
                     alt="10th Class Document"
                     className="w-24 h-24 rounded-lg"
                     style={{ maxHeight: '100px', objectFit: 'cover' }}
                   />
-                ) : previewData.documents.tenth_class_doc_path.endsWith('.pdf') ? (
+                ) : formData.tenthClassDoc.type === 'application/pdf' ? (
                   <div className="flex flex-col items-center">
                     <svg
                       className="w-10 h-10 text-red-500"
@@ -445,19 +524,19 @@ const EmployeeDetails = () => {
               'N/A'
             ),
           },
+          // Repeat similar logic for other documents (intermediateDoc, graduationDoc, etc.)
           {
             label: 'Intermediate Document',
-            value: previewData.documents.intermediate_doc_path ? (
+            value: formData.intermediateDoc ? (
               <div className="flex flex-col items-center">
-                {previewData.documents.intermediate_doc_path.endsWith('.jpg') ||
-                previewData.documents.intermediate_doc_path.endsWith('.png') ? (
+                {formData.intermediateDoc.type.startsWith('image/') ? (
                   <img
-                    src={`/uploads/${previewData.documents.intermediate_doc_path}`}
+                    src={URL.createObjectURL(formData.intermediateDoc)}
                     alt="Intermediate Document"
                     className="w-24 h-24 rounded-lg"
                     style={{ maxHeight: '100px', objectFit: 'cover' }}
                   />
-                ) : previewData.documents.intermediate_doc_path.endsWith('.pdf') ? (
+                ) : formData.intermediateDoc.type === 'application/pdf' ? (
                   <div className="flex flex-col items-center">
                     <svg
                       className="w-10 h-10 text-red-500"
@@ -485,17 +564,16 @@ const EmployeeDetails = () => {
           },
           {
             label: 'Graduation Document',
-            value: previewData.documents.graduation_doc_path ? (
+            value: formData.graduationDoc ? (
               <div className="flex flex-col items-center">
-                {previewData.documents.graduation_doc_path.endsWith('.jpg') ||
-                previewData.documents.graduation_doc_path.endsWith('.png') ? (
+                {formData.graduationDoc.type.startsWith('image/') ? (
                   <img
-                    src={`/uploads/${previewData.documents.graduation_doc_path}`}
+                    src={URL.createObjectURL(formData.graduationDoc)}
                     alt="Graduation Document"
                     className="w-24 h-24 rounded-lg"
                     style={{ maxHeight: '100px', objectFit: 'cover' }}
                   />
-                ) : previewData.documents.graduation_doc_path.endsWith('.pdf') ? (
+                ) : formData.graduationDoc.type === 'application/pdf' ? (
                   <div className="flex flex-col items-center">
                     <svg
                       className="w-10 h-10 text-red-500"
@@ -523,17 +601,16 @@ const EmployeeDetails = () => {
           },
           {
             label: 'Postgraduation Document',
-            value: previewData.documents.postgraduation_doc_path ? (
+            value: formData.postgraduationDoc ? (
               <div className="flex flex-col items-center">
-                {previewData.documents.postgraduation_doc_path.endsWith('.jpg') ||
-                previewData.documents.postgraduation_doc_path.endsWith('.png') ? (
+                {formData.postgraduationDoc.type.startsWith('image/') ? (
                   <img
-                    src={`/uploads/${previewData.documents.postgraduation_doc_path}`}
+                    src={URL.createObjectURL(formData.postgraduationDoc)}
                     alt="Postgraduation Document"
                     className="w-24 h-24 rounded-lg"
                     style={{ maxHeight: '100px', objectFit: 'cover' }}
                   />
-                ) : previewData.documents.postgraduation_doc_path.endsWith('.pdf') ? (
+                ) : formData.postgraduationDoc.type === 'application/pdf' ? (
                   <div className="flex flex-col items-center">
                     <svg
                       className="w-10 h-10 text-red-500"
@@ -561,17 +638,16 @@ const EmployeeDetails = () => {
           },
           {
             label: 'Aadhar Document',
-            value: previewData.documents.aadhar_doc_path ? (
+            value: formData.aadharDoc ? (
               <div className="flex flex-col items-center">
-                {previewData.documents.aadhar_doc_path.endsWith('.jpg') ||
-                previewData.documents.aadhar_doc_path.endsWith('.png') ? (
+                {formData.aadharDoc.type.startsWith('image/') ? (
                   <img
-                    src={`/uploads/${previewData.documents.aadhar_doc_path}`}
+                    src={URL.createObjectURL(formData.aadharDoc)}
                     alt="Aadhar Document"
                     className="w-24 h-24 rounded-lg"
                     style={{ maxHeight: '100px', objectFit: 'cover' }}
                   />
-                ) : previewData.documents.aadhar_doc_path.endsWith('.pdf') ? (
+                ) : formData.aadharDoc.type === 'application/pdf' ? (
                   <div className="flex flex-col items-center">
                     <svg
                       className="w-10 h-10 text-red-500"
@@ -599,17 +675,16 @@ const EmployeeDetails = () => {
           },
           {
             label: 'PAN Document',
-            value: previewData.documents.pan_doc_path ? (
+            value: formData.panDoc ? (
               <div className="flex flex-col items-center">
-                {previewData.documents.pan_doc_path.endsWith('.jpg') ||
-                previewData.documents.pan_doc_path.endsWith('.png') ? (
+                {formData.panDoc.type.startsWith('image/') ? (
                   <img
-                    src={`/uploads/${previewData.documents.pan_doc_path}`}
+                    src={URL.createObjectURL(formData.panDoc)}
                     alt="PAN Document"
                     className="w-24 h-24 rounded-lg"
                     style={{ maxHeight: '100px', objectFit: 'cover' }}
                   />
-                ) : previewData.documents.pan_doc_path.endsWith('.pdf') ? (
+                ) : formData.panDoc.type === 'application/pdf' ? (
                   <div className="flex flex-col items-center">
                     <svg
                       className="w-10 h-10 text-red-500"
@@ -640,8 +715,8 @@ const EmployeeDetails = () => {
       {
         title: 'Bank Details',
         fields: [
-          { label: 'IFSC Number', value: previewData.bank_details.ifsc_number || 'N/A' },
-          { label: 'Bank Account Number', value: previewData.bank_details.bank_account_number || 'N/A' },
+          { label: 'IFSC Number', value: formData.ifscNumber || 'N/A' },
+          { label: 'Bank Account Number', value: formData.bankACnumber || 'N/A' },
         ],
       },
     ];
@@ -659,9 +734,7 @@ const EmployeeDetails = () => {
             </svg>
           </button>
           <h3 className="text-2xl font-bold text-gray-900 mb-6 tracking-tight">Preview Employee Details</h3>
-          {errors.general && (
-            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{errors.general}</div>
-          )}
+          {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
           {successMessage && (
             <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">{successMessage}</div>
           )}
@@ -705,7 +778,7 @@ const EmployeeDetails = () => {
           }
           .react-datepicker__input-container {
             position: relative;
-          } 
+          }
           .react-datepicker__input-container input {
             width: 100%;
             padding: 0.75rem 1rem;
@@ -742,12 +815,11 @@ const EmployeeDetails = () => {
           <h2 className="text-2xl font-bold text-center text-gray-900 mb-8 tracking-tight">
             Employee Details Form
           </h2>
-          {errors.general && (
-            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{errors.general}</div>
-          )}
+          {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
           {successMessage && (
             <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">{successMessage}</div>
           )}
+          {loading && <div className="mb-4 p-4 bg-blue-100 text-blue-700 rounded-lg">Loading...</div>}
           <div className="flex items-center justify-between mb-10 relative">
             {steps.map((step, index) => (
               <div key={index} className="flex flex-col items-center z-10 group">
@@ -788,9 +860,7 @@ const EmployeeDetails = () => {
               {currentStep === 0 && (
                 <>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Full Name
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Full Name</label>
                     <input
                       type="text"
                       name="fullName"
@@ -798,15 +868,12 @@ const EmployeeDetails = () => {
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                       placeholder="Enter full name"
+                      disabled={!!formData.fullName} // Disable if pre-filled
                     />
-                    {errors.fullName && (
-                      <span className="text-red-500 text-xs mt-1">{errors.fullName}</span>
-                    )}
+                    {errors.fullName && <span className="text-red-500 text-xs mt-1">{errors.fullName}</span>}
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Father’s Name
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Father’s Name</label>
                     <input
                       type="text"
                       name="fatherName"
@@ -815,14 +882,10 @@ const EmployeeDetails = () => {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                       placeholder="Enter father’s name"
                     />
-                    {errors.fatherName && (
-                      <span className="text-red-500 text-xs mt-1">{errors.fatherName}</span>
-                    )}
+                    {errors.fatherName && <span className="text-red-500 text-xs mt-1">{errors.fatherName}</span>}
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Mother’s Name
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Mother’s Name</label>
                     <input
                       type="text"
                       name="motherName"
@@ -831,14 +894,10 @@ const EmployeeDetails = () => {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                       placeholder="Enter mother’s name"
                     />
-                    {errors.motherName && (
-                      <span className="text-red-500 text-xs mt-1">{errors.motherName}</span>
-                    )}
+                    {errors.motherName && <span className="text-red-500 text-xs mt-1">{errors.motherName}</span>}
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Phone
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Phone</label>
                     <input
                       type="tel"
                       name="phone"
@@ -846,15 +905,12 @@ const EmployeeDetails = () => {
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                       placeholder="Enter phone number"
+                      disabled={!!formData.phone} // Disable if pre-filled
                     />
-                    {errors.phone && (
-                      <span className="text-red-500 text-xs mt-1">{errors.phone}</span>
-                    )}
+                    {errors.phone && <span className="text-red-500 text-xs mt-1">{errors.phone}</span>}
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Email
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Email</label>
                     <input
                       type="email"
                       name="email"
@@ -862,15 +918,12 @@ const EmployeeDetails = () => {
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                       placeholder="Enter email"
+                      disabled={!!formData.email} // Disable if pre-filled
                     />
-                    {errors.email && (
-                      <span className="text-red-500 text-xs mt-1">{errors.email}</span>
-                    )}
+                    {errors.email && <span className="text-red-500 text-xs mt-1">{errors.email}</span>}
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Gender
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Gender</label>
                     <select
                       name="gender"
                       value={formData.gender}
@@ -882,9 +935,7 @@ const EmployeeDetails = () => {
                       <option value="female">Female</option>
                       <option value="other">Other</option>
                     </select>
-                    {errors.gender && (
-                      <span className="text-red-500 text-xs mt-1">{errors.gender}</span>
-                    )}
+                    {errors.gender && <span className="text-red-500 text-xs mt-1">{errors.gender}</span>}
                   </div>
                   <div className="flex flex-col col-span-2">
                     <FileUpload
@@ -895,14 +946,10 @@ const EmployeeDetails = () => {
                       preview={formData.image ? URL.createObjectURL(formData.image) : null}
                       isPdf={false}
                     />
-                    {errors.image && (
-                      <span className="text-red-500 text-xs mt-1">{errors.image}</span>
-                    )}
+                    {errors.image && <span className="text-red-500 text-xs mt-1">{errors.image}</span>}
                   </div>
                   <div className="flex flex-col col-span-2">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Present Address
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Present Address</label>
                     <input
                       type="text"
                       name="presentAddress"
@@ -916,9 +963,7 @@ const EmployeeDetails = () => {
                     )}
                   </div>
                   <div className="flex flex-col col-span-2">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Previous Address
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Previous Address</label>
                     <input
                       type="text"
                       name="previousAddress"
@@ -932,9 +977,7 @@ const EmployeeDetails = () => {
                     )}
                   </div>
                   <div className="flex flex-col col-span-2">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Position Information
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Position Information</label>
                     <select
                       name="positionType"
                       value={formData.positionType}
@@ -945,16 +988,12 @@ const EmployeeDetails = () => {
                       <option value="fresher">Fresher</option>
                       <option value="experienced">Experienced</option>
                     </select>
-                    {errors.positionType && (
-                      <span className="text-red-500 text-xs mt-1">{errors.positionType}</span>
-                    )}
+                    {errors.positionType && <span className="text-red-500 text-xs mt-1">{errors.positionType}</span>}
                   </div>
                   {formData.positionType === 'experienced' && (
                     <>
                       <div className="flex flex-col">
-                        <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                          Employer ID/Name
-                        </label>
+                        <label className="mb-1 text-sm font-bold text-black tracking-tight">Employer ID/Name</label>
                         <input
                           type="text"
                           name="employerIdName"
@@ -968,9 +1007,7 @@ const EmployeeDetails = () => {
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                          Position Title
-                        </label>
+                        <label className="mb-1 text-sm font-bold text-black tracking-tight">Position Title</label>
                         <input
                           type="text"
                           name="positionTitle"
@@ -984,9 +1021,7 @@ const EmployeeDetails = () => {
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                          Employment Type
-                        </label>
+                        <label className="mb-1 text-sm font-bold text-black tracking-tight">Employment Type</label>
                         <select
                           name="employmentType"
                           value={formData.employmentType}
@@ -1004,9 +1039,7 @@ const EmployeeDetails = () => {
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                          Joining Date
-                        </label>
+                        <label className="mb-1 text-sm font-bold text-black tracking-tight">Joining Date</label>
                         <div className="relative">
                           <DatePicker
                             selected={formData.joiningDate ? new Date(formData.joiningDate) : null}
@@ -1022,9 +1055,7 @@ const EmployeeDetails = () => {
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                          Contract End Date
-                        </label>
+                        <label className="mb-1 text-sm font-bold text-black tracking-tight">Contract End Date</label>
                         <div className="relative">
                           <DatePicker
                             selected={formData.contractEndDate ? new Date(formData.contractEndDate) : null}
@@ -1047,9 +1078,7 @@ const EmployeeDetails = () => {
               {currentStep === 1 && (
                 <>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      10th Class Name
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">10th Class Name</label>
                     <input
                       type="text"
                       name="tenthClassName"
@@ -1063,9 +1092,7 @@ const EmployeeDetails = () => {
                     )}
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      10th Class Marks (%)
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">10th Class Marks (%)</label>
                     <input
                       type="number"
                       name="tenthClassMarks"
@@ -1081,9 +1108,7 @@ const EmployeeDetails = () => {
                     )}
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Intermediate Name
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Intermediate Name</label>
                     <input
                       type="text"
                       name="intermediateName"
@@ -1097,9 +1122,7 @@ const EmployeeDetails = () => {
                     )}
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Intermediate Marks (%)
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Intermediate Marks (%)</label>
                     <input
                       type="number"
                       name="intermediateMarks"
@@ -1115,9 +1138,7 @@ const EmployeeDetails = () => {
                     )}
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Graduation Name
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Graduation Name</label>
                     <input
                       type="text"
                       name="graduationName"
@@ -1131,9 +1152,7 @@ const EmployeeDetails = () => {
                     )}
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Graduation Marks (%)
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Graduation Marks (%)</label>
                     <input
                       type="number"
                       name="graduationMarks"
@@ -1149,9 +1168,7 @@ const EmployeeDetails = () => {
                     )}
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Postgraduation Name
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Postgraduation Name</label>
                     <input
                       type="text"
                       name="postgraduationName"
@@ -1165,9 +1182,7 @@ const EmployeeDetails = () => {
                     )}
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Postgraduation Marks (%)
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Postgraduation Marks (%)</label>
                     <input
                       type="number"
                       name="postgraduationMarks"
@@ -1232,7 +1247,11 @@ const EmployeeDetails = () => {
                       onChange={handleChange}
                       accept=".pdf,.jpg,.png"
                       label="Postgraduation Document"
-                      preview={formData.postgraduationDoc && formData.postgraduationDoc.type.startsWith('image/') ? URL.createObjectURL(formData.postgraduationDoc) : null}
+                      preview={
+                        formData.postgraduationDoc && formData.postgraduationDoc.type.startsWith('image/')
+                          ? URL.createObjectURL(formData.postgraduationDoc)
+                          : null
+                      }
                       isPdf={formData.postgraduationDoc && formData.postgraduationDoc.type === 'application/pdf'}
                     />
                     {errors.postgraduationDoc && (
@@ -1248,9 +1267,7 @@ const EmployeeDetails = () => {
                       preview={formData.aadharDoc && formData.aadharDoc.type.startsWith('image/') ? URL.createObjectURL(formData.aadharDoc) : null}
                       isPdf={formData.aadharDoc && formData.aadharDoc.type === 'application/pdf'}
                     />
-                    {errors.aadharDoc && (
-                      <span className="text-red-500 text-xs mt-1">{errors.aadharDoc}</span>
-                    )}
+                    {errors.aadharDoc && <span className="text-red-500 text-xs mt-1">{errors.aadharDoc}</span>}
                   </div>
                   <div className="flex flex-col col-span-2">
                     <FileUpload
@@ -1261,9 +1278,7 @@ const EmployeeDetails = () => {
                       preview={formData.panDoc && formData.panDoc.type.startsWith('image/') ? URL.createObjectURL(formData.panDoc) : null}
                       isPdf={formData.panDoc && formData.panDoc.type === 'application/pdf'}
                     />
-                    {errors.panDoc && (
-                      <span className="text-red-500 text-xs mt-1">{errors.panDoc}</span>
-                    )}
+                    {errors.panDoc && <span className="text-red-500 text-xs mt-1">{errors.panDoc}</span>}
                   </div>
                 </>
               )}
@@ -1271,9 +1286,7 @@ const EmployeeDetails = () => {
               {currentStep === 3 && (
                 <>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      Bank Account Number
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">Bank Account Number</label>
                     <input
                       type="text"
                       name="bankACnumber"
@@ -1287,9 +1300,7 @@ const EmployeeDetails = () => {
                     )}
                   </div>
                   <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-bold text-black tracking-tight">
-                      IFSC Number
-                    </label>
+                    <label className="mb-1 text-sm font-bold text-black tracking-tight">IFSC Number</label>
                     <input
                       type="text"
                       name="ifscNumber"
@@ -1298,9 +1309,7 @@ const EmployeeDetails = () => {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                       placeholder="Enter IFSC number"
                     />
-                    {errors.ifscNumber && (
-                      <span className="text-red-500 text-xs mt-1">{errors.ifscNumber}</span>
-                    )}
+                    {errors.ifscNumber && <span className="text-red-500 text-xs mt-1">{errors.ifscNumber}</span>}
                   </div>
                 </>
               )}
@@ -1311,9 +1320,8 @@ const EmployeeDetails = () => {
                     type="button"
                     onClick={openPreview}
                     className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 text-sm font-medium"
-                    disabled={loading}
                   >
-                    {loading ? 'Loading...' : 'View Preview'}
+                    View Preview
                   </button>
                 </div>
               )}
@@ -1323,7 +1331,7 @@ const EmployeeDetails = () => {
               <button
                 type="button"
                 onClick={prevStep}
-                disabled={currentStep === 0 || loading}
+                disabled={currentStep === 0}
                 className="px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-800 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 text-sm font-medium"
                 aria-label="Previous step"
               >
@@ -1334,19 +1342,19 @@ const EmployeeDetails = () => {
                   type="button"
                   onClick={nextStep}
                   disabled={loading}
-                  className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 text-sm font-medium"
+                  className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   aria-label="Next step"
                 >
-                  {loading ? 'Submitting...' : 'Next'}
+                  {loading ? 'Processing...' : 'Next'}
                 </button>
               ) : (
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 text-sm font-medium"
+                  className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   aria-label="Submit form"
                 >
-                  {loading ? 'Submitting...' : 'Submit and Download PDF'}
+                  {loading ? 'Submitting...' : 'Submit'}
                 </button>
               )}
             </div>
