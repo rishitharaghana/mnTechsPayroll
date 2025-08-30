@@ -25,9 +25,11 @@ const Employee = () => {
     };
   }, [dispatch]);
 
-  const filtered = employees.filter((emp) =>
-    emp.name.toLowerCase().includes(search.toLowerCase())
-  );
+ const filtered = employees.filter((emp) => {
+  const name = emp.full_name || emp.name || ""; // fallback
+  return name.toLowerCase().includes(search.toLowerCase());
+});
+
 
   const getSalary = (emp) => {
     if (emp.role === "employee" || emp.role === "manager") {
@@ -37,15 +39,23 @@ const Employee = () => {
   };
 
   const getImageUrl = (emp) => {
-    const bgColors = {
-      dept_head: "4B5EAA",
-      manager: "FF6F61",
-      employee: "6B7280",
-    };
-    return `https://placehold.co/100x100?text=${encodeURIComponent(
-      emp.name.split(" ")[0]
-    )}&bg=${bgColors[emp.role] || "6B7280"}`;
+  const bgColors = {
+    dept_head: "4B5EAA",
+    manager: "FF6F61",
+    employee: "6B7280",
   };
+
+  const initials = (emp.full_name || "")
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+
+  return `https://placehold.co/100x100?text=${encodeURIComponent(
+    initials
+  )}&bg=${bgColors[emp.role] || "6B7280"}`;
+};
+
 
   return (
     <div className="p-6">

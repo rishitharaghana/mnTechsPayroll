@@ -34,23 +34,27 @@ export const createEmployee = createAsyncThunk(
 
 export const createEmployeePersonalDetails = createAsyncThunk(
   "employee/createEmployeePersonalDetails",
-  async (personalData, { rejectWithValue }) => {
+  async (personalData, { rejectWithValue, getState }) => {
     try {
-     const userToken = localStorage.getItem("userToken");
+      const userToken = localStorage.getItem("userToken");
       if (!userToken) {
         return rejectWithValue("No authentication token found. Please log in.");
       }
 
-      const { token } = JSON.parse(userToken);
+      const { token, employee_id, role } = JSON.parse(userToken);
+      const payload = {
+        ...personalData,
+        employeeId: ["super_admin", "hr"].includes(role) ? personalData.employeeId : employee_id,
+      };
 
       const response = await axios.post(
         "http://localhost:3007/api/employees/personal-details",
-        personalData,
+        payload,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log("createEmployeePersonalDetails Response:", response.data); // Debug
+      console.log("createEmployeePersonalDetails Response:", response.data);
       return response.data;
     } catch (error) {
       console.error("createEmployeePersonalDetails Error:", error.response?.data || error.message);
@@ -270,6 +274,26 @@ export const getCurrentUserProfile = createAsyncThunk(
   }
 );
 
+export const getEmployeeProgress = createAsyncThunk(
+  "employee/getEmployeeProgress",
+  async (_, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get("http://localhost:3007/api/employees/progress", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || "Failed to fetch progress");
+    }
+  }
+);
+
+
 const employeeSlice = createSlice({
   name: "employee",
   initialState: {
@@ -277,7 +301,7 @@ const employeeSlice = createSlice({
     loading: false,
     error: null,
     successMessage: null,
-    employeeId: null, // Store employeeId for multi-step form
+    employeeId: null,
   },
   reducers: {
     clearState: (state) => {
@@ -400,7 +424,19 @@ const employeeSlice = createSlice({
     .addCase(getCurrentUserProfile.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload?.error || 'Failed to fetch profile';
-    });
+    })
+       .addCase(getEmployeeProgress.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getEmployeeProgress.fulfilled, (state, action) => {
+        state.loading = false;
+        state.progress = action.payload.data;
+      })
+      .addCase(getEmployeeProgress.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
