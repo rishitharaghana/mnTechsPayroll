@@ -409,7 +409,7 @@ const Payroll = () => {
                             "en-IN"
                           )}
                         </div>
-                        <div>Teat-home</div>
+                        <div>Take-home</div>
                       </td>
                       <td className="px-6 py-4">
                         <span
