@@ -217,13 +217,76 @@ export const fetchLeaveBalances = createAsyncThunk(
   }
 );
 
+export const allocateMonthlyLeaves = createAsyncThunk(
+  "leaves/allocateMonthlyLeaves",
+  async (_, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+      const { token } = JSON.parse(userToken);
+      const response = await axios.post(
+        "http://localhost:3007/api/leaves/total-leaves",
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("allocateMonthlyLeaves response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error(
+        "allocateMonthlyLeaves error:",
+        error.response?.data || error.message
+      );
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to allocate monthly leaves"
+      );
+    }
+  }
+);
+
+export const allocateSpecialLeave = createAsyncThunk(
+  "leaves/allocateSpecialLeave",
+  async ({ leave_type, days } = {}, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+      const { token } = JSON.parse(userToken);
+      const response = await axios.post(
+        "http://localhost:3007/api/leaves/special-leaves",
+        { leave_type, days },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("allocateSpecialLeave response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error(
+        "allocateSpecialLeave error:",
+        error.response?.data || error.message
+      );
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to allocate special leave"
+      );
+    }
+  }
+);
+
 const leaveSlice = createSlice({
   name: "leaves",
   initialState: {
     leaves: [],
     pendingLeaves: [],
     recipients: [],
-    leaveBalances: { vacation: 0, sick: 0, casual: 0, maternity: 0 },
+    leaveBalances: { vacation: 0, sick: 0, casual: 0, maternity: 0, paternity: 0 },
     loading: false,
     error: null,
     successMessage: null,
@@ -365,6 +428,34 @@ const leaveSlice = createSlice({
         console.log("fetchLeaveBalances fulfilled, leaveBalances:", action.payload);
       })
       .addCase(fetchLeaveBalances.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(allocateMonthlyLeaves.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(allocateMonthlyLeaves.fulfilled, (state, action) => {
+        state.loading = false;
+        state.successMessage = action.payload.message || "Monthly leaves allocated successfully";
+        console.log("allocateMonthlyLeaves fulfilled:", action.payload);
+      })
+      .addCase(allocateMonthlyLeaves.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(allocateSpecialLeave.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(allocateSpecialLeave.fulfilled, (state, action) => {
+        state.loading = false;
+        state.successMessage = action.payload.message || "Special leave allocated successfully";
+        console.log("allocateSpecialLeave fulfilled:", action.payload);
+      })
+      .addCase(allocateSpecialLeave.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

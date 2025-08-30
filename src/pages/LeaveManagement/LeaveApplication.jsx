@@ -213,7 +213,7 @@ const LeaveApplication = () => {
                 </option>
                 {recipients.map((recipient) => (
                   <option key={recipient.employee_id} value={recipient.employee_id}>
-                    {recipient.name}
+                    {recipient.full_name}
                   </option>
                 ))}
               </select>
