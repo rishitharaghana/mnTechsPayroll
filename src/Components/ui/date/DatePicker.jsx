@@ -224,7 +224,7 @@ const DatePicker = ({
                   return (
                     <button
                       key={day}
-                      className={`text-center p-2 rounded-full text-sm ${
+                      className={`text-center p-1 rounded-full text-sm ${
                         isSelected
                           ? "bg-teal-700 text-white"
                           : isDisabled
@@ -243,7 +243,7 @@ const DatePicker = ({
               {/* Today & Clear buttons */}
               <div className="flex justify-between items-center mt-2">
                 <button
-                  className="text-xs px-2 py-1 text-teal-700 hover:bg-teal-100 rounded"
+                  className="text-xs px-1 py-1 text-teal-700 hover:bg-teal-100 rounded"
                   onClick={() => {
                     const today = startOfDay(new Date());
                     if (!maxDate || today <= maxDate) {
@@ -255,7 +255,7 @@ const DatePicker = ({
                   Today
                 </button>
                 <button
-                  className="text-xs px-2 py-1 text-red-600 hover:bg-red-100 rounded"
+                  className="text-xs px-1 py-1 text-red-600 hover:bg-red-100 rounded"
                   onClick={() => {
                     onChange(null);
                     setIsOpen(false);
