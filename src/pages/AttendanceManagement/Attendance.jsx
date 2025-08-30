@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Clock, CheckCircle, XCircle, Users, MapPin } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Users } from 'lucide-react';
 import DatePicker from '../../Components/ui/date/DatePicker';
 import PageMeta from '../../Components/common/PageMeta';
 import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
@@ -10,11 +10,15 @@ import { format, parse, isValid } from 'date-fns';
 const Attendance = () => {
   const dispatch = useDispatch();
   const { submissions, loading, error, successMessage } = useSelector((state) => state.attendance);
+
+  // ✅ Keep Date object in state
   const [selectedDate, setSelectedDate] = useState(() => {
     const date = new Date();
     const istDate = new Date(date.getTime() + 5.5 * 60 * 60 * 1000); // IST offset
-    return `${istDate.getFullYear()}-${String(istDate.getMonth() + 1).padStart(2, '0')}-${String(istDate.getDate()).padStart(2, '0')}`;
+    return istDate;
   });
+
+  const formattedDate = format(selectedDate, 'yyyy-MM-dd'); // string for comparisons
 
   const userToken = localStorage.getItem('userToken');
   const user = userToken ? JSON.parse(userToken) : null;
@@ -30,10 +34,6 @@ const Attendance = () => {
   }, [dispatch, userRole]);
 
   useEffect(() => {
-    console.log('Submissions:', submissions);
-    console.log('Selected Date:', selectedDate, typeof selectedDate);
-    console.log('User Role:', userRole);
-    console.log('Submission Recipients:', submissions.map((s) => s.recipient));
     if (successMessage) {
       alert(successMessage);
       dispatch(clearState());
@@ -42,7 +42,7 @@ const Attendance = () => {
       alert(error);
       dispatch(clearState());
     }
-  }, [successMessage, error, dispatch, submissions, userRole, selectedDate]);
+  }, [successMessage, error, dispatch]);
 
   const handleStatusUpdate = (id, status) => {
     dispatch(updateAttendanceStatus({ id, status }));
@@ -64,30 +64,22 @@ const Attendance = () => {
   const normalizeDate = (isoDate) => {
     try {
       const date = parse(isoDate, 'yyyy-MM-dd', new Date());
-      if (!isValid(date)) {
-        console.error('Invalid date:', isoDate);
-        return '';
-      }
+      if (!isValid(date)) return '';
       const istDate = new Date(date.getTime() + 5.5 * 60 * 60 * 1000);
-      return `${istDate.getFullYear()}-${String(istDate.getMonth() + 1).padStart(2, '0')}-${String(istDate.getDate()).padStart(2, '0')}`;
-    } catch (error) {
-      console.error('Invalid date:', isoDate);
+      return format(istDate, 'yyyy-MM-dd');
+    } catch {
       return '';
     }
   };
 
-  const filteredSubmissions = submissions.filter(
-    (submission) => {
-      const normalizedSubmissionDate = normalizeDate(submission.date);
-      return (
-        normalizedSubmissionDate === selectedDate &&
-        normalizedSubmissionDate !== '' &&
-        (userRole === 'dept_head' ? submission.recipient === 'hr' : submission.recipient === userRole)
-      );
-    }
-  );
-
-  console.log('Filtered Submissions:', filteredSubmissions);
+  const filteredSubmissions = submissions.filter((submission) => {
+    const normalizedSubmissionDate = normalizeDate(submission.date);
+    return (
+      normalizedSubmissionDate === formattedDate &&
+      normalizedSubmissionDate !== '' &&
+      (userRole === 'dept_head' ? submission.recipient === 'hr' : submission.recipient === userRole)
+    );
+  });
 
   const stats = [
     {
@@ -143,7 +135,9 @@ const Attendance = () => {
           ]}
         />
       </div>
-      <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+
+      {/* Header */}
+      <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="w-[65%]">
             <h1 className="text-3xl font-bold text-white">Attendance Tracking</h1>
@@ -152,8 +146,7 @@ const Attendance = () => {
           <div className="w-[35%] flex items-center space-x-4">
             <DatePicker
               name="attendanceDate"
-              // title="Select Date (IST)"
-              value={selectedDate}
+              value={selectedDate} // ✅ Date object
               onChange={(date) => setSelectedDate(date)}
               className="w-full max-w-xs"
               aria-label="Select Attendance Date"
@@ -162,11 +155,12 @@ const Attendance = () => {
         </div>
       </div>
 
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map(({ title, value, total, percentage, color, icon: Icon }, index) => (
           <div
             key={index}
-            className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
+            className="bg-white/90 rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
           >
             <div className="flex items-center justify-between mb-4">
               <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center`}>
@@ -182,13 +176,12 @@ const Attendance = () => {
         ))}
       </div>
 
-      <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+      {/* Table */}
+      <div className="bg-white/90 rounded-lg border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
         <div className="p-6 border-b border-slate-200/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-xl font-bold text-slate-900">Attendance Records</h2>
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-slate-600">
-              Date: {format(parse(selectedDate, 'yyyy-MM-dd', new Date()), 'dd/MM/yyyy')}
-            </span>
+            <span className="text-sm text-slate-600">Date: {format(selectedDate, 'dd/MM/yyyy')}</span>
             <button className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105">
               Export Report
             </button>
@@ -199,39 +192,22 @@ const Attendance = () => {
           <table className="w-full table-fixed text-sm" aria-label="Employee Attendance Table">
             <thead className="bg-gradient-to-r from-teal-600 to-slate-700">
               <tr>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                  Employee
-                </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                  Check In
-                </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                  Check Out
-                </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                  Location
-                </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                  Status
-                </th>
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">Employee</th>
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">Date</th>
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">Check In</th>
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">Check Out</th>
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">Location</th>
+                <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">Status</th>
                 {['super_admin', 'hr'].includes(userRole) && (
-                  <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">Actions</th>
                 )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200/50">
               {filteredSubmissions.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={['super_admin', 'hr'].includes(userRole) ? 7 : 6}
-                    className="px-4 py-3 text-sm text-slate-500 text-center"
-                  >
-                    No attendance records found for {format(parse(selectedDate, 'yyyy-MM-dd', new Date()), 'dd/MM/yyyy')}.
+                  <td colSpan={['super_admin', 'hr'].includes(userRole) ? 7 : 6} className="px-4 py-3 text-sm text-slate-500 text-center">
+                    No attendance records found for {format(selectedDate, 'dd/MM/yyyy')}.
                   </td>
                 </tr>
               ) : (
@@ -256,14 +232,10 @@ const Attendance = () => {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLocationColor(location)}`}>
-                        {location}
-                      </span>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLocationColor(location)}`}>{location}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(status)}`}>
-                        {status}
-                      </span>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(status)}`}>{status}</span>
                     </td>
                     {['super_admin', 'hr'].includes(userRole) && (
                       <td className="px-4 py-3">
@@ -292,53 +264,6 @@ const Attendance = () => {
               )}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-        <h2 className="text-xl font-bold text-slate-900 mb-4">Weekly Attendance Overview</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
-            const daySubmissions = submissions.filter(
-              (s) =>
-                new Date(new Date(s.date).getTime() + 5.5 * 60 * 60 * 1000).getDay() === (index + 1) % 7 &&
-                (userRole === 'dept_head' ? s.recipient === 'hr' : s.recipient === userRole)
-            );
-            const presentCount = daySubmissions.filter((s) => s.status === 'Approved').length;
-            const percentage = daySubmissions.length ? ((presentCount / daySubmissions.length) * 100).toFixed(1) : 0;
-
-            return (
-              <div
-                key={day}
-                className="bg-white/90 p-4 rounded-lg text-center hover:shadow-md hover:scale-105 transition-all duration-300"
-              >
-                <div className="text-sm font-medium text-slate-700 mb-2">{day}</div>
-                <div className="relative w-16 h-16 mx-auto">
-                  <svg className="w-full h-full" viewBox="0 0 36 36">
-                    <path
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="#e2e8f0"
-                      strokeWidth="3"
-                    />
-                    <path
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="#14b8a6"
-                      strokeWidth="3"
-                      strokeDasharray={`${percentage}, 100`}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-slate-800">
-                    {percentage}%
-                  </div>
-                </div>
-                <div className="text-xs text-slate-500 mt-2">
-                  {presentCount}/{daySubmissions.length}
-                </div>
-              </div>
-            );
-          })}
         </div>
       </div>
     </div>
