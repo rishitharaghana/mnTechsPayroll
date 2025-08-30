@@ -4,13 +4,14 @@ import { Calendar, Clock, FileText, MapPin } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { markAttendance, fetchEmployeeAttendance, clearState } from '../../redux/slices/attendanceSlice';
 import { fetchUserProfile } from '../../redux/slices/userSlice';
+import DatePicker from '../../Components/ui/date/DatePicker';
 
 const EmployeeAttendance = () => {
   const dispatch = useDispatch();
   const { submissions, loading, error, successMessage } = useSelector((state) => state.attendance);
   const { profile, error: userError } = useSelector((state) => state.user);
 
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(new Date());
   const [loginTime, setLoginTime] = useState('');
   const [logoutTime, setLogoutTime] = useState('');
   const [recipient, setRecipient] = useState('hr');
@@ -72,7 +73,7 @@ const EmployeeAttendance = () => {
     dispatch(
       markAttendance({
         employee_id: employee?.employee_id,
-        date,
+        date: date.toISOString().split('T')[0],
         login_time: loginTime,
         logout_time: logoutTime || null,
         recipient,
@@ -87,79 +88,78 @@ const EmployeeAttendance = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-gray-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-slate-100 min-h-screen">
       <div>
-        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2 tracking-tight">
+        <h1 className="text-2xl font-bold text-center text-slate-700 mb-2 tracking-tight">
           Mark Attendance
         </h1>
-        <p className="text-gray-600 text-center">Submit your daily attendance for review</p>
+        <p className="text-slate-700 text-center">Submit your daily attendance for review</p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+      <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-6">
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex flex-col">
-            <label className="mb-1 text-sm font-bold text-black tracking-tight">Employee</label>
+            <label className="mb-1 text-sm font-bold text-slate-700 tracking-tight">Employee</label>
             <div className="flex items-center space-x-2">
-              <FileText size={20} className="text-black" />
+              <FileText size={20} className="text-slate-700" />
               <input
                 type="text"
                 value={employeeName}
-                className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 cursor-not-allowed"
+                className="w-full px-4 py-3 bg-slate-100 border border-slate-300 rounded-lg text-slate-700 cursor-not-allowed"
                 disabled
                 aria-label="Employee"
               />
             </div>
           </div>
           <div className="flex flex-col">
-            <label className="mb-1 text-sm font-bold text-black tracking-tight">Date</label>
+            <label className="mb-1 text-sm font-bold text-slate-700 tracking-tight">Date</label>
             <div className="flex items-center space-x-2">
-              <Calendar size={20} className="text-black" />
-              <input
-                type="date"
+              <Calendar size={20} className="text-slate-700" />
+              <DatePicker
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 transition-all duration-300"
+                onChange={(newDate) => setDate(newDate)}
+                maxDate={new Date()}
+                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-transparent text-slate-700 transition-all duration-300"
                 required
                 aria-label="Date"
               />
             </div>
           </div>
           <div className="flex flex-col">
-            <label className="mb-1 text-sm font-bold text-black tracking-tight">Login Time</label>
+            <label className="mb-1 text-sm font-bold text-slate-700 tracking-tight">Login Time</label>
             <div className="flex items-center space-x-2">
-              <Clock size={20} className="text-black" />
+              <Clock size={20} className="text-slate-700" />
               <input
                 type="time"
                 value={loginTime}
                 onChange={(e) => setLoginTime(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 transition-all duration-300"
+                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-transparent text-slate-700 transition-all duration-300"
                 required
                 aria-label="Login Time"
               />
             </div>
           </div>
           <div className="flex flex-col">
-            <label className="mb-1 text-sm font-bold text-black tracking-tight">Logout Time</label>
+            <label className="mb-1 text-sm font-bold text-slate-700 tracking-tight">Logout Time</label>
             <div className="flex items-center space-x-2">
-              <Clock size={20} className="text-black" />
+              <Clock size={20} className="text-slate-700" />
               <input
                 type="time"
                 value={logoutTime}
                 onChange={(e) => setLogoutTime(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 transition-all duration-300"
+                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-transparent text-slate-700 transition-all duration-300"
                 aria-label="Logout Time"
               />
             </div>
           </div>
           <div className="flex flex-col">
-            <label className="mb-1 text-sm font-bold text-black tracking-tight">Location</label>
+            <label className="mb-1 text-sm font-bold text-slate-700 tracking-tight">Location</label>
             <div className="flex items-center space-x-2">
-              <MapPin size={20} className="text-black" />
+              <MapPin size={20} className="text-slate-700" />
               <select
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 transition-all duration-300"
+                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-transparent text-slate-700 transition-all duration-300"
                 required
                 aria-label="Location"
               >
@@ -172,13 +172,13 @@ const EmployeeAttendance = () => {
             </div>
           </div>
           <div className="flex flex-col">
-            <label className="mb-1 text-sm font-bold text-black tracking-tight">Submit To</label>
+            <label className="mb-1 text-sm font-bold text-slate-700 tracking-tight">Submit To</label>
             <div className="flex items-center space-x-2">
-              <FileText size={20} className="text-black" />
+              <FileText size={20} className="text-slate-700" />
               <select
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 transition-all duration-300"
+                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-700 focus:border-transparent text-slate-700 transition-all duration-300"
                 required
                 aria-label="Submit To"
               >
@@ -195,7 +195,7 @@ const EmployeeAttendance = () => {
               type="submit"
               disabled={loading}
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-                loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800 hover:scale-105'
+                loading ? 'bg-slate-400 cursor-not-allowed' : 'bg-teal-700 text-white hover:bg-teal-800 hover:scale-105'
               }`}
               aria-label="Submit Attendance"
             >
@@ -206,52 +206,62 @@ const EmployeeAttendance = () => {
         </form>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Attendance Submissions</h3>
+      <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-6">
+        <h3 className="text-lg font-semibold text-slate-700 mb-4">Your Attendance Submissions</h3>
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed border-collapse">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-teal-50">
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200">
                   Date
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200">
                   Login Time
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200">
                   Logout Time
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200">
                   Location
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200">
                   Submitted To
                 </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-200">
                   Status
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-200">
               {submissions.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-4 py-3 text-sm text-gray-500 text-center">
+                  <td colSpan="6" className="px-6 py-4 text-sm text-slate-700 text-center">
                     No attendance records found
                   </td>
                 </tr>
               ) : (
                 submissions.map(({ id, date, login_time, logout_time, location, recipient, status }) => (
-                  <tr key={id} className="hover:bg-gray-50 transition">
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {new Date(date).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{login_time}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{logout_time || 'N/A'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{location}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                  <tr key={id} className="hover:bg-teal-50 transition duration-200">
+                    <td className="px-6 py-4 text-sm text-slate-700">{new Date(date).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">{login_time}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">{logout_time || 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">{location}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">
                       {recipient === 'super_admin' ? 'Super Admin' : 'HR'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{status}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          status === 'Approved'
+                            ? 'bg-teal-100 text-teal-800'
+                            : status === 'Pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {status}
+                      </span>
+                    </td>
                   </tr>
                 ))
               )}

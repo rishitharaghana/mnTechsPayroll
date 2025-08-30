@@ -103,12 +103,11 @@ const GeneratePayroll = () => {
   const handleDownloadPDF = () => {
     if (!form.month) return alert("Please select a month first.");
     dispatch(clearState());
-    console.log("Downloading PDF for month:", form.month); // Debug log
     dispatch(downloadPayrollPDF({ month: form.month }));
   };
 
   return (
-    <div className="space-y-8 bg-slate-50 min-h-screen p-6">
+    <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6">
       <PageMeta title="Generate Payroll" description="Create and manage payroll entries for employees." />
       <PageBreadcrumb
         items={[
@@ -133,7 +132,7 @@ const GeneratePayroll = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300 max-w-3xl space-y-6"
+        className="w-full bg-white backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300 space-y-6"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
