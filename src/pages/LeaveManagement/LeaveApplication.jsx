@@ -8,10 +8,10 @@ import {
   fetchLeaveBalances,
   clearState,
 } from "../../redux/slices/leaveSlice";
-import { Calendar, List, Send, RefreshCw } from "lucide-react"; // Added Lucide icons
+import { Calendar, List, Send, RefreshCw } from "lucide-react"; 
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
-import DatePicker from "../../Components/ui/date/DatePicker"; // Custom DatePicker
+import DatePicker from "../../Components/ui/date/DatePicker"; 
 
 const LeaveApplication = () => {
   const dispatch = useDispatch();
@@ -57,7 +57,6 @@ const LeaveApplication = () => {
     dispatch(fetchMyLeaves());
     dispatch(fetchRecipientOptions());
     dispatch(fetchLeaveBalances());
-
     const interval = setInterval(() => {
       console.log("Polling fetchMyLeaves");
       dispatch(fetchMyLeaves());

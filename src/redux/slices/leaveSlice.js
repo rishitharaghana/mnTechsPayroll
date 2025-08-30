@@ -82,7 +82,6 @@ export const fetchPendingLeaves = createAsyncThunk(
     }
   }
 );
-
 export const fetchAllLeaves = createAsyncThunk(
   "leaves/fetchAllLeaves",
   async (_, { rejectWithValue }) => {
@@ -108,7 +107,6 @@ export const fetchAllLeaves = createAsyncThunk(
     }
   }
 );
-
 export const approveLeave = createAsyncThunk(
   "leaves/approveLeave",
   async (leave_id, { rejectWithValue }) => {

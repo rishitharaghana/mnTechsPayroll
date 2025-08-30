@@ -11,7 +11,14 @@ import {
   allocateSpecialLeave,
   clearState,
 } from "../../redux/slices/leaveSlice";
-import { Clock, CheckCircle, XCircle, UserCheck, Calendar, PlusCircle,  } from "lucide-react";
+import {
+  Clock,
+  CheckCircle,
+  XCircle,
+  UserCheck,
+  Calendar,
+  PlusCircle,
+} from "lucide-react";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 import DatePicker from "../../Components/ui/date/DatePicker";
@@ -109,7 +116,8 @@ const LeaveTracker = () => {
         const reqFrom = new Date(req.start_date);
         if (isNaN(reqFrom)) return false;
         return (
-          (filterStatus === "all" || req.status?.toLowerCase() === filterStatus) &&
+          (filterStatus === "all" ||
+            req.status?.toLowerCase() === filterStatus) &&
           reqFrom >= from &&
           reqFrom <= to
         );
@@ -120,8 +128,12 @@ const LeaveTracker = () => {
     const leavesArray = Array.isArray(leaves) ? leaves : [];
     const counts = {
       pending: pendingLeaves.length,
-      approved: leavesArray.filter((req) => req.status?.toLowerCase() === "approved").length,
-      rejected: leavesArray.filter((req) => req.status?.toLowerCase() === "rejected").length,
+      approved: leavesArray.filter(
+        (req) => req.status?.toLowerCase() === "approved"
+      ).length,
+      rejected: leavesArray.filter(
+        (req) => req.status?.toLowerCase() === "rejected"
+      ).length,
       total: leavesArray.length,
     };
 
@@ -214,9 +226,15 @@ const LeaveTracker = () => {
       });
       return;
     }
-    dispatch(allocateSpecialLeave({ employee_id, leave_type, days: daysNum })).then((result) => {
+    dispatch(
+      allocateSpecialLeave({ employee_id, leave_type, days: daysNum })
+    ).then((result) => {
       if (result.meta.requestStatus === "fulfilled") {
-        setSpecialLeaveData({ employee_id: "", leave_type: "maternity", days: "" });
+        setSpecialLeaveData({
+          employee_id: "",
+          leave_type: "maternity",
+          days: "",
+        });
         dispatch(fetchLeaveBalances());
       }
     });
@@ -245,25 +263,32 @@ const LeaveTracker = () => {
               Leave Management
             </h1>
             <p className="text-gray-600 mt-1">
-              Monitor and process {role === "hr" ? "employee and department head" : "HR"} leave requests
+              Monitor and process{" "}
+              {role === "hr" ? "employee and department head" : "HR"} leave
+              requests
             </p>
           </div>
           <div className="w-7/12 flex gap-4">
-            <DatePicker title="From Date" value={fromDate} onChange={setFromDate} />
+            <DatePicker
+              title="From Date"
+              value={fromDate}
+              onChange={setFromDate}
+            />
             <DatePicker title="To Date" value={toDate} onChange={setToDate} />
-          
           </div>
         </div>
 
         <div aria-live="polite">
           {loading && <p className="text-gray-600">Loading...</p>}
           {error && (
-            <p className="text-red-500">{typeof error === "string" ? error : error?.message || "An error occurred"}</p>
+            <p className="text-red-500">
+              {typeof error === "string"
+                ? error
+                : error?.message || "An error occurred"}
+            </p>
           )}
           {successMessage && <p className="text-green-600">{successMessage}</p>}
         </div>
-
-  
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {summary.map((item, i) => (
@@ -282,17 +307,21 @@ const LeaveTracker = () => {
                   <div
                     className={`w-10 h-10 rounded-md bg-teal-700 flex items-center justify-center transition-transform duration-300 group-hover:scale-105`}
                   >
-                    {React.cloneElement(item.icon, { className: "text-white w-5 h-5" })}
+                    {React.cloneElement(item.icon, {
+                      className: "text-white w-5 h-5",
+                    })}
                   </div>
-                  <p className="text-2xl font-bold text-slate-700">{item.count}</p>
+                  <p className="text-2xl font-bold text-slate-700">
+                    {item.count}
+                  </p>
                 </div>
-                <p className="text-sm font-semibold text-slate-700 uppercase tracking-wide">{item.label}</p>
+                <p className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                  {item.label}
+                </p>
               </div>
             </button>
           ))}
         </div>
-
-
 
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 overflow-hidden shadow-md hover:shadow-lg transition-all duration-300">
           <div className="p-6 border-b border-teal-200/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -323,7 +352,9 @@ const LeaveTracker = () => {
 
           <div className="space-y-6 p-6">
             {loading && leaves.length === 0 && pendingLeaves.length === 0 ? (
-              <p className="text-gray-600 text-center">Loading leave requests...</p>
+              <p className="text-gray-600 text-center">
+                Loading leave requests...
+              </p>
             ) : filteredLeaveData.length > 0 ? (
               filteredLeaveData.map((req) => (
                 <div
@@ -336,14 +367,22 @@ const LeaveTracker = () => {
                         {getInitial(req.employee_name)}
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-xl font-bold text-gray-900">{req.employee_name || "Unknown"}</h3>
-                        <p className="text-sm font-medium text-gray-600">{req.department || "N/A"}</p>
-                        <p className="text-xs text-gray-500">ID: {req.employee_id || "N/A"}</p>
-                        <p className="text-sm text-gray-700">
-                          <span className="font-medium">Reason:</span> {req.reason || "N/A"}
+                        <h3 className="text-xl font-bold text-gray-900">
+                          {req.employee_name || "Unknown"}
+                        </h3>
+                        <p className="text-sm font-medium text-gray-600">
+                          {req.department || "N/A"}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          ID: {req.employee_id || "N/A"}
                         </p>
                         <p className="text-sm text-gray-700">
-                          <span className="font-medium">Recipients:</span> {req.recipients?.join(", ") || "N/A"}
+                          <span className="font-medium">Reason:</span>{" "}
+                          {req.reason || "N/A"}
+                        </p>
+                        <p className="text-sm text-gray-700">
+                          <span className="font-medium">Recipients:</span>{" "}
+                          {req.recipients?.join(", ") || "N/A"}
                         </p>
                       </div>
                     </div>
@@ -352,14 +391,18 @@ const LeaveTracker = () => {
                         <Calendar size={16} className="text-teal-600" />
                         <span>
                           <strong>From:</strong>{" "}
-                          {req.start_date ? new Date(req.start_date).toLocaleDateString() : "N/A"}
+                          {req.start_date
+                            ? new Date(req.start_date).toLocaleDateString()
+                            : "N/A"}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Calendar size={16} className="text-teal-600" />
                         <span>
                           <strong>To:</strong>{" "}
-                          {req.end_date ? new Date(req.end_date).toLocaleDateString() : "N/A"}
+                          {req.end_date
+                            ? new Date(req.end_date).toLocaleDateString()
+                            : "N/A"}
                         </span>
                       </div>
                       <div className="text-sm text-gray-600">
@@ -368,7 +411,8 @@ const LeaveTracker = () => {
                       <div>
                         <span
                           className={`px-3 py-1 rounded-full text-xs text-white font-semibold bg-gradient-to-r ${
-                            typeColors[req.leave_type] || "from-gray-600 to-gray-700"
+                            typeColors[req.leave_type] ||
+                            "from-gray-600 to-gray-700"
                           }`}
                         >
                           {req.leave_type || "Unknown"}
@@ -377,10 +421,13 @@ const LeaveTracker = () => {
                     </div>
                     <div className="col-span-1 flex flex-col items-start md:items-end gap-3">
                       <div>
-                        <span className="text-xs font-medium text-gray-500 uppercase">Status</span>
+                        <span className="text-xs font-medium text-gray-500 uppercase">
+                          Status
+                        </span>
                         <p
                           className={`mt-1 px-3 py-1 rounded-full text-xs font-semibold ${
-                            statusColors[req.status?.toLowerCase()] || "bg-gray-100 text-gray-700"
+                            statusColors[req.status?.toLowerCase()] ||
+                            "bg-gray-100 text-gray-700"
                           }`}
                         >
                           {req.status || "Unknown"}
@@ -409,50 +456,70 @@ const LeaveTracker = () => {
                 </div>
               ))
             ) : (
-              <p className="text-gray-600 text-center">No leave requests found for the selected criteria.</p>
+              <p className="text-gray-600 text-center">
+                No leave requests found for the selected criteria.
+              </p>
             )}
           </div>
-          
         </div>
-              {(role === "hr" || role === "super_admin") && (
+        {(role === "hr" || role === "super_admin") && (
           <div className="bg-white/90 p-6 rounded-2xl border border-teal-700/50 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <PlusCircle size={24} className="text-teal-700" />
-              <h2 className="text-xl font-bold text-slate-700">Allocate Leaves</h2>
+              <h2 className="text-xl font-bold text-slate-700">
+                Allocate Leaves
+              </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">Monthly Leave Allocation</h3>
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">
+                  Monthly Leave Allocation
+                </h3>
                 <button
                   onClick={handleAllocateMonthlyLeaves}
                   disabled={loading}
                   className="flex items-center gap-2 bg-teal-700 text-white px-6 py-3 rounded-xl hover:bg-slate-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-700 transition duration-150 ease-in-out"
                 >
                   <PlusCircle size={20} />
-                  <span>{loading ? "Allocating..." : "Allocate Monthly Leaves"}</span>
+                  <span>
+                    {loading ? "Allocating..." : "Allocate Monthly Leaves"}
+                  </span>
                 </button>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">Special Leave Allocation</h3>
-                <form onSubmit={handleAllocateSpecialLeave} className="space-y-4">
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">
+                  Special Leave Allocation
+                </h3>
+                <form
+                  onSubmit={handleAllocateSpecialLeave}
+                  className="space-y-4"
+                >
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Employee ID</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Employee ID
+                    </label>
                     <input
                       type="text"
                       name="employee_id"
                       value={specialLeaveData.employee_id}
-                      onChange={(e) => handleSpecialLeaveChange("employee_id", e.target.value)}
+                      onChange={(e) =>
+                        handleSpecialLeaveChange("employee_id", e.target.value)
+                      }
                       className="mt-1 block w-full rounded-lg border border-teal-700 bg-white py-2.5 px-3 text-slate-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition duration-150 ease-in-out"
                       placeholder="Enter employee ID"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Leave Type</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Leave Type
+                    </label>
                     <select
                       name="leave_type"
                       value={specialLeaveData.leave_type}
-                      onChange={(e) => handleSpecialLeaveChange("leave_type", e.target.value)}
+                      onChange={(e) =>
+                        handleSpecialLeaveChange("leave_type", e.target.value)
+                      }
                       className="mt-1 block w-full rounded-lg border border-teal-700 bg-white py-2.5 px-3 text-slate-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition duration-150 ease-in-out"
                       required
                     >
@@ -461,12 +528,16 @@ const LeaveTracker = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Days</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Days
+                    </label>
                     <input
                       type="number"
                       name="days"
                       value={specialLeaveData.days}
-                      onChange={(e) => handleSpecialLeaveChange("days", e.target.value)}
+                      onChange={(e) =>
+                        handleSpecialLeaveChange("days", e.target.value)
+                      }
                       className="mt-1 block w-full rounded-lg border border-teal-700 bg-white py-2.5 px-3 text-slate-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition duration-150 ease-in-out"
                       placeholder="Enter number of days"
                       required
@@ -478,7 +549,9 @@ const LeaveTracker = () => {
                     className="flex items-center gap-2 bg-teal-700 text-white px-6 py-3 rounded-xl hover:bg-slate-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-700 transition duration-150 ease-in-out"
                   >
                     <PlusCircle size={20} />
-                    <span>{loading ? "Allocating..." : "Allocate Special Leave"}</span>
+                    <span>
+                      {loading ? "Allocating..." : "Allocate Special Leave"}
+                    </span>
                   </button>
                 </form>
               </div>
@@ -491,4 +564,3 @@ const LeaveTracker = () => {
 };
 
 export default LeaveTracker;
-
