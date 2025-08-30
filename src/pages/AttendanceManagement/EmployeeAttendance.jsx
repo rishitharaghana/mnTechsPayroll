@@ -252,6 +252,7 @@ const EmployeeAttendance = () => {
                       {recipient === 'super_admin' ? 'Super Admin' : 'HR'}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">{status}</td>
+                    
                   </tr>
                 ))
               )}

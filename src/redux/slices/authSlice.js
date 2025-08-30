@@ -80,7 +80,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = {
           id: action.payload.id,
-          name: action.payload.name || "",
+          name: action.payload.full_name || "",
           mobile: action.payload.mobile,
           role: action.payload.role,
           email: action.payload.email || null,

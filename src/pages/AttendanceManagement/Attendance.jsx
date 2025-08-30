@@ -266,6 +266,52 @@ const Attendance = () => {
           </table>
         </div>
       </div>
+      <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+        <h2 className="text-xl font-bold text-slate-900 mb-4">Weekly Attendance Overview</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+            const daySubmissions = submissions.filter(
+              (s) =>
+                new Date(s.date).getDay() === (index + 1) % 7 &&
+                (userRole === 'dept_head' ? s.recipient === 'hr' : s.recipient === userRole)
+            );
+            const presentCount = daySubmissions.filter((s) => s.status === 'Approved').length;
+            const percentage = daySubmissions.length ? ((presentCount / daySubmissions.length) * 100).toFixed(1) : 0;
+
+            return (
+              <div
+                key={day}
+                className="bg-white/90 p-4 rounded-lg text-center hover:shadow-md hover:scale-105 transition-all duration-300"
+              >
+                <div className="text-sm font-medium text-slate-700 mb-2">{day}</div>
+                <div className="relative w-16 h-16 mx-auto">
+                  <svg className="w-full h-full" viewBox="0 0 36 36">
+                    <path
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke="#e2e8f0"
+                      strokeWidth="3"
+                    />
+                    <path
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke="#14b8a6"
+                      strokeWidth="3"
+                      strokeDasharray={`${percentage}, 100`}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-slate-800">
+                    {percentage}%
+                  </div>
+                </div>
+                <div className="text-xs text-slate-500 mt-2">
+                  {presentCount}/{daySubmissions.length}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 };
