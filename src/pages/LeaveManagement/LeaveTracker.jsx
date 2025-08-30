@@ -193,7 +193,7 @@ const LeaveTracker = () => {
   const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "?");
 
   return (
-    <div className="p-6 space-y-6 bg-gray-100 min-h-screen font-sans">
+    <div>
       <div className="flex justify-end">
         <PageMeta
           title="Leave Tracker"
@@ -206,217 +206,218 @@ const LeaveTracker = () => {
           ]}
         />
       </div>
+      <div className="px-6 p-10 space-y-6 bg-gray-100 rounded-lg font-sans">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="w-5/12">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-slate-700 bg-clip-text text-transparent">
+              Leave Management
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Monitor and process{" "}
+              {role === "hr" ? "employee and department head" : "HR"} leave
+              requests
+            </p>
+          </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="w-5/12">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-slate-700 bg-clip-text text-transparent">
-            Leave Management
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Monitor and process{" "}
-            {role === "hr" ? "employee and department head" : "HR"} leave
-            requests
-          </p>
-        </div>
-
-        <div className="w-7/12 flex gap-4">
-          <DatePicker
-            title="From Date"
-            value={fromDate}
-            onChange={setFromDate}
-          />
-          <DatePicker title="To Date" value={toDate} onChange={setToDate} />
-        </div>
-      </div>
-
-      {/* Alerts */}
-      <div aria-live="polite">
-        {loading && <p className="text-gray-600">Loading...</p>}
-        {error && <p className="text-red-500">{error}</p>}
-        {successMessage && <p className="text-green-600">{successMessage}</p>}
-      </div>
-
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {summary.map((item, i) => (
-          <button
-            key={i}
-            onClick={() => item.status && handleFilter(item.status)}
-            className={`relative p-4 rounded-xl bg-white border border-slate-200 shadow-md hover:shadow-xl hover:bg-teal-50/10 transition-all duration-300 cursor-pointer group overflow-hidden ${
-              item.status === filterStatus ? "ring-2 ring-teal-700" : ""
-            }`}
-          >
-            {/* Background Accent Shape */}
-            <div
-              className={`absolute top-0 left-0 w-16 h-16 bg-teal-700/10 rounded-full -translate-x-8 -translate-y-8 group-hover:-translate-x-6 group-hover:-translate-y-6 transition-transform duration-400`}
-            ></div>
-
-            {/* Card Content */}
-            <div className="relative flex flex-col gap-2">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-10 h-10 rounded-md bg-teal-700 flex items-center justify-center transition-transform duration-300 group-hover:scale-105`}
-                >
-                  {React.cloneElement(item.icon, {
-                    className: "text-white w-5 h-5",
-                  })}
-                </div>
-                <p className="text-2xl font-bold text-slate-700">
-                  {item.count}
-                </p>
-              </div>
-              <p className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                {item.label}
-              </p>
-            </div>
-
-            {/* Hover Accent Border */}
-            <div
-              className={`absolute bottom-0 left-0 w-full h-1 transition-opacity duration-300`}
-            ></div>
-          </button>
-        ))}
-      </div>
-
-      {/* Leave Requests List */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 overflow-hidden shadow-md hover:shadow-lg transition-all duration-300">
-        <div className="p-6 border-b border-teal-200/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-xl font-bold text-gray-900">Leave Requests</h2>
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleFilter("all")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                filterStatus === "all"
-                  ? "bg-gradient-to-r from-teal-600 to-slate-700 text-white shadow-md"
-                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              } transition-all duration-300`}
-            >
-              Show All
-            </button>
-            <button
-              onClick={() => handleFilter("pending")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                filterStatus === "pending"
-                  ? "bg-gradient-to-r from-teal-600 to-slate-700 text-white shadow-md"
-                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              } transition-all duration-300`}
-            >
-              Pending
-            </button>
+          <div className="w-7/12 flex gap-4">
+            <DatePicker
+              title="From Date"
+              value={fromDate}
+              onChange={setFromDate}
+            />
+            <DatePicker title="To Date" value={toDate} onChange={setToDate} />
           </div>
         </div>
 
-        <div className="space-y-6 p-6">
-          {loading && leaves.length === 0 && pendingLeaves.length === 0 ? (
-            <p className="text-gray-600 text-center">
-              Loading leave requests...
-            </p>
-          ) : filteredLeaveData.length > 0 ? (
-            filteredLeaveData.map((req) => (
+        {/* Alerts */}
+        <div aria-live="polite">
+          {loading && <p className="text-gray-600">Loading...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+          {successMessage && <p className="text-green-600">{successMessage}</p>}
+        </div>
+
+        {/* Summary cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {summary.map((item, i) => (
+            <button
+              key={i}
+              onClick={() => item.status && handleFilter(item.status)}
+              className={`relative p-4 rounded-xl bg-white border border-slate-200 shadow-md hover:shadow-xl hover:bg-teal-50/10 transition-all duration-300 cursor-pointer group overflow-hidden ${
+                item.status === filterStatus ? "ring-2 ring-teal-700" : ""
+              }`}
+            >
+              {/* Background Accent Shape */}
               <div
-                key={req.id}
-                className="p-6 bg-white/95 rounded-2xl border border-teal-200/50 hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300"
+                className={`absolute top-0 left-0 w-16 h-16 bg-teal-700/10 rounded-full -translate-x-8 -translate-y-8 group-hover:-translate-x-6 group-hover:-translate-y-6 transition-transform duration-400`}
+              ></div>
+
+              {/* Card Content */}
+              <div className="relative flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-md bg-teal-700 flex items-center justify-center transition-transform duration-300 group-hover:scale-105`}
+                  >
+                    {React.cloneElement(item.icon, {
+                      className: "text-white w-5 h-5",
+                    })}
+                  </div>
+                  <p className="text-2xl font-bold text-slate-700">
+                    {item.count}
+                  </p>
+                </div>
+                <p className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                  {item.label}
+                </p>
+              </div>
+
+              {/* Hover Accent Border */}
+              <div
+                className={`absolute bottom-0 left-0 w-full h-1 transition-opacity duration-300`}
+              ></div>
+            </button>
+          ))}
+        </div>
+
+        {/* Leave Requests List */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 overflow-hidden shadow-md hover:shadow-lg transition-all duration-300">
+          <div className="p-6 border-b border-teal-200/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h2 className="text-xl font-bold text-gray-900">Leave Requests</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleFilter("all")}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  filterStatus === "all"
+                    ? "bg-gradient-to-r from-teal-600 to-slate-700 text-white shadow-md"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                } transition-all duration-300`}
               >
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                  <div className="col-span-2 flex items-start gap-4">
-                    {/* ✅ Profile Initial */}
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-r from-teal-600 to-slate-700 text-white flex items-center justify-center text-2xl font-bold shadow-md">
-                      {getInitial(req.employee_name)}
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="text-xl font-bold text-gray-900">
-                        {req.employee_name || "Unknown"}
-                      </h3>
-                      <p className="text-sm font-medium text-gray-600">
-                        {req.department || "N/A"}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        ID: {req.employee_id || "N/A"}
-                      </p>
-                      <p className="text-sm text-gray-700">
-                        <span className="font-medium">Reason:</span>{" "}
-                        {req.reason || "N/A"}
-                      </p>
-                      <p className="text-sm text-gray-700">
-                        <span className="font-medium">Recipients:</span>{" "}
-                        {req.recipients?.join(", ") || "N/A"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="col-span-2 space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar size={16} className="text-teal-600" />
-                      <span>
-                        <strong>From:</strong>{" "}
-                        {req.start_date
-                          ? new Date(req.start_date).toLocaleDateString()
-                          : "N/A"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar size={16} className="text-teal-600" />
-                      <span>
-                        <strong>To:</strong>{" "}
-                        {req.end_date
-                          ? new Date(req.end_date).toLocaleDateString()
-                          : "N/A"}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      <strong>Duration:</strong> {req.days || "N/A"} days
-                    </div>
-                    <div>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs text-white font-semibold bg-gradient-to-r ${
-                          typeColors[req.leave_type] ||
-                          "from-gray-600 to-gray-700"
-                        }`}
-                      >
-                        {req.leave_type || "Unknown"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="col-span-1 flex flex-col items-start md:items-end gap-3">
-                    <div>
-                      <span className="text-xs font-medium text-gray-500 uppercase">
-                        Status
-                      </span>
-                      <p
-                        className={`mt-1 px-3 py-1 rounded-full text-xs font-semibold ${
-                          statusColors[req.status?.toLowerCase()] ||
-                          "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        {req.status || "Unknown"}
-                      </p>
-                    </div>
-                    {req.status?.toLowerCase() === "pending" && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleApprove(req.id)}
-                          className="px-4 py-1.5 bg-gradient-to-r from-green-500 to-green-700 text-white text-xs rounded-lg hover:from-green-600 hover:to-green-800 transition-all duration-300 shadow-md"
-                          disabled={loading}
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleReject(req.id)}
-                          className="px-4 py-1.5 bg-gradient-to-r from-red-500 to-red-700 text-white text-xs rounded-lg hover:from-red-600 hover:to-red-800 transition-all duration-300 shadow-md"
-                          disabled={loading}
-                        >
-                          Reject
-                        </button>
+                Show All
+              </button>
+              <button
+                onClick={() => handleFilter("pending")}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  filterStatus === "pending"
+                    ? "bg-gradient-to-r from-teal-600 to-slate-700 text-white shadow-md"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                } transition-all duration-300`}
+              >
+                Pending
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-6 p-6">
+            {loading && leaves.length === 0 && pendingLeaves.length === 0 ? (
+              <p className="text-gray-600 text-center">
+                Loading leave requests...
+              </p>
+            ) : filteredLeaveData.length > 0 ? (
+              filteredLeaveData.map((req) => (
+                <div
+                  key={req.id}
+                  className="p-6 bg-white/95 rounded-2xl border border-teal-200/50 hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                    <div className="col-span-2 flex items-start gap-4">
+                      {/* ✅ Profile Initial */}
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-r from-teal-600 to-slate-700 text-white flex items-center justify-center text-2xl font-bold shadow-md">
+                        {getInitial(req.employee_name)}
                       </div>
-                    )}
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-bold text-gray-900">
+                          {req.employee_name || "Unknown"}
+                        </h3>
+                        <p className="text-sm font-medium text-gray-600">
+                          {req.department || "N/A"}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          ID: {req.employee_id || "N/A"}
+                        </p>
+                        <p className="text-sm text-gray-700">
+                          <span className="font-medium">Reason:</span>{" "}
+                          {req.reason || "N/A"}
+                        </p>
+                        <p className="text-sm text-gray-700">
+                          <span className="font-medium">Recipients:</span>{" "}
+                          {req.recipients?.join(", ") || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="col-span-2 space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar size={16} className="text-teal-600" />
+                        <span>
+                          <strong>From:</strong>{" "}
+                          {req.start_date
+                            ? new Date(req.start_date).toLocaleDateString()
+                            : "N/A"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar size={16} className="text-teal-600" />
+                        <span>
+                          <strong>To:</strong>{" "}
+                          {req.end_date
+                            ? new Date(req.end_date).toLocaleDateString()
+                            : "N/A"}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <strong>Duration:</strong> {req.days || "N/A"} days
+                      </div>
+                      <div>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs text-white font-semibold bg-gradient-to-r ${
+                            typeColors[req.leave_type] ||
+                            "from-gray-600 to-gray-700"
+                          }`}
+                        >
+                          {req.leave_type || "Unknown"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="col-span-1 flex flex-col items-start md:items-end gap-3">
+                      <div>
+                        <span className="text-xs font-medium text-gray-500 uppercase">
+                          Status
+                        </span>
+                        <p
+                          className={`mt-1 px-3 py-1 rounded-full text-xs font-semibold ${
+                            statusColors[req.status?.toLowerCase()] ||
+                            "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {req.status || "Unknown"}
+                        </p>
+                      </div>
+                      {req.status?.toLowerCase() === "pending" && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleApprove(req.id)}
+                            className="px-4 py-1.5 bg-gradient-to-r from-green-500 to-green-700 text-white text-xs rounded-lg hover:from-green-600 hover:to-green-800 transition-all duration-300 shadow-md"
+                            disabled={loading}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleReject(req.id)}
+                            className="px-4 py-1.5 bg-gradient-to-r from-red-500 to-red-700 text-white text-xs rounded-lg hover:from-red-600 hover:to-red-800 transition-all duration-300 shadow-md"
+                            disabled={loading}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-600 text-center">
-              No leave requests found for the selected criteria.
-            </p>
-          )}
+              ))
+            ) : (
+              <p className="text-gray-600 text-center">
+                No leave requests found for the selected criteria.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
