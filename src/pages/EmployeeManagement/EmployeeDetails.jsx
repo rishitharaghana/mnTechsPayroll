@@ -167,18 +167,17 @@ useEffect(() => {
       }));
     }
   }
-  // Set current step based on progress
  if (progress) {
   if (progress.bankDetails) {
-    setCurrentStep(4); // ✅ Move beyond last step if everything done
+    setCurrentStep(4);
   } else if (progress.documents) {
-    setCurrentStep(3); // Bank Details
+    setCurrentStep(3); 
   } else if (progress.educationDetails) {
-    setCurrentStep(2); // Documents
+    setCurrentStep(2); 
   } else if (progress.personalDetails) {
-    setCurrentStep(1); // Education
+    setCurrentStep(1); 
   } else {
-    setCurrentStep(0); // Personal
+    setCurrentStep(0); 
   }
 }
 }, [employees, employeeId, progress]);

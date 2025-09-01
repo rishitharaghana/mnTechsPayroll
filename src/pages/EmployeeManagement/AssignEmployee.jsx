@@ -16,8 +16,9 @@ const AssignEmployee = () => {
     mobile: "",
     emergencyPhone: "",
     address: "",
-    annualSalary: "",
+    basicSalary: "", // Changed from annualSalary
     allowances: "",
+    bonuses: "", // Added bonuses
     joinDate: "",
     roleType: "",
     department: "",
@@ -47,7 +48,7 @@ const AssignEmployee = () => {
     "Digital Marketing": ["Digital Marketing Manager"],
     "Graphic Designing": ["Design Manager"],
     HR: ["HR Manager"],
-    IT: ["Technical Lead"], // Assuming Technical Lead as a managerial role
+    IT: ["Technical Lead"],
     Marketing: ["Marketing Manager"],
     "Telecalling Operations": ["Telemarketing Manager"],
   };
@@ -131,17 +132,23 @@ const AssignEmployee = () => {
       if (["Department Head", "Employee", "Manager"].includes(employee.roleType) && !employee.department) {
         newErrors.department = "Department is required";
       }
-      if (["Employee", "Manager"].includes(employee.roleType) && !employee.position) {
+      if (["Department Head", "Employee", "Manager"].includes(employee.roleType) && !employee.position) {
         newErrors.position = "Position is required";
       }
       if (["Employee", "Manager"].includes(employee.roleType) && !employee.employmentType) {
         newErrors.employmentType = "Employment Type is required";
       }
-      if (employee.annualSalary && isNaN(employee.annualSalary)) {
-        newErrors.annualSalary = "Annual Salary must be a number";
+      if (!employee.basicSalary) newErrors.basicSalary = "Basic Salary is required";
+      if (employee.basicSalary && (isNaN(employee.basicSalary) || parseFloat(employee.basicSalary) < 0)) {
+        newErrors.basicSalary = "Basic Salary must be a non-negative number";
       }
-      if (employee.allowances && isNaN(employee.allowances)) {
-        newErrors.allowances = "Allowances must be a number";
+      if (!employee.allowances) newErrors.allowances = "Allowances is required";
+      if (employee.allowances && (isNaN(employee.allowances) || parseFloat(employee.allowances) < 0)) {
+        newErrors.allowances = "Allowances must be a non-negative number";
+      }
+      if (!employee.bonuses) newErrors.bonuses = "Bonuses is required";
+      if (employee.bonuses && (isNaN(employee.bonuses) || parseFloat(employee.bonuses) < 0)) {
+        newErrors.bonuses = "Bonuses must be a non-negative number";
       }
     }
     return newErrors;
@@ -173,6 +180,10 @@ const AssignEmployee = () => {
         emergency_phone: employee.emergencyPhone || null,
         address: employee.address || null,
         password: employee.password,
+        basic_salary: parseFloat(employee.basicSalary) || 0,
+        allowances: parseFloat(employee.allowances) || 0,
+        bonuses: parseFloat(employee.bonuses) || 0,
+        join_date: employee.joinDate,
       };
 
       if (employee.roleType === "Department Head") {
@@ -182,16 +193,10 @@ const AssignEmployee = () => {
         employeeData.department_name = employee.department;
         employeeData.designation_name = employee.position;
         employeeData.employment_type = employee.employmentType;
-        employeeData.basic_salary = employee.annualSalary ? parseFloat(employee.annualSalary) / 12 : 0;
-        employeeData.allowances = employee.allowances ? parseFloat(employee.allowances) : 0;
-        employeeData.join_date = employee.joinDate;
       } else if (employee.roleType === "Employee") {
         employeeData.department_name = employee.department;
         employeeData.designation_name = employee.position;
         employeeData.employment_type = employee.employmentType;
-        employeeData.basic_salary = employee.annualSalary ? parseFloat(employee.annualSalary) / 12 : 0;
-        employeeData.allowances = employee.allowances ? parseFloat(employee.allowances) : 0;
-        employeeData.join_date = employee.joinDate;
       }
 
       console.log("Submitting Employee Data:", employeeData);
@@ -205,8 +210,9 @@ const AssignEmployee = () => {
           mobile: "",
           emergencyPhone: "",
           address: "",
-          annualSalary: "",
+          basicSalary: "",
           allowances: "",
+          bonuses: "",
           joinDate: "",
           roleType: "",
           department: "",
@@ -418,7 +424,70 @@ const AssignEmployee = () => {
                       <p className="mt-1 text-sm text-red-600 font-medium">{errors.joinDate}</p>
                     )}
                   </div>
-                  {["Department Head", "Manager", "Employee"].includes(employee.roleType) && (
+                  <div className="relative group z-10">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                      Basic Salary <span className="text-red-600 font-bold">*</span>
+                      <span className="ml-1 text-gray-400 cursor-help" title="Monthly basic salary">
+                        ⓘ
+                      </span>
+                    </label>
+                    <input
+                      type="number"
+                      value={employee.basicSalary}
+                      onChange={(e) => handleInput("basicSalary", e.target.value)}
+                      className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
+                        errors.basicSalary ? "border-red-500 animate-pulse" : ""
+                      }`}
+                      aria-label="Basic Salary"
+                      required
+                    />
+                    {errors.basicSalary && (
+                      <p className="mt-1 text-sm text-red-600 font-medium">{errors.basicSalary}</p>
+                    )}
+                  </div>
+                  <div className="relative group z-10">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                      Allowances <span className="text-red-600 font-bold">*</span>
+                      <span className="ml-1 text-gray-400 cursor-help" title="Monthly allowances">
+                        ⓘ
+                      </span>
+                    </label>
+                    <input
+                      type="number"
+                      value={employee.allowances}
+                      onChange={(e) => handleInput("allowances", e.target.value)}
+                      className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
+                        errors.allowances ? "border-red-500 animate-pulse" : ""
+                      }`}
+                      aria-label="Allowances"
+                      required
+                    />
+                    {errors.allowances && (
+                      <p className="mt-1 text-sm text-red-600 font-medium">{errors.allowances}</p>
+                    )}
+                  </div>
+                  <div className="relative group z-10">
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                      Bonuses <span className="text-red-600 font-bold">*</span>
+                      <span className="ml-1 text-gray-400 cursor-help" title="Monthly bonuses">
+                        ⓘ
+                      </span>
+                    </label>
+                    <input
+                      type="number"
+                      value={employee.bonuses}
+                      onChange={(e) => handleInput("bonuses", e.target.value)}
+                      className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
+                        errors.bonuses ? "border-red-500 animate-pulse" : ""
+                      }`}
+                      aria-label="Bonuses"
+                      required
+                    />
+                    {errors.bonuses && (
+                      <p className="mt-1 text-sm text-red-600 font-medium">{errors.bonuses}</p>
+                    )}
+                  </div>
+                  {["Department Head", "Employee", "Manager"].includes(employee.roleType) && (
                     <div className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
                         Department <span className="text-red-600 font-bold">*</span>
@@ -497,72 +566,30 @@ const AssignEmployee = () => {
                     </div>
                   )}
                   {["Employee", "Manager"].includes(employee.roleType) && (
-                    <>
-                      <div className="relative group z-10">
-                        <label className="block text-sm font-medium text-gray-900 mb-2">
-                          Annual Salary{" "}
-                          <span className="text-gray-400 cursor-help" title="Optional monthly salary amount">
-                            ⓘ
-                          </span>
-                        </label>
-                        <input
-                          type="number"
-                          value={employee.annualSalary}
-                          onChange={(e) => handleInput("annualSalary", e.target.value)}
-                          className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
-                            errors.annualSalary ? "border-red-500 animate-pulse" : ""
-                          }`}
-                          aria-label="Annual Salary"
-                        />
-                        {errors.annualSalary && (
-                          <p className="mt-1 text-sm text-red-600 font-medium">{errors.annualSalary}</p>
-                        )}
-                      </div>
-                      <div className="relative group z-10">
-                        <label className="block text-sm font-medium text-gray-900 mb-2">
-                          Allowances{" "}
-                          <span className="text-gray-400 cursor-help" title="Optional additional allowances">
-                            ⓘ
-                          </span>
-                        </label>
-                        <input
-                          type="number"
-                          value={employee.allowances}
-                          onChange={(e) => handleInput("allowances", e.target.value)}
-                          className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
-                            errors.allowances ? "border-red-500 animate-pulse" : ""
-                          }`}
-                          aria-label="Allowances"
-                        />
-                        {errors.allowances && (
-                          <p className="mt-1 text-sm text-red-600 font-medium">{errors.allowances}</p>
-                        )}
-                      </div>
-                      <div className="relative group z-10">
-                        <label className="block text-sm font-medium text-gray-900 mb-2">
-                          Employment Type <span className="text-red-600 font-bold">*</span>
-                        </label>
-                        <select
-                          value={employee.employmentType}
-                          onChange={(e) => handleInput("employmentType", e.target.value)}
-                          className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                            errors.employmentType ? "border-red-500 animate-pulse" : ""
-                          }`}
-                          aria-label="Select employment type"
-                          required
-                        >
-                          <option value="">Select Employment Type</option>
-                          {employmentTypes.map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
-                        </select>
-                        {errors.employmentType && (
-                          <p className="mt-1 text-sm text-red-600 font-medium">{errors.employmentType}</p>
-                        )}
-                      </div>
-                    </>
+                    <div className="relative group z-10">
+                      <label className="block text-sm font-medium text-gray-900 mb-2">
+                        Employment Type <span className="text-red-600 font-bold">*</span>
+                      </label>
+                      <select
+                        value={employee.employmentType}
+                        onChange={(e) => handleInput("employmentType", e.target.value)}
+                        className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
+                          errors.employmentType ? "border-red-500 animate-pulse" : ""
+                        }`}
+                        aria-label="Select employment type"
+                        required
+                      >
+                        <option value="">Select Employment Type</option>
+                        {employmentTypes.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.employmentType && (
+                        <p className="mt-1 text-sm text-red-600 font-medium">{errors.employmentType}</p>
+                      )}
+                    </div>
                   )}
                 </div>
               )}

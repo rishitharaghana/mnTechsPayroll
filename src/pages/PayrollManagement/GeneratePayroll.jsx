@@ -19,7 +19,6 @@ const GeneratePayroll = () => {
     console.log("PayrollList in state:", payrollList);
   }, [employees, payrollList]);
 
-  // Restrict access to HR and super admins
   if (!isAuthenticated || !["hr", "super_admin"].includes(role)) {
     return (
       <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6">
@@ -28,7 +27,6 @@ const GeneratePayroll = () => {
     );
   }
 
-  // Fetch employees and payroll on mount
   useEffect(() => {
     dispatch(fetchEmployees());
     const formattedMonth = format(selectedMonth, "yyyy-MM");
@@ -42,7 +40,7 @@ const GeneratePayroll = () => {
       return;
     }
     const formattedMonth = format(selectedMonth, "yyyy-MM");
-    console.log("Generating payroll for month:", formattedMonth); // Debug log
+    console.log("Generating payroll for month:", formattedMonth);
     dispatch(clearState());
     dispatch(generatePayroll({ month: formattedMonth })).then((result) => {
       if (generatePayroll.fulfilled.match(result)) {
