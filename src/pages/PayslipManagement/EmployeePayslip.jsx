@@ -1,181 +1,231 @@
-import React, { useState, useMemo } from 'react';
-import axios from 'axios';
-
-const samplePayslips = {
-  '2025-08': {
-    employeeId: 'EMP001',
-    employeeName: 'John Doe',
-    department: 'Engineering',
-    designation: 'Software Developer',
-    month: 'August',
-    year: 2025,
-    earnings: { basic: 30000, hra: 10000, allowances: 5000, bonus: 2000 },
-    deductions: { pf: 1800, tax: 2500, professionalTax: 200 },
-  },
-  '2025-07': {
-    employeeId: 'EMP001',
-    employeeName: 'John Doe',
-    department: 'Engineering',
-    designation: 'Software Developer',
-    month: 'July',
-    year: 2025,
-    earnings: { basic: 30000, hra: 10000, allowances: 5000, bonus: 1000 },
-    deductions: { pf: 1800, tax: 2400, professionalTax: 200 },
-  },
-  '2025-06': {
-    employeeId: 'EMP001',
-    employeeName: 'John Doe',
-    department: 'Engineering',
-    designation: 'Software Developer',
-    month: 'June',
-    year: 2025,
-    earnings: { basic: 30000, hra: 10000, allowances: 5000, bonus: 1500 },
-    deductions: { pf: 1800, tax: 2400, professionalTax: 200 },
-  },
-};
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Eye } from 'lucide-react';
+import { fetchPayslips, downloadPayslip, clearError } from '../../redux/slices/payslipSlice';
 
 const EmployeePayslip = () => {
-  const [fromDate, setFromDate] = useState('2025-06');
-  const [toDate, setToDate] = useState('2025-08');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { user, role, isAuthenticated } = useSelector((state) => state.auth);
+  const { loading, error, payslips } = useSelector((state) => state.payslip);
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(
+    role === 'employee' && user?.employee_id ? user.employee_id : ''
+  );
+  const [isLoadingDownload, setIsLoadingDownload] = useState(false);
+  const [downloadError, setDownloadError] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
 
-  const filteredPayslips = useMemo(() => {
-    const from = new Date(fromDate + '-01');
-    const to = new Date(toDate + '-01');
-    return Object.keys(samplePayslips)
-      .filter((key) => {
-        const payslipDate = new Date(key + '-01');
-        return payslipDate >= from && payslipDate <= to;
-      })
-      .map((key) => ({ key, ...samplePayslips[key] }))
-      .sort((a, b) => new Date(a.key) - new Date(b.key));
-  }, [fromDate, toDate]);
+  // Fetch payslips on mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchPayslips());
+      dispatch(clearError());
+    }
+  }, [dispatch, isAuthenticated]);
 
-  const payslipData = useMemo(() => {
-    return filteredPayslips.map((payslip) => {
-      const { earnings, deductions } = payslip;
-      const totalEarnings = earnings.basic + earnings.hra + earnings.allowances + earnings.bonus;
-      const totalDeductions = deductions.pf + deductions.tax + deductions.professionalTax;
-      return { ...payslip, totalEarnings, totalDeductions, netPay: totalEarnings - totalDeductions };
-    });
-  }, [filteredPayslips]);
+  // Filter payslips based on user role and selected month
+  const filteredPayslips = useMemo(() => {
+    return (Array.isArray(payslips) ? payslips : [])
+      .filter((slip) => {
+        // Employees can only see their own payslips
+        if (role === 'employee' && slip.employee_id !== user?.employee_id) return false;
+        // Filter by selected employee and month, and only show approved payslips
+        return (
+          (!selectedEmployeeId || slip.employee_id === selectedEmployeeId) &&
+          (!selectedMonth || slip.month === selectedMonth) &&
+          slip.status === 'Approved'
+        );
+      })
+      .map((slip) => ({
+        ...slip,
+        totalEarnings: slip.basic_salary + slip.hra + slip.da + slip.other_allowances,
+        totalDeductions:
+          slip.pf_deduction + slip.esic_deduction + slip.tax_deduction + slip.professional_tax,
+        netPay: slip.net_salary,
+      }))
+      .sort((a, b) => new Date(b.month + '-01') - new Date(a.month + '-01')); // Sort by month descending
+  }, [payslips, selectedMonth, selectedEmployeeId, role, user]);
+
+  // Get unique months for dropdown
+  const payPeriods = useMemo(() => {
+    return [...new Set(payslips.map((slip) => slip.month))].sort(
+      (a, b) => new Date(b + '-01') - new Date(a + '-01')
+    );
+  }, [payslips]);
+
+  // Get employees for HR/admin view
+  const employees = useMemo(() => {
+    return [...new Set(payslips.map((slip) => ({
+      employee_id: slip.employee_id,
+      employee_name: slip.employee,
+    })))];
+  }, [payslips]);
 
   const handlePreview = () => {
     setShowPreview(true);
-    setError(null);
+    setDownloadError(null);
   };
 
-  const generatePDF = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await axios.post(
-        'http://localhost:3007/generate-payslip',
-        { from: fromDate, to: toDate },
-        { responseType: 'blob' }
-      );
+  const handleDownload = async () => {
+    if (!selectedEmployeeId || !selectedMonth) {
+      setDownloadError('Please select both an employee and a month');
+      return;
+    }
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Payslips-${fromDate}-to-${toDate}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+    const slip = filteredPayslips.find(
+      (slip) => slip.employee_id === selectedEmployeeId && slip.month === selectedMonth
+    );
+    if (!slip) {
+      setDownloadError('No approved payslip found for the selected employee and month');
+      return;
+    }
+
+    setIsLoadingDownload(true);
+    setDownloadError(null);
+    try {
+      await dispatch(downloadPayslip({ employeeId: selectedEmployeeId, month: selectedMonth })).unwrap();
     } catch (err) {
-      setError('Failed to generate PDF. Please try again.');
-      console.error('PDF generation error:', err);
+      setDownloadError(err || 'Failed to download payslip');
+      console.error('Download error:', err);
     } finally {
-      setIsLoading(false);
+      setIsLoadingDownload(false);
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto bg-white shadow-md rounded-lg">
+        <p className="text-red-500">Please log in to view payslips.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white shadow-md rounded-lg">
       <h2 className="text-xl font-bold mb-4">Payslip Dashboard</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        {role !== 'employee' && (
+          <div>
+            <label htmlFor="employee-select" className="block mb-2 font-medium">
+              Select Employee
+            </label>
+            <select
+              id="employee-select"
+              value={selectedEmployeeId}
+              onChange={(e) => setSelectedEmployeeId(e.target.value)}
+              className="border px-3 py-2 rounded w-full"
+              aria-label="Select employee"
+            >
+              <option value="">Select Employee</option>
+              {employees.map((emp) => (
+                <option key={emp.employee_id} value={emp.employee_id}>
+                  {emp.employee_name} ({emp.employee_id})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div>
-          <label htmlFor="from-date" className="block mb-2 font-medium">
-            From Month
+          <label htmlFor="month-select" className="block mb-2 font-medium">
+            Select Month
           </label>
-          <input
-            id="from-date"
-            type="month"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
+          <select
+            id="month-select"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
             className="border px-3 py-2 rounded w-full"
-            aria-label="Select start month for payslips"
-            max={toDate}
-          />
-        </div>
-        <div>
-          <label htmlFor="to-date" className="block mb-2 font-medium">
-            To Month
-          </label>
-          <input
-            id="to-date"
-            type="month"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="border px-3 py-2 rounded w-full"
-            aria-label="Select end month for payslips"
-            min={fromDate}
-          />
+            aria-label="Select pay period"
+          >
+            <option value="">Select Month</option>
+            {payPeriods.map((period) => (
+              <option key={period} value={period}>
+                {period}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
       <div className="flex gap-4 mb-4">
         <button
           onClick={handlePreview}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          aria-label="Preview payslips for selected date range"
+          disabled={!selectedMonth || !selectedEmployeeId || loading}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Preview payslips for selected employee and month"
         >
           Preview
         </button>
         <button
-          onClick={generatePDF}
-          disabled={isLoading}
+          onClick={handleDownload}
+          disabled={isLoadingDownload || !selectedMonth || !selectedEmployeeId}
           className={`bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 ${
-            isLoading ? 'opacity-50 cursor-not-allowed' : ''
+            isLoadingDownload ? 'opacity-50 cursor-not-allowed' : ''
           }`}
-          aria-label="Download payslips as PDF"
+          aria-label="Download payslip as PDF"
         >
-          {isLoading ? 'Generating...' : 'Download PDF'}
+          {isLoadingDownload ? (
+            <>
+              <svg className="animate-spin h-5 w-5 mr-2 inline" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              </svg>
+              Generating...
+            </>
+          ) : (
+            <>
+              <Eye size={18} className="mr-2 inline" />
+              Download PDF
+            </>
+          )}
         </button>
       </div>
 
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+      {(error || downloadError) && (
+        <p className="text-red-500 mb-4">{error || downloadError}</p>
+      )}
 
-      {showPreview && payslipData.length > 0 ? (
+      {showPreview && filteredPayslips.length > 0 ? (
         <div>
           <h3 className="text-lg font-semibold mb-2">Payslip Preview</h3>
-          {payslipData.map((payslip) => (
-            <div key={payslip.key} className="bg-gray-50 p-4 rounded shadow mb-4">
-              <h4 className="text-md font-bold">{payslip.month} {payslip.year}</h4>
-              <p><strong>Employee Name:</strong> {payslip.employeeName}</p>
-              <p><strong>Employee ID:</strong> {payslip.employeeId}</p>
-              <p><strong>Department:</strong> {payslip.department}</p>
-              <p><strong>Designation:</strong> {payslip.designation}</p>
-              <hr className="my-3" />
-              <p><strong>Basic:</strong> ₹{payslip.earnings.basic}</p>
-              <p><strong>HRA:</strong> ₹{payslip.earnings.hra}</p>
-              <p><strong>Allowances:</strong> ₹{payslip.earnings.allowances}</p>
-              <p><strong>Bonus:</strong> ₹{payslip.earnings.bonus}</p>
-              <hr className="my-3" />
-              <p><strong>PF:</strong> ₹{payslip.deductions.pf}</p>
-              <p><strong>Tax:</strong> ₹{payslip.deductions.tax}</p>
-              <p><strong>Professional Tax:</strong> ₹{payslip.deductions.professionalTax}</p>
-              <hr className="my-3" />
-              <p className="text-lg font-semibold">Net Pay: ₹{payslip.netPay}</p>
-            </div>
-          ))}
+          {filteredPayslips
+            .filter((slip) => slip.employee_id === selectedEmployeeId && slip.month === selectedMonth)
+            .map((payslip) => (
+              <div
+                key={`${payslip.employee_id}-${payslip.month}`}
+                className="bg-gray-50 p-4 rounded shadow mb-4"
+              >
+                <h4 className="text-md font-bold">{payslip.month}</h4>
+                <p><strong>Employee Name:</strong> {payslip.employee}</p>
+                <p><strong>Employee ID:</strong> {payslip.employee_id}</p>
+                <p><strong>Department:</strong> {payslip.department}</p>
+                <p><strong>Position:</strong> {payslip.position}</p>
+                <hr className="my-3" />
+                <p><strong>Basic:</strong> ₹{payslip.basic_salary.toLocaleString('en-IN')}</p>
+                <p><strong>HRA:</strong> ₹{payslip.hra.toLocaleString('en-IN')}</p>
+                <p><strong>DA:</strong> ₹{payslip.da.toLocaleString('en-IN')}</p>
+                <p><strong>Other Allowances:</strong> ₹{payslip.other_allowances.toLocaleString('en-IN')}</p>
+                <p><strong>Total Earnings:</strong> ₹{payslip.totalEarnings.toLocaleString('en-IN')}</p>
+                <hr className="my-3" />
+                <p><strong>PF:</strong> ₹{payslip.pf_deduction.toLocaleString('en-IN')}</p>
+                <p><strong>ESIC:</strong> ₹{payslip.esic_deduction.toLocaleString('en-IN')}</p>
+                <p><strong>Professional Tax:</strong> ₹{payslip.professional_tax.toLocaleString('en-IN')}</p>
+                <p><strong>Income Tax:</strong> ₹{payslip.tax_deduction.toLocaleString('en-IN')}</p>
+                <p><strong>Total Deductions:</strong> ₹{payslip.totalDeductions.toLocaleString('en-IN')}</p>
+                <hr className="my-3" />
+                <p className="text-lg font-semibold">
+                  Net Pay: ₹{payslip.netPay.toLocaleString('en-IN')}
+                </p>
+                <p><strong>Status:</strong> {payslip.status}</p>
+                <p><strong>Payment Method:</strong> {payslip.payment_method}</p>
+                <p><strong>Payment Date:</strong> {new Date(payslip.payment_date).toLocaleDateString('en-IN')}</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Note: This payslip is subject to statutory compliance as per Indian laws.
+                </p>
+              </div>
+            ))}
         </div>
-      ) : showPreview && payslipData.length === 0 ? (
-        <p className="text-red-500 mt-4">No payslips available for the selected date range.</p>
+      ) : showPreview && filteredPayslips.length === 0 ? (
+        <p className="text-red-500 mt-4">No approved payslips available for the selected employee and month.</p>
       ) : null}
     </div>
   );

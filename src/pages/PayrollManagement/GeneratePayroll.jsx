@@ -1,114 +1,70 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { format, startOfMonth } from "date-fns";
+import MonthYearPicker from "../../Components/ui/date/MontlyDatePicker";
 import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
-import { createPayroll, generatePayroll, fetchPayroll, clearState, downloadPayrollPDF } from "../../redux/slices/payrollSlice";
+import { generatePayroll, fetchPayroll, clearState, downloadPayrollPDF } from "../../redux/slices/payrollSlice";
+import { fetchEmployees } from "../../redux/slices/employeeSlice";
 
 const GeneratePayroll = () => {
   const dispatch = useDispatch();
   const { payrollList, loading, error, successMessage } = useSelector((state) => state.payroll);
+  const { employees, loading: employeesLoading, error: employeesError } = useSelector((state) => state.employee);
+  const { user, role, isAuthenticated } = useSelector((state) => state.auth);
+  const [selectedMonth, setSelectedMonth] = useState(startOfMonth(new Date()));
 
-  const [form, setForm] = useState({
-    name: "",
-    id: "",
-    department: "",
-    basicSalary: 0,
-    allowances: 0,
-    bonuses: 0,
-    pfDeduction: 0,
-    esicDeduction: 0,
-    taxDeduction: 0,
-    netSalary: 0,
-    status: "Pending",
-    paymentMethod: "Bank Transfer",
-    month: "2025-08", // Default to 2025-08
-    paymentDate: "",
-  });
+  useEffect(() => {
+    console.log("Employees in state:", employees);
+    console.log("PayrollList in state:", payrollList);
+  }, [employees, payrollList]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    const updatedForm = {
-      ...form,
-      [name]: ["basicSalary", "allowances", "bonuses", "pfDeduction", "esicDeduction", "taxDeduction"].includes(name)
-        ? parseFloat(value) || 0
-        : value,
-    };
+  // Restrict access to HR and super admins
+  if (!isAuthenticated || !["hr", "super_admin"].includes(role)) {
+    return (
+      <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6">
+        <p className="text-red-500">Access restricted. Please log in as HR or Super Admin.</p>
+      </div>
+    );
+  }
 
-    updatedForm.netSalary =
-      (updatedForm.basicSalary || 0) +
-      (updatedForm.allowances || 0) +
-      (updatedForm.bonuses || 0) -
-      (updatedForm.pfDeduction || 0) -
-      (updatedForm.esicDeduction || 0) -
-      (updatedForm.taxDeduction || 0);
-
-    setForm(updatedForm);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  // Fetch employees and payroll on mount
+  useEffect(() => {
+    dispatch(fetchEmployees());
+    const formattedMonth = format(selectedMonth, "yyyy-MM");
+    dispatch(fetchPayroll({ month: formattedMonth }));
     dispatch(clearState());
-    const payrollData = {
-      name: form.name,
-      id: form.id,
-      department: form.department,
-      grossSalary: (form.basicSalary || 0) + (form.allowances || 0) + (form.bonuses || 0),
-      pfDeduction: form.pfDeduction,
-      esicDeduction: form.esicDeduction,
-      taxDeduction: form.taxDeduction,
-      netSalary: form.netSalary,
-      status: form.status,
-      paymentMethod: form.paymentMethod,
-      month: form.month,
-      paymentDate: form.paymentDate,
-    };
+  }, [dispatch, selectedMonth]);
 
-    console.log("Submitting payrollData:", payrollData); // Debug log
-    dispatch(createPayroll(payrollData)).then((result) => {
-      if (createPayroll.fulfilled.match(result)) {
-        console.log("createPayroll success, refetching for month:", form.month); // Debug log
-        dispatch(fetchPayroll({ month: form.month }));
-        setForm({
-          name: "",
-          id: "",
-          department: "",
-          basicSalary: 0,
-          allowances: 0,
-          bonuses: 0,
-          pfDeduction: 0,
-          esicDeduction: 0,
-          taxDeduction: 0,
-          netSalary: 0,
-          status: "Pending",
-          paymentMethod: "Bank Transfer",
-          month: "2025-08",
-          paymentDate: "",
-        });
-      }
-    });
-  };
-
-  const handleGenerateAll = () => {
-    if (!form.month) return alert("Please select a month first.");
+  const handleGeneratePayroll = () => {
+    if (!selectedMonth) {
+      alert("Please select a month.");
+      return;
+    }
+    const formattedMonth = format(selectedMonth, "yyyy-MM");
+    console.log("Generating payroll for month:", formattedMonth); // Debug log
     dispatch(clearState());
-    console.log("Generating payroll for month:", form.month); // Debug log
-    dispatch(generatePayroll({ month: form.month })).then((result) => {
+    dispatch(generatePayroll({ month: formattedMonth })).then((result) => {
       if (generatePayroll.fulfilled.match(result)) {
-        console.log("generatePayroll success, refetching for month:", form.month); // Debug log
-        dispatch(fetchPayroll({ month: form.month }));
+        dispatch(fetchPayroll({ month: formattedMonth }));
       }
     });
   };
 
   const handleDownloadPDF = () => {
-    if (!form.month) return alert("Please select a month first.");
+    if (!selectedMonth) {
+      alert("Please select a month.");
+      return;
+    }
+    const formattedMonth = format(selectedMonth, "yyyy-MM");
+    console.log("Downloading payroll PDF for month:", formattedMonth); // Debug log
     dispatch(clearState());
-    dispatch(downloadPayrollPDF({ month: form.month }));
+    dispatch(downloadPayrollPDF({ month: formattedMonth }));
   };
 
   return (
     <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6">
-      <PageMeta title="Generate Payroll" description="Create and manage payroll entries for employees." />
+      <PageMeta title="Generate Payroll" description="Generate payroll for all employees in a selected month." />
       <PageBreadcrumb
         items={[
           { label: "Home", link: "/" },
@@ -118,211 +74,104 @@ const GeneratePayroll = () => {
 
       <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <h1 className="text-3xl font-bold text-white">💼 Generate Payroll</h1>
+        <p className="text-slate-200 text-lg mt-1">
+          Generate payroll for all employees for the selected month.
+        </p>
       </div>
 
-      {(error || successMessage) && (
+      {(error || successMessage || employeesError) && (
         <div
           className={`p-4 rounded-lg ${
-            error ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+            error || employeesError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
           }`}
         >
-          {error || successMessage}
+          {error || employeesError || successMessage}
         </div>
       )}
 
-      <form
-        onSubmit={handleSubmit}
-        className="w-full bg-white backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300 space-y-6"
-      >
+      <div className="bg-white rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-500 mb-1">Employee Name</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="John Doe"
-              className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
-              required
+            <MonthYearPicker
+              name="monthPicker"
+              value={selectedMonth}
+              onChange={(date) => setSelectedMonth(startOfMonth(date))}
+              maxDate={new Date()}
+              titleClassName="text-slate-500 text-sm font-medium"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 mb-1">Employee ID</label>
-            <input
-              type="text"
-              name="id"
-              value={form.id}
-              onChange={handleChange}
-              placeholder="EMP001"
-              className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 mb-1">Department</label>
-            <input
-              type="text"
-              name="department"
-              value={form.department}
-              onChange={handleChange}
-              placeholder="IT"
-              className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 mb-1">Month</label>
-            <input
-              type="month"
-              name="month"
-              value={form.month}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 mb-1">Basic Salary</label>
-            <input
-              type="number"
-              name="basicSalary"
-              value={form.basicSalary}
-              onChange={handleChange}
-              placeholder="0"
-              className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 mb-1">Allowances</label>
-            <input
-              type="number"
-              name="allowances"
-              value={form.allowances}
-              onChange={handleChange}
-              placeholder="0"
-              className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 mb-1">Bonuses</label>
-            <input
-              type="number"
-              name="bonuses"
-              value={form.bonuses}
-              onChange={handleChange}
-              placeholder="0"
-              className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 mb-1">PF Deduction</label>
-            <input
-              type="number"
-              name="pfDeduction"
-              value={form.pfDeduction}
-              onChange={handleChange}
-              placeholder="0"
-              className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 mb-1">ESIC Deduction</label>
-            <input
-              type="number"
-              name="esicDeduction"
-              value={form.esicDeduction}
-              onChange={handleChange}
-              placeholder="0"
-              className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 mb-1">Tax Deduction</label>
-            <input
-              type="number"
-              name="taxDeduction"
-              value={form.taxDeduction}
-              onChange={handleChange}
-              placeholder="0"
-              className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 mb-1">Payment Date</label>
-            <input
-              type="date"
-              name="paymentDate"
-              value={form.paymentDate}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 mb-1">Payment Status</label>
-            <select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
-            >
-              <option value="Pending">Pending</option>
-              <option value="Processed">Processed</option>
-              <option value="Failed">Failed</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-500 mb-1">Payment Method</label>
-            <select
-              name="paymentMethod"
-              value={form.paymentMethod}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-slate-200/50 rounded-lg"
-            >
-              <option value="Bank Transfer">Bank Transfer</option>
-              <option value="Check">Check</option>
-              <option value="Cash">Cash</option>
-            </select>
           </div>
         </div>
 
-        <div className="text-right mt-2 text-lg text-slate-500">
-          <span className="font-semibold">Net Salary:</span>{" "}
-          <span className="text-teal-600 font-bold">
-            ₹{form.netSalary.toLocaleString("en-IN")}
-          </span>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-4 mt-4">
+        <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600"
-          >
-            ➕ Add to Payroll
-          </button>
-
-          <button
-            type="button"
-            onClick={handleGenerateAll}
-            disabled={loading}
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600"
+            onClick={handleGeneratePayroll}
+            disabled={loading || employeesLoading || employees.length === 0}
+            className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
           >
             ⚡ Generate Payroll for All
           </button>
-
           <button
-            type="button"
             onClick={handleDownloadPDF}
-            disabled={loading}
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600"
+            disabled={loading || payrollList.length === 0}
+            className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
           >
             📄 Download Payroll PDF
           </button>
         </div>
-      </form>
+      </div>
+
+      {/* Display generated payroll records */}
+      {loading && <p className="text-slate-500">Loading payroll data...</p>}
+      {!loading && payrollList.length === 0 && (
+        <p className="text-slate-500">
+          No payroll records found for {format(selectedMonth, "yyyy-MM")}.
+        </p>
+      )}
+      {!loading && payrollList.length > 0 && (
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-slate-900 mb-4">Generated Payroll Records</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gradient-to-r from-teal-600 to-slate-700 text-white">
+                <tr>
+                  <th className="px-6 py-4 text-left">Employee</th>
+                  <th className="px-6 py-4 text-left">Gross Salary</th>
+                  <th className="px-6 py-4 text-left">Net Salary</th>
+                  <th className="px-6 py-4 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {payrollList.map((record) => (
+                  <tr key={record.employee_id} className="hover:bg-slate-50">
+                    <td className="px-6 py-4">
+                      {record.employee_name} ({record.employee_id})
+                    </td>
+                    <td className="px-6 py-4">
+                      ₹{(parseFloat(record.gross_salary) || 0).toLocaleString("en-IN")}
+                    </td>
+                    <td className="px-6 py-4">
+                      ₹{(parseFloat(record.net_salary) || 0).toLocaleString("en-IN")}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          record.status === "Processed"
+                            ? "bg-green-100 text-green-800"
+                            : record.status === "Pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {record.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
