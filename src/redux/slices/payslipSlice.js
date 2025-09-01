@@ -5,8 +5,12 @@ export const downloadPayslip = createAsyncThunk(
   "payslip/downloadPayslip",
   async ({ employeeId, month }, { rejectWithValue }) => {
     try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      const { token } = JSON.parse(userToken);
+
       const response = await axios.get(`/api/payslip/${employeeId}/${month}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${token}` },
         responseType: "blob",
       });
 
@@ -35,11 +39,15 @@ export const fetchPayslips = createAsyncThunk(
   "payslip/fetchPayslips",
   async (_, { rejectWithValue }) => {
     try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      const { token } = JSON.parse(userToken);
+
       const response = await axios.get("/api/payslips", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       console.log("Fetched payslips:", response.data);
-      return response.data || [];
+      return Array.isArray(response.data) ? response.data : response.data.data || [];
     } catch (error) {
       console.error("Fetch payslips error:", error);
       const message = error.response?.data?.message || "Failed to fetch payslips";
@@ -54,7 +62,7 @@ const payslipSlice = createSlice({
     loading: false,
     error: null,
     lastDownloaded: null,
-    payslips: [], 
+    payslips: [],
   },
   reducers: {
     clearError: (state) => {
