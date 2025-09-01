@@ -106,7 +106,7 @@ const DatePicker = ({
     value && isValid(value) ? format(value, "dd/MM/yyyy") : "Select a date";
 
   return (
-    <div className="relative w-full max-w-sm">
+    <div className="relative w-full">
       {title && (
         <p className="block text-sm font-medium text-slate-700 mb-1">{title}</p>
       )}

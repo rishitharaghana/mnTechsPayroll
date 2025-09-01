@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { Calendar } from "lucide-react";
+import DatePicker from "../../Components/ui/date/DatePicker"; // Custom DatePicker
 import { setEmployeeGoal, conductAppraisal, fetchEmployeePerformance } from "../../redux/slices/performanceSlice";
 import { fetchEmployees } from "../../redux/slices/employeeSlice";
+import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 
 const steps = ["Employee Info", "Goals & Tasks", "Competencies", "Appraisal", "Summary"];
 
@@ -12,7 +11,7 @@ const AddEmployeeReview = () => {
   const dispatch = useDispatch();
   const { employees, loading: empLoading, error: empError } = useSelector((state) => state.employee);
   const { loading: perfLoading, error: perfError, successMessage } = useSelector((state) => state.performance);
-  const { role, employee_id: loggedInUserId, name: loggedInUserName } = useSelector((state) => state.auth);
+  const { role, employee_id: loggedInUserId } = useSelector((state) => state.auth);
 
   const initialFormData = {
     employeeDetails: { employee_id: "", name: "", email: "", jobTitle: "", department: "", reviewDate: "" },
@@ -60,7 +59,7 @@ const AddEmployeeReview = () => {
   };
 
   const handleDateChange = (date, section, field, index = null) => {
-    const formattedDate = date ? date.toISOString().split("T")[0] : "";
+    const formattedDate = date && !isNaN(new Date(date)) ? new Date(date).toISOString().split("T")[0] : "";
     if (index !== null) {
       setFormData((prev) => {
         const updatedSection = [...prev[section]];
@@ -262,18 +261,13 @@ const AddEmployeeReview = () => {
                   className="mt-1 block w-full border border-gray-300 rounded-lg p-2 bg-gray-100"
                 />
               </div>
-              <div>
+              <div className="w-8/12">
                 <label className="block text-sm font-medium text-gray-700">Review Date</label>
-                <div className="relative">
-                  <DatePicker
-                    selected={formData.employeeDetails.reviewDate ? new Date(formData.employeeDetails.reviewDate) : null}
-                    onChange={(date) => handleDateChange(date, "employeeDetails", "reviewDate")}
-                    dateFormat="yyyy-MM-dd"
-                    className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
-                    placeholderText="Select review date"
-                  />
-                  <Calendar className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
-                </div>
+                <DatePicker
+                  name="reviewDate"
+                  value={formData.employeeDetails.reviewDate ? new Date(formData.employeeDetails.reviewDate) : null}
+                  onChange={(date) => handleDateChange(date, "employeeDetails", "reviewDate")}
+                />
                 {formErrors.reviewDate && <p className="text-red-600 text-xs mt-1">{formErrors.reviewDate}</p>}
               </div>
             </div>
@@ -297,11 +291,9 @@ const AddEmployeeReview = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Due Date</label>
                       <DatePicker
-                        selected={goal.due_date ? new Date(goal.due_date) : null}
+                        name={`goal_due_date_${index}`}
+                        value={goal.due_date ? new Date(goal.due_date) : null}
                         onChange={(date) => handleDateChange(date, "goals", "due_date", index)}
-                        dateFormat="yyyy-MM-dd"
-                        className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
-                        placeholderText="Select due date"
                       />
                       {formErrors[`goal_due_date_${index}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`goal_due_date_${index}`]}</p>}
                     </div>
@@ -312,7 +304,7 @@ const AddEmployeeReview = () => {
                         onChange={(e) => handleChange(e, "goals", "description", index)}
                         className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
                         rows="3"
-                      ></textarea>
+                      />
                     </div>
                   </div>
                   <h4 className="text-md font-semibold text-gray-800 mt-4">Tasks</h4>
@@ -324,7 +316,7 @@ const AddEmployeeReview = () => {
                           <input
                             type="text"
                             value={task.title}
-                            onChange={(e) => handleChange(e, "goals", "tasks", index, `title_${taskIndex}`)}
+                            onChange={(e) => handleChange(e, "goals", "tasks", index, `title`)}
                             className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
                           />
                           {formErrors[`task_title_${index}_${taskIndex}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`task_title_${index}_${taskIndex}`]}</p>}
@@ -332,11 +324,9 @@ const AddEmployeeReview = () => {
                         <div>
                           <label className="block text-sm font-medium text-gray-700">Due Date</label>
                           <DatePicker
-                            selected={task.due_date ? new Date(task.due_date) : null}
+                            name={`task_due_date_${index}_${taskIndex}`}
+                            value={task.due_date ? new Date(task.due_date) : null}
                             onChange={(date) => handleDateChange(date, "goals", "due_date", index, `tasks_${taskIndex}`)}
-                            dateFormat="yyyy-MM-dd"
-                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
-                            placeholderText="Select due date"
                           />
                           {formErrors[`task_due_date_${index}_${taskIndex}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`task_due_date_${index}_${taskIndex}`]}</p>}
                         </div>
@@ -344,7 +334,7 @@ const AddEmployeeReview = () => {
                           <label className="block text-sm font-medium text-gray-700">Priority</label>
                           <select
                             value={task.priority}
-                            onChange={(e) => handleChange(e, "goals", "tasks", index, `priority_${taskIndex}`)}
+                            onChange={(e) => handleChange(e, "goals", "tasks", index, `priority`)}
                             className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
                           >
                             <option value="Low">Low</option>
@@ -406,7 +396,7 @@ const AddEmployeeReview = () => {
                         onChange={(e) => handleChange(e, "competencies", "feedback", index)}
                         className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
                         rows="3"
-                      ></textarea>
+                      />
                     </div>
                   </div>
                 </div>
@@ -441,7 +431,7 @@ const AddEmployeeReview = () => {
                     onChange={(e) => handleChange(e, "appraisal", "manager_comments")}
                     className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
                     rows="3"
-                  ></textarea>
+                  />
                   {formErrors.manager_comments && <p className="text-red-600 text-xs mt-1">{formErrors.manager_comments}</p>}
                 </div>
                 <div className="col-span-2">
@@ -462,11 +452,9 @@ const AddEmployeeReview = () => {
                         <div>
                           <label className="block text-sm font-medium text-gray-700">Date</label>
                           <DatePicker
-                            selected={ach.date ? new Date(ach.date) : null}
+                            name={`ach_date_${index}`}
+                            value={ach.date ? new Date(ach.date) : null}
                             onChange={(date) => handleDateChange(date, "appraisal", "achievements", index, "date")}
-                            dateFormat="yyyy-MM-dd"
-                            className="mt-1 block w-full border border-gray-300 rounded-lg p-2"
-                            placeholderText="Select date"
                           />
                           {formErrors[`ach_date_${index}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`ach_date_${index}`]}</p>}
                         </div>
