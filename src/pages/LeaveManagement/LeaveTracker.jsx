@@ -40,8 +40,7 @@ const typeColors = {
 
 const LeaveTracker = () => {
   const [filterStatus, setFilterStatus] = useState("pending");
-  const [fromDate, setFromDate] = useState(null);
-  const [toDate, setToDate] = useState(null);
+  const [selectDate, setSelectDate] = useState(null);
   const [specialLeaveData, setSpecialLeaveData] = useState({
     employee_id: "",
     leave_type: "maternity",
@@ -111,18 +110,28 @@ const LeaveTracker = () => {
         days: req.days || calculateDays(req.start_date, req.end_date),
       }))
       .filter((req) => {
-        const from = fromDate || new Date("1970-01-01");
-        const to = toDate || new Date("9999-12-31");
-        const reqFrom = new Date(req.start_date);
-        if (isNaN(reqFrom)) return false;
+        const reqStartDate = new Date(req.start_date);
+        const reqEndDate = new Date(req.end_date);
+        if (isNaN(reqStartDate) || isNaN(reqEndDate)) return false;
+
+        // If no selectDate, show all leaves based on status filter
+        if (!selectDate) {
+          return filterStatus === "all" || req.status?.toLowerCase() === filterStatus;
+        }
+
+        // Normalize dates to remove time component
+        const selected = new Date(selectDate.setHours(0, 0, 0, 0));
+        const start = new Date(reqStartDate.setHours(0, 0, 0, 0));
+        const end = new Date(reqEndDate.setHours(0, 0, 0, 0));
+
+        // Check if selected date falls within the leave period
         return (
-          (filterStatus === "all" ||
-            req.status?.toLowerCase() === filterStatus) &&
-          reqFrom >= from &&
-          reqFrom <= to
+          (filterStatus === "all" || req.status?.toLowerCase() === filterStatus) &&
+          selected >= start &&
+          selected <= end
         );
       });
-  }, [leaves, pendingLeaves, filterStatus, fromDate, toDate]);
+  }, [leaves, pendingLeaves, filterStatus, selectDate]);
 
   const summary = useMemo(() => {
     const leavesArray = Array.isArray(leaves) ? leaves : [];
@@ -258,7 +267,7 @@ const LeaveTracker = () => {
       </div>
       <div className="px-6 p-10 space-y-6 bg-gray-100 rounded-lg font-sans">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="w-5/12">
+          <div className="w-8/12">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-slate-700 bg-clip-text text-transparent">
               Leave Management
             </h1>
@@ -268,13 +277,12 @@ const LeaveTracker = () => {
               requests
             </p>
           </div>
-          <div className="w-7/12 flex gap-4">
+          <div className="w-4/12 flex gap-4">
             <DatePicker
-              title="From Date"
-              value={fromDate}
-              onChange={setFromDate}
+              title="Select Date"
+              value={selectDate}
+              onChange={setSelectDate}
             />
-            <DatePicker title="To Date" value={toDate} onChange={setToDate} />
           </div>
         </div>
 
