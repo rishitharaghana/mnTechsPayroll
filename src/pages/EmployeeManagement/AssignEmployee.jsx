@@ -25,6 +25,8 @@ const AssignEmployee = () => {
     position: "",
     employmentType: "Full-time",
     password: "",
+    bloodGroup: "",
+    photo: null,
   });
 
   const [errors, setErrors] = useState({});
@@ -72,6 +74,8 @@ const AssignEmployee = () => {
     { name: "Employee", icon: <User className="w-6 h-6" />, description: "Standard employee role" },
   ];
 
+  const bloodGroups = ["A+ve", "A-ve", "B+ve", "B-ve", "AB+ve", "AB-ve", "O+ve", "O-ve"];
+
   useEffect(() => {
     if (
       employee.emergencyPhone &&
@@ -101,6 +105,12 @@ const AssignEmployee = () => {
     setErrors((prev) => ({ ...prev, [field]: "" }));
   }, []);
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setEmployee((prev) => ({ ...prev, photo: file }));
+    setErrors((prev) => ({ ...prev, photo: "" }));
+  };
+
   const validateStep = () => {
     const newErrors = {};
     if (step === 1 && !employee.roleType) {
@@ -126,6 +136,8 @@ const AssignEmployee = () => {
       if (employee.password && employee.password.length < 8) {
         newErrors.password = "Password must be at least 8 characters";
       }
+      if (!employee.bloodGroup) newErrors.bloodGroup = "Blood Group is required";
+      if (!employee.photo) newErrors.photo = "Photo is required";
     }
     if (step === 3) {
       if (!employee.joinDate) newErrors.joinDate = "Join Date is required";
@@ -172,36 +184,39 @@ const AssignEmployee = () => {
         Employee: "employee",
       };
 
-      const employeeData = {
-        role: roleMap[employee.roleType],
-        name: employee.name,
-        email: employee.email,
-        mobile: employee.mobile,
-        emergency_phone: employee.emergencyPhone || null,
-        address: employee.address || null,
-        password: employee.password,
-        basic_salary: parseFloat(employee.basicSalary) || 0,
-        allowances: parseFloat(employee.allowances) || 0,
-        bonuses: parseFloat(employee.bonuses) || 0,
-        join_date: employee.joinDate,
-      };
-
-      if (employee.roleType === "Department Head") {
-        employeeData.department_name = employee.department;
-        employeeData.designation_name = employee.position;
-      } else if (employee.roleType === "Manager") {
-        employeeData.department_name = employee.department;
-        employeeData.designation_name = employee.position;
-        employeeData.employment_type = employee.employmentType;
-      } else if (employee.roleType === "Employee") {
-        employeeData.department_name = employee.department;
-        employeeData.designation_name = employee.position;
-        employeeData.employment_type = employee.employmentType;
+      const formData = new FormData();
+      formData.append("role", roleMap[employee.roleType]);
+      formData.append("name", employee.name);
+      formData.append("email", employee.email);
+      formData.append("mobile", employee.mobile);
+      formData.append("emergency_phone", employee.emergencyPhone || "");
+      formData.append("address", employee.address || "");
+      formData.append("password", employee.password);
+      formData.append("basic_salary", parseFloat(employee.basicSalary) || 0);
+      formData.append("allowances", parseFloat(employee.allowances) || 0);
+      formData.append("bonuses", parseFloat(employee.bonuses) || 0);
+      formData.append("join_date", employee.joinDate || "");
+      formData.append("blood_group", employee.bloodGroup || "");
+      if (employee.photo) {
+        formData.append("photo", employee.photo);
       }
 
-      console.log("Submitting Employee Data:", employeeData);
+      if (employee.roleType === "Department Head") {
+        formData.append("department_name", employee.department);
+        formData.append("designation_name", employee.position);
+      } else if (employee.roleType === "Manager") {
+        formData.append("department_name", employee.department);
+        formData.append("designation_name", employee.position);
+        formData.append("employment_type", employee.employmentType);
+      } else if (employee.roleType === "Employee") {
+        formData.append("department_name", employee.department);
+        formData.append("designation_name", employee.position);
+        formData.append("employment_type", employee.employmentType);
+      }
 
-      const resultAction = await dispatch(createEmployee(employeeData));
+      console.log("Submitting Employee Data:", Object.fromEntries(formData));
+
+      const resultAction = await dispatch(createEmployee(formData));
 
       if (createEmployee.fulfilled.match(resultAction)) {
         setEmployee({
@@ -219,6 +234,8 @@ const AssignEmployee = () => {
           position: "",
           employmentType: "Full-time",
           password: "",
+          bloodGroup: "",
+          photo: null,
         });
         setStep(1);
         setErrors({});
@@ -365,7 +382,21 @@ const AssignEmployee = () => {
                       required: true,
                       tooltip: "Minimum 8 characters",
                     },
-                  ].map(({ label, field, type, required, tooltip }) => (
+                    {
+                      label: "Blood Group",
+                      field: "bloodGroup",
+                      type: "select",
+                      required: true,
+                      options: bloodGroups,
+                    },
+                    {
+                      label: "Photo",
+                      field: "photo",
+                      type: "file",
+                      required: true,
+                      accept: "image/*",
+                    },
+                  ].map(({ label, field, type, required, tooltip, options, accept }) => (
                     <div key={field} className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
                         {label} {required && <span className="text-red-600 font-bold">*</span>}
@@ -384,6 +415,34 @@ const AssignEmployee = () => {
                           }`}
                           aria-label={label}
                           rows="4"
+                        />
+                      ) : type === "select" ? (
+                        <select
+                          value={employee[field]}
+                          onChange={(e) => handleInput(field, e.target.value)}
+                          className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
+                            errors[field] ? "border-red-500 animate-pulse" : ""
+                          }`}
+                          aria-label={label}
+                          required={required}
+                        >
+                          <option value="">Select {label}</option>
+                          {options.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      ) : type === "file" ? (
+                        <input
+                          type="file"
+                          accept={accept}
+                          onChange={handleFileChange}
+                          className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
+                            errors[field] ? "border-red-500 animate-pulse" : ""
+                          }`}
+                          aria-label={label}
+                          required={required}
                         />
                       ) : (
                         <input

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+
 export const createEmployee = createAsyncThunk(
   "employee/createEmployee",
   async (employeeData, { rejectWithValue }) => {
@@ -11,12 +12,21 @@ export const createEmployee = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
+      const formData = new FormData();
+      Object.keys(employeeData).forEach((key) => {
+        if (key === "photo" && employeeData[key]) {
+          formData.append(key, employeeData[key]);
+        } else {
+          formData.append(key, employeeData[key]);
+        }
+      });
+
       const response = await axios.post(
         "http://localhost:3007/api/employees",
-        employeeData,
+        formData,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
         }
@@ -107,7 +117,7 @@ export const createDocuments = createAsyncThunk(
       const formData = new FormData();
       formData.append("employeeId", employeeId);
       formData.append("documentType", documentType);
-      formData.append("file", file);
+      formData.append("document", file); // Match backend field name
 
       const response = await axios.post(
         "http://localhost:3007/api/employees/documents",
@@ -171,12 +181,21 @@ export const updateEmployee = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
+      const formData = new FormData();
+      Object.keys(data).forEach((key) => {
+        if (key === "photo" && data[key]) {
+          formData.append(key, data[key]);
+        } else {
+          formData.append(key, data[key]);
+        }
+      });
+
       const response = await axios.put(
         `http://localhost:3007/api/employees/${id}`,
-        data,
+        formData,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
         }
@@ -248,6 +267,32 @@ export const fetchEmployees = createAsyncThunk(
   }
 );
 
+export const fetchEmployeeById = createAsyncThunk(
+  "employee/fetchEmployeeById",
+  async (id, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get(`http://localhost:3007/api/employees/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("Fetch employee by ID response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Fetch employee by ID error:", error.response?.data);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch employee"
+      );
+    }
+  }
+);
+
 export const getCurrentUserProfile = createAsyncThunk(
   "employee/getCurrentUserProfile",
   async (_, { rejectWithValue }) => {
@@ -293,15 +338,16 @@ export const getEmployeeProgress = createAsyncThunk(
   }
 );
 
-
 const employeeSlice = createSlice({
   name: "employee",
   initialState: {
     employees: [],
+    currentEmployee: null, 
     loading: false,
     error: null,
     successMessage: null,
     employeeId: null,
+    progress: null,
   },
   reducers: {
     clearState: (state) => {
@@ -309,17 +355,23 @@ const employeeSlice = createSlice({
       state.error = null;
       state.successMessage = null;
       state.employeeId = null;
+      state.currentEmployee = null;
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(createEmployee.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(createEmployee.fulfilled, (state, action) => {
         state.loading = false;
         state.successMessage = action.payload.message;
-        state.employees.push(action.payload.data);
+        state.employees.push({
+          ...action.payload.data,
+          blood_group: action.payload.data.blood_group,
+          photo_url: action.payload.data.photo_url,
+        });
       })
       .addCase(createEmployee.rejected, (state, action) => {
         state.loading = false;
@@ -327,12 +379,12 @@ const employeeSlice = createSlice({
       })
       .addCase(createEmployeePersonalDetails.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(createEmployeePersonalDetails.fulfilled, (state, action) => {
         state.loading = false;
         state.successMessage = action.payload.message;
-        state.employeeId = action.payload.data.employee_id; // Store employeeId
-        state.employees.push(action.payload.data);
+        state.employeeId = action.payload.data.employee_id;
       })
       .addCase(createEmployeePersonalDetails.rejected, (state, action) => {
         state.loading = false;
@@ -340,6 +392,7 @@ const employeeSlice = createSlice({
       })
       .addCase(createEducationDetails.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(createEducationDetails.fulfilled, (state, action) => {
         state.loading = false;
@@ -351,6 +404,7 @@ const employeeSlice = createSlice({
       })
       .addCase(createDocuments.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(createDocuments.fulfilled, (state, action) => {
         state.loading = false;
@@ -362,6 +416,7 @@ const employeeSlice = createSlice({
       })
       .addCase(createBankDetails.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(createBankDetails.fulfilled, (state, action) => {
         state.loading = false;
@@ -373,6 +428,7 @@ const employeeSlice = createSlice({
       })
       .addCase(updateEmployee.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(updateEmployee.fulfilled, (state, action) => {
         state.loading = false;
@@ -380,7 +436,12 @@ const employeeSlice = createSlice({
         const { id } = action.meta.arg;
         const index = state.employees.findIndex((emp) => emp.id === id);
         if (index !== -1) {
-          state.employees[index] = { ...state.employees[index], ...action.payload.data };
+          state.employees[index] = {
+            ...state.employees[index],
+            ...action.payload.data,
+            blood_group: action.payload.data.blood_group,
+            photo_url: action.payload.data.photo_url,
+          };
         }
       })
       .addCase(updateEmployee.rejected, (state, action) => {
@@ -389,6 +450,7 @@ const employeeSlice = createSlice({
       })
       .addCase(deleteEmployee.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(deleteEmployee.fulfilled, (state, action) => {
         state.loading = false;
@@ -400,32 +462,57 @@ const employeeSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(fetchEmployeeById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchEmployeeById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentEmployee = {
+          ...action.payload.data,
+          blood_group: action.payload.data.blood_group,
+          photo_url: action.payload.data.photo_url,
+        };
+      })
+      .addCase(fetchEmployeeById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       .addCase(fetchEmployees.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchEmployees.fulfilled, (state, action) => {
         state.loading = false;
-        state.employees = action.payload.data || [];
+        state.employees = action.payload.data.map((emp) => ({
+          ...emp,
+          blood_group: emp.blood_group,
+          photo_url: emp.photo_url,
+        })) || [];
       })
       .addCase(fetchEmployees.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
       .addCase(getCurrentUserProfile.pending, (state) => {
-      state.loading = true;
-      state.error = null;
-    })
-    .addCase(getCurrentUserProfile.fulfilled, (state, action) => {
-      state.loading = false;
-      state.employeeId = action.payload.data._id || action.payload.data.id; 
-      state.employees = [action.payload.data];
-      state.successMessage = action.payload.message;
-    })
-    .addCase(getCurrentUserProfile.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.payload?.error || 'Failed to fetch profile';
-    })
-       .addCase(getEmployeeProgress.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getCurrentUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.employeeId = action.payload.data.employee_id;
+        state.employees = [{
+          ...action.payload.data,
+          blood_group: action.payload.data.blood_group,
+          photo_url: action.payload.data.photo_url,
+        }];
+        state.successMessage = action.payload.message;
+      })
+      .addCase(getCurrentUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.error || "Failed to fetch profile";
+      })
+      .addCase(getEmployeeProgress.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
