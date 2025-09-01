@@ -638,7 +638,6 @@ useEffect(() => {
               "N/A"
             ),
           },
-          // Repeat similar logic for other documents (intermediateDoc, graduationDoc, etc.)
           {
             label: "Intermediate Document",
             value: formData.intermediateDoc ? (
@@ -1040,7 +1039,7 @@ useEffect(() => {
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
                       placeholder="Enter full name"
-                      disabled={!!formData.fullName} // Disable if pre-filled
+                      disabled={!!formData.fullName} 
                     />
                     {errors.fullName && (
                       <span className="text-red-500 text-xs mt-1">

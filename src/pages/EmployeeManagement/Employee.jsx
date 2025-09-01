@@ -26,18 +26,17 @@ const Employee = () => {
   }, [dispatch]);
 
   const filtered = employees.filter((emp) => {
-    const fullName = emp.full_name || ""; // Use full_name consistently
+    const fullName = emp.full_name || "";
     return fullName.toLowerCase().includes(search.toLowerCase());
   });
 
   const getSalary = (emp) => {
-    // Calculate salary for all roles since basic_salary and allowances are now collected for all
     return (parseFloat(emp.basic_salary || 0) * 12) + (parseFloat(emp.allowances || 0));
   };
 
   const getImageUrl = (emp) => {
     const bgColors = {
-      hr: "1E3A8A", // Changed to hr for consistency
+      hr: "1E3A8A", 
       dept_head: "4B5EAA",
       manager: "FF6F61",
       employee: "6B7280",

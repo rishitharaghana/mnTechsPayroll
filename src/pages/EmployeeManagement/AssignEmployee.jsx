@@ -16,9 +16,9 @@ const AssignEmployee = () => {
     mobile: "",
     emergencyPhone: "",
     address: "",
-    basicSalary: "", // Changed from annualSalary
+    basicSalary: "",
     allowances: "",
-    bonuses: "", // Added bonuses
+    bonuses: "",
     joinDate: "",
     roleType: "",
     department: "",
