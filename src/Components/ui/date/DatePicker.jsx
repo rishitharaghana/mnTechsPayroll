@@ -97,6 +97,7 @@ const DatePicker = ({
 
   const handleDateSelect = (day) => {
     const newDate = startOfDay(new Date(currentYear, currentMonthIndex, day));
+    console.log(newDate);
     if (maxDate && newDate > maxDate) return; // Prevent selecting future dates
     setIsOpen(false);
     if (onChange) onChange(newDate);
