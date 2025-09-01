@@ -82,7 +82,7 @@ const Employee = () => {
         </div>
       </div>
 
-      <div className="mb-4 flex flex-col sm:flex-row gap-4">
+      <div className="mb-6 flex bg-white shadow-md p-4 rounded-2xl flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <input
             type="text"
@@ -123,7 +123,7 @@ const Employee = () => {
         <div className="text-center text-gray-600">No employees found.</div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((emp) => (
           <div
             key={`${emp.role}-${emp.id}`}
@@ -133,7 +133,7 @@ const Employee = () => {
               <img
                 src={getImageUrl(emp)}
                 alt={emp.name}
-                className="w-40 h-40 rounded-full border-4 border-white shadow-md -mt-4"
+                className="w-30 h-30 rounded-full border-4 border-white shadow-md -mt-4"
               />
             </div>
 
