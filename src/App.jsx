@@ -9,7 +9,6 @@ import UserProfile from './header/userProfile';
 import EditProfile from './header/EditProfile';
 import Employee from './pages/EmployeeManagement/Employee';
 import AssignEmployee from './pages/EmployeeManagement/AssignEmployee';
-import AddEmployee from './pages/EmployeeManagement/AddEmployee';
 import Attendance from './pages/AttendanceManagement/Attendance';
 import EmployeeAttendance from './pages/AttendanceManagement/EmployeeAttendance';
 import Payroll from './pages/PayrollManagement/Payroll';
@@ -64,7 +63,6 @@ const App = () => {
                 <Route path="/admin/dashboard" element={<Dashboard />} />
                 <Route path="/admin/employees" element={<Employee />} />
                 <Route path="/admin/assign-employee" element={<AssignEmployee />} />
-                <Route path="/admin/employees/add-employee" element={<AddEmployee />} />
                 <Route path="/admin/attendance" element={<Attendance />} />
                 <Route path="/admin/payroll" element={<Payroll />} />
                 <Route path="/admin/generate-payroll" element={<GeneratePayroll />} />
