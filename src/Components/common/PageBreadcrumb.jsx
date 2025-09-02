@@ -29,19 +29,22 @@ const PageBreadcrumb = ({ items = [] }) => {
     "Add Employee": <User className="h-4 w-4" />,
     "Leave Tracker": <CalendarDays className="h-4 w-4" />,
     "Generate Payroll": <HandCoins className="h-4 w-4" />,
-    Payroll: <CreditCard className="h-4 w-4" />,
-    Payslip: <FileChartColumnIncreasing className="h-4 w-4" />,
-    Calendar: <Calendar className="h-4 w-4" />,
-    Performance: <TrendingUp className="h-4 w-4" />,
+    "Payroll": <CreditCard className="h-4 w-4" />,
+    "Payslip": <FileChartColumnIncreasing className="h-4 w-4" />,
+    "Calendar": <Calendar className="h-4 w-4" />,
+    "Performance": <TrendingUp className="h-4 w-4" />,
     "Add Employee Review": <Target className="h-4 w-4" />,
     "Visiting Card": <IdCard className="h-4 w-4" />,
     "ID Cards": <BookImage className="h-4 w-4" />,
     "Generate ID Card": <IdCardLanyard className="h-4 w-4" />,
-    IdCardForm: <BookImage className="h-4 w-4" />,
+    "IdCardForm": <BookImage className="h-4 w-4" />,
     "Payslip Generator": <Clipboard className="h-4 w-4" />,
     "Payslip Form": <ClipboardCheckIcon className="h-4 w-4" />,
     "Time Tracking": <Clock className="h-4 w-4" />,
     "Travel Expenses": <Waypoints className="h-4 w-4" />,
+    "Generate Payslip": <HandCoins className="h-4 w-4" />,
+    "Employee Attendance": <Calendar className="h-4 w-4" />,
+    "View Payroll History" : <CreditCard className="h-4 w-4" />
   };
 
   return (
