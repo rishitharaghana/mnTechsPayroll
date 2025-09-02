@@ -383,12 +383,66 @@ export const fetchDesignations = createAsyncThunk(
   }
 );
 
+export const fetchRoles = createAsyncThunk(
+  "employee/fetchRoles",
+  async (_, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get("http://localhost:3007/api/employee/roles", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("Fetch roles response:", response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error("Fetch roles error:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch roles"
+      );
+    }
+  }
+);
+
+export const createRole = createAsyncThunk(
+  "employee/createRole",
+  async (roleData, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+      const { token } = JSON.parse(userToken);
+      const response = await axios.post(
+        "http://localhost:3007/api/employee/role",
+        roleData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Create role response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Create role error:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to create role"
+      );
+    }
+  }
+);
+
 const employeeSlice = createSlice({
   name: "employee",
   initialState: {
     employees: [],
     departments: [],
     designations: [], 
+     roles: [],
     currentEmployee: null,
     loading: false,
     error: null,
@@ -592,6 +646,37 @@ const employeeSlice = createSlice({
         state.designations = action.payload || []; 
       })
       .addCase(fetchDesignations.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchRoles.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRoles.fulfilled, (state, action) => {
+        state.loading = false;
+        state.roles = action.payload || [];
+      })
+      .addCase(fetchRoles.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(createRole.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(createRole.fulfilled, (state, action) => {
+        state.loading = false;
+        state.successMessage = action.payload.message;
+        state.roles.push(action.payload.data || {
+          name: action.meta.arg.name,
+          description: action.meta.arg.description,
+          role_id: action.meta.arg.role_id,
+          isHRRole: action.meta.arg.isHRRole,
+        });
+      })
+      .addCase(createRole.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

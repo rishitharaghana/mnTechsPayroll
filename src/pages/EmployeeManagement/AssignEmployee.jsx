@@ -41,6 +41,10 @@ const AssignEmployee = () => {
     { name: "Employee", icon: <User className="w-6 h-6" />, description: "Standard employee role" },
   ];
 
+  const filteredRoleTypes = user?.role === "hr"
+    ? roleTypes.filter((role) => role.name !== "HR")
+    : roleTypes;
+
   const bloodGroups = ["A+ve", "A-ve", "B+ve", "B-ve", "AB+ve", "AB-ve", "O+ve", "O-ve"];
   const employmentTypes = ["Full-time", "Part-time", "Internship", "Contract"];
 
@@ -75,7 +79,6 @@ const AssignEmployee = () => {
         (dept) => dept.department_name !== "HR" && dept.department_name !== "Manager"
       );
     }
-    // Employee can access all departments except "Manager"
     return departments.filter((dept) => dept.department_name !== "Manager");
   };
 
@@ -110,18 +113,18 @@ const AssignEmployee = () => {
         ].includes(des.designation_name)
       );
     }
-    // Employee role gets all designations except head/manager-level ones
-    return deptDesignations.filter((des) =>
-      ![
-        "Facility Manager",
-        "Office Administrator",
-        "General Manager",
-        "Digital Marketing Manager",
-        "Design Manager",
-        "Technical Lead",
-        "Marketing Manager",
-        "Telemarketing Manager",
-      ].includes(des.designation_name)
+    return deptDesignations.filter(
+      (des) =>
+        ![
+          "Facility Manager",
+          "Office Administrator",
+          "General Manager",
+          "Digital Marketing Manager",
+          "Design Manager",
+          "Technical Lead",
+          "Marketing Manager",
+          "Telemarketing Manager",
+        ].includes(des.designation_name)
     );
   };
 
@@ -146,16 +149,19 @@ const AssignEmployee = () => {
     if (file) {
       if (!allowedTypes.includes(file.type)) {
         setErrors((prev) => ({ ...prev, photo: "Only JPG, JPEG, or PNG files are allowed" }));
+        toast.error("Only JPG, JPEG, or PNG files are allowed for photo");
         return;
       }
       if (file.size > maxSize) {
         setErrors((prev) => ({ ...prev, photo: "Photo size must not exceed 5MB" }));
+        toast.error("Photo size must not exceed 5MB");
         return;
       }
       setEmployee((prev) => ({ ...prev, photo: file }));
       setErrors((prev) => ({ ...prev, photo: "" }));
     } else {
       setErrors((prev) => ({ ...prev, photo: "No file selected" }));
+      toast.error("No file selected");
     }
   };
 
@@ -228,6 +234,7 @@ const AssignEmployee = () => {
       if (Object.keys(formErrors).length > 0) {
         setErrors(formErrors);
         setIsSubmitting(false);
+        toast.error("Please fix the errors before submitting");
         return;
       }
 
@@ -307,6 +314,7 @@ const AssignEmployee = () => {
     const stepErrors = validateStep();
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
+      toast.error("Please fix the errors before proceeding");
       return;
     }
     setErrors({});
@@ -376,7 +384,7 @@ const AssignEmployee = () => {
                 Select Role Type <span className="text-red-600 font-bold">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                {roleTypes.map((role) => (
+                {filteredRoleTypes.map((role) => (
                   <button
                     key={role.name}
                     type="button"
