@@ -272,7 +272,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       <aside
         className={`${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white text-gray-800 border-r border-white/20 transition-transform duration-300 ease-in-out flex flex-col`}
+        } lg:translate-x-0 fixed top-13 overflow-scroll inset-y-0 left-0 z-40 w-64 bg-white text-gray-800 border-r border-white/20 transition-transform duration-300 ease-in-out flex flex-col`}
       >
         <nav className="flex-1 p-4 space-y-2 mt-4">
           {filteredMenuItems.map((item) => {

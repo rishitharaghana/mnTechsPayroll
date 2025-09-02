@@ -20,9 +20,9 @@ const AppLayout = ({ children }) => {
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
         />
-        <main className="flex-1 p-4 lg:p-8">
+        <main className="w-full justify-items-end p-4 lg:p-8">
            <Outlet /> 
-          <div className="max-w-7xl mx-auto">{children}</div>
+          <div className="w-fulll m-auto ">{children}</div>
         </main>
       </div>
     </div>
