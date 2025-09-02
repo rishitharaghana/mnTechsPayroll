@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-
 export const createEmployee = createAsyncThunk(
   "employee/createEmployee",
   async (formData, { rejectWithValue }) => {
@@ -181,7 +180,7 @@ export const updateEmployee = createAsyncThunk(
       Object.keys(data).forEach((key) => {
         if (key === "photo" && data[key]) {
           formData.append(key, data[key]);
-        } else {
+        } else if (data[key] !== undefined && data[key] !== null) {
           formData.append(key, data[key]);
         }
       });
@@ -288,6 +287,7 @@ export const fetchEmployeeById = createAsyncThunk(
     }
   }
 );
+
 export const getCurrentUserProfile = createAsyncThunk(
   "employee/getCurrentUserProfile",
   async (_, { rejectWithValue }) => {
@@ -326,17 +326,70 @@ export const getEmployeeProgress = createAsyncThunk(
       const response = await axios.get("http://localhost:3007/api/employees/progress", {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log("Get employee progress response:", response.data);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || "Failed to fetch progress");
+      console.error("Get employee progress error:", error.response?.data);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch progress"
+      );
     }
   }
 );
+
+export const fetchDepartments = createAsyncThunk(
+  "employee/fetchDepartments",
+  async (_, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get("http://localhost:3007/api/departments", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("Fetch departments response:", response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error("Fetch departments error:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch departments"
+      );
+    }
+  }
+);
+
+export const fetchDesignations = createAsyncThunk(
+  "employee/fetchDesignations",
+  async (_, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get("http://localhost:3007/api/designations", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("Fetch designations response:", response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error("Fetch designations error:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch designations"
+      );
+    }
+  }
+);
+
 const employeeSlice = createSlice({
   name: "employee",
   initialState: {
     employees: [],
-    currentEmployee: null, 
+    departments: [],
+    designations: [], 
+    currentEmployee: null,
     loading: false,
     error: null,
     successMessage: null,
@@ -515,6 +568,30 @@ const employeeSlice = createSlice({
         state.progress = action.payload.data;
       })
       .addCase(getEmployeeProgress.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchDepartments.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDepartments.fulfilled, (state, action) => {
+        state.loading = false;
+        state.departments = action.payload || []; 
+      })
+      .addCase(fetchDepartments.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchDesignations.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDesignations.fulfilled, (state, action) => {
+        state.loading = false;
+        state.designations = action.payload || []; 
+      })
+      .addCase(fetchDesignations.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
