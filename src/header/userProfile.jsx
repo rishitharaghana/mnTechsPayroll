@@ -42,7 +42,7 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300">
+    <div className="w-78/100 mt-10 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300">
       <div className="flex justify-between items-center mb-6">
         <div>
           {profile.profileImage ? (

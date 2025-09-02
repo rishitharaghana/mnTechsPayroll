@@ -265,7 +265,7 @@ const LeaveTracker = () => {
           ]}
         />
       </div>
-      <div className="px-6 p-10 space-y-6 bg-slate-200 rounded-2xl font-sans">
+      <div className="px-6 p-10 space-y-6 bg-white rounded-2xl font-sans">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="w-8/12">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-slate-700 bg-clip-text text-transparent">
@@ -331,7 +331,7 @@ const LeaveTracker = () => {
           ))}
         </div>
 
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 overflow-hidden shadow-md hover:shadow-lg transition-all duration-300">
+        <div className="bg-white backdrop-blur-sm rounded-2xl border-1 border-teal-200/50 overflow-hidden shadow-md hover:shadow-lg transition-all duration-300">
           <div className="p-6 border-b border-teal-200/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h2 className="text-xl font-bold text-gray-900">Leave Requests</h2>
             <div className="flex gap-2">
@@ -367,7 +367,7 @@ const LeaveTracker = () => {
               filteredLeaveData.map((req) => (
                 <div
                   key={req.id}
-                  className="p-6 bg-white/95 rounded-2xl border border-teal-200/50 hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300"
+                  className="p-6 bg-white/95 rounded-2xl border-1 border-teal-200/50 shadow-md transform hover:scale-[1.02] transition-all duration-300"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                     <div className="col-span-2 flex items-start gap-4">
@@ -471,7 +471,7 @@ const LeaveTracker = () => {
           </div>
         </div>
         {(role === "hr" || role === "super_admin") && (
-          <div className="bg-white/90 p-6 rounded-2xl border border-teal-700/50 shadow-sm">
+          <div className="bg-white/90 p-6 rounded-2xl border-1 border-teal-700/50 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <PlusCircle size={24} className="text-teal-700" />
               <h2 className="text-xl font-bold text-slate-700">

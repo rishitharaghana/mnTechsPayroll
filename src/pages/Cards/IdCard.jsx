@@ -45,6 +45,7 @@ const IdCard = () => {
 
   return (
     <>
+    <div className="w-78/100">
       <div className="flex justify-end">
         <PageMeta title="ID Cards" description="Manage employee ID cards" />
         <PageBreadcrumb
@@ -54,7 +55,7 @@ const IdCard = () => {
           ]}
         />
       </div>
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-gray-100 p-6">
+      <div className="min-h-screen bg-white rounded-2xl p-6">
         <div className="container mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
             <div>
@@ -82,11 +83,11 @@ const IdCard = () => {
               {idCards.map((card) => (
                 <div
                   key={card.id}
-                  className="relative bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 w-full"
+                  className="relative bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 w-full"
                   style={{ height: "400px", maxWidth: "320px" }} // Fixed height and max-width
                 >
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-teal-600/10 to-blue-500/10 rounded-2xl" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-teal-600/10 to-blue-500/10 rounded-xl" />
 
                   {/* Card Content */}
                   <div className="relative z-10 flex flex-col items-center p-6 h-full">
@@ -131,6 +132,7 @@ const IdCard = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
     </>
   );

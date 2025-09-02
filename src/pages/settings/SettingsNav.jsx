@@ -8,7 +8,7 @@ const sections = [
 
 const SettingsNav = ({ activeSection, setActiveSection }) => {
   return (
-    <div className="lg:col-span-1">
+    <div className="w-full lg:col-span-1">
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
         <nav className="space-y-2 flex gap-2">
           {sections.map((section) => {

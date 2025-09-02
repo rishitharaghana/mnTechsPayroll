@@ -78,7 +78,7 @@ const Employee = () => {
           description="Manage your employees efficiently."
         />
       </div>
-      <div className="bg-slate-200 rounded-2xl p-6">
+      <div className="bg-white rounded-2xl p-6">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Employees</h1>
@@ -86,7 +86,7 @@ const Employee = () => {
           </div>
         </div>
 
-        <div className="mb-6 flex bg-white shadow-2xl p-4 rounded-2xl flex-col sm:flex-row gap-4">
+        <div className="mb-6 flex bg-white shadow-md p-4 border-1 border-gray-200 rounded-xl flex-col sm:flex-row gap-4">
           <div className="relative flex-1 w-5/12 ">
             <input
               type="text"
@@ -140,7 +140,7 @@ const Employee = () => {
           {filtered.map((emp) => (
             <div
               key={`${emp.role}-${emp.id}`}
-              className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:shadow-xl hover:-translate-y-1 transition"
+              className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border-1 border-gray-200 shadow-md hover:-translate-y-1 transition"
             >
               <div className="flex flex-col items-center mb-4">
                 <img

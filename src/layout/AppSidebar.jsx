@@ -6,6 +6,7 @@ import {
   Clock,
   FileText,
   Calendar,
+  LayoutDashboard,
   TrendingUp,
   CreditCard,
   PersonStanding,
@@ -30,7 +31,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
     {
       id: "dashboard",
       label: "Dashboard",
-      icon: TrendingUp,
+      icon: LayoutDashboard,
       path: "/admin/dashboard",
       allowedRoles: ["super_admin", "hr", "dept_head", "manager"],
     },

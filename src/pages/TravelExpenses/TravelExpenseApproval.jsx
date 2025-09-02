@@ -9,8 +9,8 @@ import {
   clearState,
 } from "../../redux/slices/travelExpensesSlice";
 import { fetchUserProfile } from "../../redux/slices/userSlice";
-import PageBreadcrumb from "../../components/common/PageBreadcrumb";
-import PageMeta from "../../components/common/PageMeta";
+import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
+import PageMeta from "../../Components/common/PageMeta";
 
 const TravelExpenseApproval = () => {
   const dispatch = useDispatch();
@@ -117,15 +117,15 @@ const TravelExpenseApproval = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex justify-end mb-4">
-        <PageMeta title="Travel Expense Approval" />
+    <div className="w-78/100">
+      <div className="flex justify-end">
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/" },
-            { label: "Travel Expense Approval", link: "/employee/travel-expense-approval" },
+            { label: "Travel Expenses", link: "/admin/travel-expenses" },
           ]}
         />
+        <PageMeta title="Travel Expense Approval" description="Approve travel expenses" />
       </div>
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <h2 className="text-2xl font-semibold text-slate-700 mb-6">

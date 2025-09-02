@@ -103,7 +103,7 @@ const Performance = () => {
       <div className="p-6 bg-white rounded-2xl space-y-8">
         <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
           <div>
-            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
               Employee Performance Dashboard
             </h1>
             <p className="text-gray-500">
@@ -144,15 +144,15 @@ const Performance = () => {
             return (
               <div
                 key={idx}
-                className="bg-white shadow rounded-xl p-5 flex flex-col items-start"
+                className="bg-white shadow-md rounded-xl p-5 border-1 border-gray-200 hover:-translate-y-1 duration-100 translate flex flex-col items-start"
               >
                 <div className="flex items-center gap-3 mb-2">
                   <Icon className="text-indigo-600" size={22} />
-                  <h2 className="text-lg font-semibold text-gray-700">
+                  <h2 className="text-sm font-semibold text-gray-700">
                     {metric.title}
                   </h2>
                 </div>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-xl font-bold text-gray-900">
                   {metric.value}
                 </div>
                 <span className="text-sm text-green-600">{metric.change}</span>
@@ -165,9 +165,9 @@ const Performance = () => {
           {filteredEmployees.map((emp) => (
             <div
               key={emp.employee_id}
-              className="bg-white shadow-lg rounded-xl p-6"
+              className="bg-white shadow-md hover:-translate-y-1 duration-100 translate border-1 border-gray-200 rounded-xl p-6"
             >
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold text-gray-800">
                     {emp.name}

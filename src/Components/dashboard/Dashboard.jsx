@@ -113,22 +113,22 @@ const AdminDashboard = () => {
   const formattedTime = new Intl.DateTimeFormat('en-US', { timeStyle: 'short', timeZone: 'Asia/Kolkata' }).format(currentDateTime);
 
   return (
-    <div className="space-y-8 bg-slate-50 min-h-screen p-6">
+    <div className="w-78/100 space-y-8 bg-white rounded-2xl min-h-screen p-6">
       <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-8 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">
+            <h1 className="text-2xl font-bold text-white mb-2">
               Welcome back, {user?.name || role.toUpperCase()}!
             </h1>
-            <p className="text-slate-200 text-lg">
+            <p className="text-slate-200 text-md">
               {user?.name && <span>{user.name}, </span>}
               Here's what's happening with your {role === 'dept_head' ? 'team' : 'organization'} today.
             </p>
           </div>
           <div className="mt-4 md:mt-0 text-right">
-            <p className="text-slate-200">Today's Date & Time</p>
-            <p className="text-xl font-semibold text-white">
-              {formattedDate} at {formattedTime} IST
+            <p className="text-sm text-slate-200">Today's Date & Time</p>
+            <p className="text-lg font-semibold text-white">
+              {formattedDate} at {formattedTime}
             </p>
           </div>
         </div>

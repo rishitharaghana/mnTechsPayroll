@@ -168,7 +168,7 @@ const LiveTrackingTable = ({ searchTerm, filterStatus }) => {
 
   return (
     <>
-      <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-md border border-white/20 overflow-hidden text-sm">
+      <div className="w-full bg-white/80 backdrop-blur-xl rounded-xl shadow-md border border-white/20 overflow-hidden text-sm">
         {loading && <p className="p-4 text-gray-600">Loading...</p>}
         {error && <p className="p-4 text-red-600">Error: {error}</p>}
         <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">

@@ -28,7 +28,7 @@ const SettingsProfile = ({ settings, setSettings }) => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl lg:max-w-3xl md:max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-md">
+    <div className="w-full space-y-6 p-6 bg-white boarder-1 border-gray-700 rounded-xl shadow-md">
       <h2 className="text-2xl font-semibold text-gray-900">Profile Settings</h2>
 
       {isSaved && (
