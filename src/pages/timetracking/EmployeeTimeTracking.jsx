@@ -6,6 +6,8 @@ import { initializeWebSocket } from '../../redux/slices/siteVisitSlice';
 import EmployeeLiveTrack from './EmployeeLiveTrack';
 import EmployeeVisitHistory from './EmployeeVisitHistory';
 // import EmployeeFeedback from '../timetracking/EmployeeFeedback';
+import PageBreadcrumb from './../../Components/common/PageBreadcrumb';
+import PageMeta from './../../Components/common/PageMeta';
 
 const EmployeeTimeTracking = () => {
   const dispatch = useDispatch();
@@ -83,7 +85,17 @@ const EmployeeTimeTracking = () => {
   };
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="w-78/100">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Home", link: "/" },
+            { label: "Time Tracking", link: "/employee/emp-timetracking" },
+          ]}
+        />
+        <PageMeta title="Time Tracking" description="Track your employee's time and location" />
+      </div>
+    <div className="space-y-6 bg-white rounded-2xl p-6">
       {/* Consent Modal */}
       {showConsent && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -103,7 +115,7 @@ const EmployeeTimeTracking = () => {
       )}
 
       {/* Employee Profile Card */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-md border border-white/10 p-6">
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-md border-1 border-gray-200 p-4">
         <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-3 sm:space-y-0 sm:space-x-4">
           <div className="w-16 h-16 bg-gradient-to-br from-slate-700 to-slate-700 rounded-xl flex items-center justify-center text-white font-semibold text-lg shadow-md">
             {employee.avatar}
@@ -155,7 +167,7 @@ const EmployeeTimeTracking = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-md border border-white/10 p-1">
+      <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-md border-1 border-gray-200 p-1">
         <div className="flex space-x-1">
           {[
             { id: 'tracking', label: 'Live Tracking', icon: MapPin },
@@ -190,6 +202,7 @@ const EmployeeTimeTracking = () => {
       )}
       {activeSection === 'history' && <EmployeeVisitHistory />}
       {/* {activeSection === 'feedback' && <EmployeeFeedback />} */}
+    </div>
     </div>
   );
 };

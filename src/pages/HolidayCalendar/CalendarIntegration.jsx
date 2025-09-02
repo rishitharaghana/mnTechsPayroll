@@ -113,7 +113,7 @@ const CalendarIntegration = () => {
         <PageBreadcrumb
         items={[
           {label:'Dashboard', link:'/'},
-          {label: 'Calendar Integration', link: '/holiday-calendar/calendar-integration'},
+          {label: 'Calendar Integration', link: '/admin/calendar'},
         ]}
         />
       </div>

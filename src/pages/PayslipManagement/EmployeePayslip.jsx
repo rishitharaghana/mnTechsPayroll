@@ -2,6 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Eye } from 'lucide-react';
 import { fetchPayslips, downloadPayslip, clearError } from '../../redux/slices/payslipSlice';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import PageMeta from '../../Components/common/PageMeta';
+
 
 const EmployeePayslip = () => {
   const dispatch = useDispatch();
@@ -101,7 +104,16 @@ const EmployeePayslip = () => {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto bg-white shadow-md rounded-lg">
+    <div className="w-78/100">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Home", link: "/emp-dashboard" },
+            { label: "Payslip Management", link: "/employee-payslip" },
+          ]}
+        />
+      </div>
+    <div className="p-6 bg-white shadow-md rounded-2xl">
       <h2 className="text-xl font-bold mb-4">Payslip Dashboard</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -134,7 +146,7 @@ const EmployeePayslip = () => {
             id="month-select"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="border px-3 py-2 rounded w-full"
+            className="border-1 border-slate-400 px-3 py-2 rounded-md w-full"
             aria-label="Select pay period"
           >
             <option value="">Select Month</option>
@@ -151,7 +163,7 @@ const EmployeePayslip = () => {
         <button
           onClick={handlePreview}
           disabled={!selectedMonth || !selectedEmployeeId || loading}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-teal-700 text-white px-4 py-2 rounded disabled:cursor-not-allowed"
           aria-label="Preview payslips for selected employee and month"
         >
           Preview
@@ -159,7 +171,7 @@ const EmployeePayslip = () => {
         <button
           onClick={handleDownload}
           disabled={isLoadingDownload || !selectedMonth || !selectedEmployeeId}
-          className={`bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 ${
+          className={`bg-slate-700 text-white px-4 py-2 rounded${
             isLoadingDownload ? 'opacity-50 cursor-not-allowed' : ''
           }`}
           aria-label="Download payslip as PDF"
@@ -227,6 +239,7 @@ const EmployeePayslip = () => {
       ) : showPreview && filteredPayslips.length === 0 ? (
         <p className="text-red-500 mt-4">No approved payslips available for the selected employee and month.</p>
       ) : null}
+    </div>
     </div>
   );
 };

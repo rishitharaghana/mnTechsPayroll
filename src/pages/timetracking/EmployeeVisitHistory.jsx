@@ -52,13 +52,13 @@ const EmployeeVisitHistory = () => {
           </div>
         ))}
       </div>
-      <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-lg border border-gray-100 p-6">
+      <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-md border-1 border-gray-200 p-6">
         <h3 className="text-xl font-bold text-gray-900 mb-4">Recent Site Visits</h3>
         <div className="space-y-3">
           {visits.map((visit, index) => (
             <div
               key={visit.id}
-              className="group bg-gradient-to-r from-white to-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer"
+              className="group bg-gradient-to-r from-white to-gray-50 border-1 border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">

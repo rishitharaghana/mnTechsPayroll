@@ -44,7 +44,8 @@ const PageBreadcrumb = ({ items = [] }) => {
     "Travel Expenses": <Waypoints className="h-4 w-4" />,
     "Generate Payslip": <HandCoins className="h-4 w-4" />,
     "Employee Attendance": <Calendar className="h-4 w-4" />,
-    "View Payroll History" : <CreditCard className="h-4 w-4" />
+    "View Payroll History" : <CreditCard className="h-4 w-4" />,
+    "Employee Time Tracking": <Clock className="h-4 w-4" />,
   };
 
   return (

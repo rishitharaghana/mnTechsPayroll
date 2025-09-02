@@ -5,6 +5,8 @@ import { Briefcase, User, Building, Calendar } from "lucide-react";
 import Download from "/assets/download.png";
 import { fetchUserProfile } from "../../redux/slices/userSlice";
 import { fetchEmployeePerformance, submitSelfReview } from "../../redux/slices/performanceSlice";
+import PageMeta from "../../Components/common/PageMeta";
+import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 
 const ViewGoals = () => {
   const dispatch = useDispatch();
@@ -56,7 +58,17 @@ const ViewGoals = () => {
   const learningGrowth = performance?.learningGrowth || [];
 
   return (
-    <div className="min-h-screen p-4 sm:p-4 md:p-4 lg:p-6">
+    <div className="w-78/100">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Home", link: "/emp-dashboard" },
+            { label: "View Goals", link: "/employee/viewgoals" },
+          ]}
+        />
+        <PageMeta title="View Goals" description="View Goals" />
+      </div>
+    <div className="bg-white rounded-2xl p-4 sm:p-4 md:p-4 lg:p-6">
       {(userError || perfError) && (
         <p className="text-red-600 text-sm mb-4">{userError || perfError}</p>
       )}
@@ -64,7 +76,7 @@ const ViewGoals = () => {
         <p className="text-gray-600 text-sm mb-4">Loading...</p>
       )}
 
-      <div className="bg-white rounded-xl shadow-lg p-4 mb-8 transition-all duration-300 hover:shadow-xl">
+      <div className="bg-white border-1 border-slate-200 rounded-xl shadow-md p-4 mb-8 transition-all duration-300 hover:shadow-xl">
         <div>
           <div className="flex gap-6 mb-4">
             <div className="flex-shrink-0">
@@ -122,7 +134,7 @@ const ViewGoals = () => {
 
       {/* My Goals & Targets */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="w-full sm:w-1/2 bg-white rounded-xl shadow-lg p-6 mb-6 transition-all duration-300 hover:shadow-xl">
+        <div className="w-full sm:w-1/2 bg-white border-1 border-slate-200 rounded-xl shadow-md p-6 mb-6 transition-all duration-300 hover:shadow-xl">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-800">My Goals & Targets</h2>
             <button className="bg-slate-700 text-sm text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">
@@ -163,7 +175,7 @@ const ViewGoals = () => {
         </div>
 
         {/* My Competencies */}
-        <div className="w-full sm:w-1/2 bg-white rounded-xl shadow-lg p-6 mb-6 transition-all duration-300 hover:shadow-xl">
+        <div className="w-full sm:w-1/2 bg-white border-1 border-slate-200 rounded-xl shadow-md p-6 mb-6 transition-all duration-300 hover:shadow-xl">
           <h2 className="text-lg font-medium text-gray-800 mb-4">My Competencies</h2>
           <div className="space-y-4">
             {competencies.length === 0 ? (
@@ -188,7 +200,7 @@ const ViewGoals = () => {
       </div>
 
       {/* Feedback Received */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6 transition-all duration-300 hover:shadow-xl">
+      <div className="bg-white rounded-xl border-1 border-slate-200 shadow-md p-6 mb-6 transition-all duration-300 hover:shadow-xl">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Feedback Received</h2>
         <div className="space-y-4">
           {feedback.length === 0 ? (
@@ -205,11 +217,11 @@ const ViewGoals = () => {
             ))
           )}
           <div className="mt-4">
-            <h3 className="text-md font-semibold text-gray-800 mb-2">Add Self-Review Comments</h3>
+            <h3 className="text-md font-semibold text-gray-800 mb-2">Add Self Review Comments</h3>
             <textarea
               value={selfReviewComments}
               onChange={(e) => setSelfReviewComments(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+              className="w-full px-4 py-3 border border-gray-500 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
               rows="4"
               placeholder="Enter your self-review comments"
             ></textarea>
@@ -224,7 +236,7 @@ const ViewGoals = () => {
       </div>
 
       {/* My Achievements */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6 transition-all duration-300 hover:shadow-xl">
+      <div className="bg-white rounded-xl border-1 border-slate-200 shadow-md p-6 mb-6 transition-all duration-300 hover:shadow-xl">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">My Achievements</h2>
         <div className="grid grid-cols-1 gap-4">
           {achievements.length === 0 ? (
@@ -245,7 +257,7 @@ const ViewGoals = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6 transition-all duration-300 hover:shadow-xl">
+      <div className="bg-white rounded-xl border-1 border-slate-200 shadow-md p-6 mb-6 transition-all duration-300 hover:shadow-xl">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Learning & Growth</h2>
         <div className="space-y-4">
           {learningGrowth.length === 0 ? (
@@ -272,6 +284,7 @@ const ViewGoals = () => {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 };

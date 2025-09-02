@@ -137,12 +137,12 @@ const EmployeeTravelExpenses = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="w-78/100">
       <div className="flex justify-end">
         <PageMeta title="Travel Expenses" />
         <PageBreadcrumb
           items={[
-            { label: "Home", link: "/" },
+            { label: "Home", link: "/emp-dashboard" },
             { label: "Travel Expenses", link: "/employee/travel-expenses" },
           ]}
         />

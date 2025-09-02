@@ -97,8 +97,8 @@ const EmployeeLiveTrack = ({
   };
 
   return (
-    <div className="grid lg:grid-cols-2 gap-6 relative">
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-md border border-white/10 p-6">
+    <div className="w-full grid lg:grid-cols-2 gap-6 relative">
+      <div className="bg-white backdrop-blur-xl rounded-2xl shadow-md border-1 border-gray-200 p-4">
         <div className="text-center space-y-6">
           <div
             className={`mx-auto w-13 h-13 rounded-xl flex items-center justify-center transition-all duration-500 ${
@@ -163,7 +163,7 @@ const EmployeeLiveTrack = ({
           {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
         </div>
       </div>
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-md border border-white/10 p-6">
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-md border-1 border-gray-200 p-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">Live Location</h3>

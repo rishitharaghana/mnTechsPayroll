@@ -57,7 +57,7 @@ const UserProfile = () => {
             </div>
           )}
         </div>
-        <Link to="/profile/edit">
+        <Link to="/profile">
           <button
             className="p-2 bg-white rounded-full shadow-md hover:bg-blue-50 hover:shadow-lg transition-all duration-300"
             aria-label="Edit Profile"
