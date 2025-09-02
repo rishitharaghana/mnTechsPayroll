@@ -24,7 +24,7 @@ const TimeTracking = () => {
       <div className="flex justify-end">
         <PageBreadcrumb
           items={[
-            { label: "Home", link: "/" },
+            { label: "Home", link: "/admin/dashboard" },
             { label: "Time Tracking", link: "/admin/time-tracking" },
           ]}
         />

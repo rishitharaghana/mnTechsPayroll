@@ -123,8 +123,8 @@ const Payslip = () => {
         />
         <PageBreadcrumb
           items={[
-            { label: "Home", link: "/" },
-            { label: "Payslip", link: "/payslip" },
+            { label: "Home", link: "/admin/dashboard" },
+            { label: "Payslip", link: "/admin/payslip" },
           ]}
         />
       </div>

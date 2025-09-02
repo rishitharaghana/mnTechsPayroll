@@ -2,13 +2,21 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Users, UserCog, Briefcase } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { createEmployee, clearState, fetchDepartments, fetchDesignations } from "../../redux/slices/employeeSlice";
+import {
+  createEmployee,
+  clearState,
+  fetchDepartments,
+  fetchDesignations,
+} from "../../redux/slices/employeeSlice";
 import { toast } from "react-toastify";
+import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
+import PageMeta from "./../../Components/common/PageMeta";
 
 const AssignEmployee = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, error, successMessage, departments, designations } = useSelector((state) => state.employee);
+  const { loading, error, successMessage, departments, designations } =
+    useSelector((state) => state.employee);
   const { user } = useSelector((state) => state.auth);
 
   const [employee, setEmployee] = useState({
@@ -35,17 +43,43 @@ const AssignEmployee = () => {
   const [step, setStep] = useState(1);
 
   const roleTypes = [
-    { name: "HR", icon: <UserCog className="w-6 h-6" />, description: "Manage HR-related tasks" },
-    { name: "Department Head", icon: <Users className="w-6 h-6" />, description: "Lead a department" },
-    { name: "Manager", icon: <Briefcase className="w-6 h-6" />, description: "Manage a team" },
-    { name: "Employee", icon: <User className="w-6 h-6" />, description: "Standard employee role" },
+    {
+      name: "HR",
+      icon: <UserCog className="w-6 h-6" />,
+      description: "Manage HR-related tasks",
+    },
+    {
+      name: "Department Head",
+      icon: <Users className="w-6 h-6" />,
+      description: "Lead a department",
+    },
+    {
+      name: "Manager",
+      icon: <Briefcase className="w-6 h-6" />,
+      description: "Manage a team",
+    },
+    {
+      name: "Employee",
+      icon: <User className="w-6 h-6" />,
+      description: "Standard employee role",
+    },
   ];
 
-  const filteredRoleTypes = user?.role === "hr"
-    ? roleTypes.filter((role) => role.name !== "HR")
-    : roleTypes;
+  const filteredRoleTypes =
+    user?.role === "hr"
+      ? roleTypes.filter((role) => role.name !== "HR")
+      : roleTypes;
 
-  const bloodGroups = ["A+ve", "A-ve", "B+ve", "B-ve", "AB+ve", "AB-ve", "O+ve", "O-ve"];
+  const bloodGroups = [
+    "A+ve",
+    "A-ve",
+    "B+ve",
+    "B-ve",
+    "AB+ve",
+    "AB-ve",
+    "O+ve",
+    "O-ve",
+  ];
   const employmentTypes = ["Full-time", "Part-time", "Internship", "Contract"];
 
   useEffect(() => {
@@ -61,7 +95,8 @@ const AssignEmployee = () => {
     ) {
       setErrors((prev) => ({
         ...prev,
-        emergencyPhone: "Mobile and emergency contact numbers cannot be the same",
+        emergencyPhone:
+          "Mobile and emergency contact numbers cannot be the same",
       }));
     } else {
       setErrors((prev) => ({ ...prev, emergencyPhone: "" }));
@@ -76,7 +111,8 @@ const AssignEmployee = () => {
     }
     if (["Department Head", "Manager"].includes(employee.roleType)) {
       return departments.filter(
-        (dept) => dept.department_name !== "HR" && dept.department_name !== "Manager"
+        (dept) =>
+          dept.department_name !== "HR" && dept.department_name !== "Manager"
       );
     }
     return departments.filter((dept) => dept.department_name !== "Manager");
@@ -99,7 +135,10 @@ const AssignEmployee = () => {
         ].includes(des.designation_name)
       );
     }
-    if (employee.roleType === "Department Head" || employee.roleType === "Manager") {
+    if (
+      employee.roleType === "Department Head" ||
+      employee.roleType === "Manager"
+    ) {
       return deptDesignations.filter((des) =>
         [
           "Facility Manager",
@@ -148,12 +187,18 @@ const AssignEmployee = () => {
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file) {
       if (!allowedTypes.includes(file.type)) {
-        setErrors((prev) => ({ ...prev, photo: "Only JPG, JPEG, or PNG files are allowed" }));
+        setErrors((prev) => ({
+          ...prev,
+          photo: "Only JPG, JPEG, or PNG files are allowed",
+        }));
         toast.error("Only JPG, JPEG, or PNG files are allowed for photo");
         return;
       }
       if (file.size > maxSize) {
-        setErrors((prev) => ({ ...prev, photo: "Photo size must not exceed 5MB" }));
+        setErrors((prev) => ({
+          ...prev,
+          photo: "Photo size must not exceed 5MB",
+        }));
         toast.error("Photo size must not exceed 5MB");
         return;
       }
@@ -173,21 +218,28 @@ const AssignEmployee = () => {
     if (step === 2) {
       if (!employee.name) newErrors.name = "Full Name is required";
       if (!employee.email) newErrors.email = "Email is required";
-      if (employee.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employee.email)) {
+      if (
+        employee.email &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employee.email)
+      ) {
         newErrors.email = "Invalid email format";
       }
       if (!employee.mobile) newErrors.mobile = "Mobile is required";
       if (employee.mobile && !/^[0-9]{10}$/.test(employee.mobile)) {
         newErrors.mobile = "Mobile must be a 10-digit number";
       }
-      if (employee.emergencyPhone && !/^[0-9]{10}$/.test(employee.emergencyPhone)) {
+      if (
+        employee.emergencyPhone &&
+        !/^[0-9]{10}$/.test(employee.emergencyPhone)
+      ) {
         newErrors.emergencyPhone = "Emergency Phone must be a 10-digit number";
       }
       if (!employee.password) newErrors.password = "Password is required";
       if (employee.password && employee.password.length < 8) {
         newErrors.password = "Password must be at least 8 characters";
       }
-      if (!employee.bloodGroup) newErrors.bloodGroup = "Blood Group is required";
+      if (!employee.bloodGroup)
+        newErrors.bloodGroup = "Blood Group is required";
       if (!employee.photo) newErrors.photo = "Photo is required";
       else {
         const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
@@ -201,25 +253,48 @@ const AssignEmployee = () => {
     }
     if (step === 3) {
       if (!employee.joinDate) newErrors.joinDate = "Join Date is required";
-      if (["Department Head", "Employee", "Manager"].includes(employee.roleType) && !employee.department) {
+      if (
+        ["Department Head", "Employee", "Manager"].includes(
+          employee.roleType
+        ) &&
+        !employee.department
+      ) {
         newErrors.department = `Department is required for ${employee.roleType} role`;
       }
-      if (["Department Head", "Employee", "Manager"].includes(employee.roleType) && !employee.position) {
+      if (
+        ["Department Head", "Employee", "Manager"].includes(
+          employee.roleType
+        ) &&
+        !employee.position
+      ) {
         newErrors.position = `Position is required for ${employee.roleType} role`;
       }
-      if (["Employee", "Manager"].includes(employee.roleType) && !employee.employmentType) {
+      if (
+        ["Employee", "Manager"].includes(employee.roleType) &&
+        !employee.employmentType
+      ) {
         newErrors.employmentType = "Employment Type is required";
       }
-      if (!employee.basicSalary) newErrors.basicSalary = "Basic Salary is required";
-      if (employee.basicSalary && (isNaN(employee.basicSalary) || parseFloat(employee.basicSalary) < 0)) {
+      if (!employee.basicSalary)
+        newErrors.basicSalary = "Basic Salary is required";
+      if (
+        employee.basicSalary &&
+        (isNaN(employee.basicSalary) || parseFloat(employee.basicSalary) < 0)
+      ) {
         newErrors.basicSalary = "Basic Salary must be a non-negative number";
       }
       if (!employee.allowances) newErrors.allowances = "Allowances is required";
-      if (employee.allowances && (isNaN(employee.allowances) || parseFloat(employee.allowances) < 0)) {
+      if (
+        employee.allowances &&
+        (isNaN(employee.allowances) || parseFloat(employee.allowances) < 0)
+      ) {
         newErrors.allowances = "Allowances must be a non-negative number";
       }
       if (!employee.bonuses) newErrors.bonuses = "Bonuses is required";
-      if (employee.bonuses && (isNaN(employee.bonuses) || parseFloat(employee.bonuses) < 0)) {
+      if (
+        employee.bonuses &&
+        (isNaN(employee.bonuses) || parseFloat(employee.bonuses) < 0)
+      ) {
         newErrors.bonuses = "Bonuses must be a non-negative number";
       }
     }
@@ -262,7 +337,9 @@ const AssignEmployee = () => {
         formData.append("photo", employee.photo);
       }
 
-      if (["Department Head", "Manager", "Employee"].includes(employee.roleType)) {
+      if (
+        ["Department Head", "Manager", "Employee"].includes(employee.roleType)
+      ) {
         formData.append("department_name", employee.department);
         formData.append("designation_name", employee.position);
       }
@@ -303,7 +380,9 @@ const AssignEmployee = () => {
         navigate("/admin/employees");
       } else {
         toast.error(resultAction.payload || "Failed to create employee");
-        setErrors({ submit: resultAction.payload || "Failed to create employee" });
+        setErrors({
+          submit: resultAction.payload || "Failed to create employee",
+        });
       }
       setIsSubmitting(false);
     },
@@ -367,21 +446,37 @@ const AssignEmployee = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-teal-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-10 relative z-10">
+    <div className="w-78/100">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Home", link: "/admin/dashboard" },
+            { label: "Assign Employee", link: "/admin/assign-employee" },
+          ]}
+        />
+        <PageMeta title="Assign Employee" description="Assign a new employee" />
+      </div>
+      <div className="min-h-screen bg-white rounded-2xl p-6 ">
+        <div className="bg-white rounded-2xl shadow-md border-1 border-gray-200 p-6 relative z-10">
           <h2 className="text-3xl font-bold text-center text-teal-600 mb-10 uppercase tracking-tight">
             Assign New Employee
           </h2>
-          <div className="text-sm text-gray-500 mb-4">Current Step: {step}</div>
+          <div className="text-sm text-gray-500 font-semibold mb-4">
+            Current Step: {step}
+          </div>
           {renderStepIndicator()}
           {error && <p className="text-red-600 text-center mb-4">{error}</p>}
-          {successMessage && <p className="text-green-600 text-center mb-4">{successMessage}</p>}
-          {errors.submit && <p className="text-red-600 text-center mb-4">{errors.submit}</p>}
+          {successMessage && (
+            <p className="text-green-600 text-center mb-4">{successMessage}</p>
+          )}
+          {errors.submit && (
+            <p className="text-red-600 text-center mb-4">{errors.submit}</p>
+          )}
           {step === 1 && (
-            <div className="mb-10">
-              <label className="block text-sm font-medium text-gray-900 mb-4">
-                Select Role Type <span className="text-red-600 font-bold">*</span>
+            <div className="pb-2">
+              <label className="block text-md font-semibold text-gray-900 mb-4">
+                Select Role Type{" "}
+                <span className="text-red-600 font-bold">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {filteredRoleTypes.map((role) => (
@@ -407,13 +502,15 @@ const AssignEmployee = () => {
                 </p>
               )}
               {employee.roleType && (
-                <button
-                  type="button"
-                  className="block min-h-[48px] px-8 py-3 mt-4 bg-teal-600 text-white rounded-xl hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 hover:scale-105 transition-all duration-200 text-base font-medium mx-auto z-50"
-                  onClick={handleNext}
-                >
-                  Next
-                </button>
+                <div className="w-full flex justify-end">
+                  <button
+                    type="button"
+                    className="block text-lg px-5 py-2 mt-6 bg-teal-600 text-white rounded-xl hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 hover:scale-105 transition-all duration-200 font-medium z-50"
+                    onClick={handleNext}
+                  >
+                    Next
+                  </button>
+                </div>
               )}
             </div>
           )}
@@ -422,9 +519,24 @@ const AssignEmployee = () => {
               {step === 2 && (
                 <div className="space-y-6">
                   {[
-                    { label: "Full Name", field: "name", type: "text", required: true },
-                    { label: "Email", field: "email", type: "email", required: true },
-                    { label: "Mobile", field: "mobile", type: "tel", required: true },
+                    {
+                      label: "Full Name",
+                      field: "name",
+                      type: "text",
+                      required: true,
+                    },
+                    {
+                      label: "Email",
+                      field: "email",
+                      type: "email",
+                      required: true,
+                    },
+                    {
+                      label: "Mobile",
+                      field: "mobile",
+                      type: "tel",
+                      required: true,
+                    },
                     {
                       label: "Emergency Phone",
                       field: "emergencyPhone",
@@ -458,78 +570,105 @@ const AssignEmployee = () => {
                       required: true,
                       accept: "image/jpeg,image/jpg,image/png",
                     },
-                  ].map(({ label, field, type, required, tooltip, options, accept }) => (
-                    <div key={field} className="relative group z-10">
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        {label} {required && <span className="text-red-600 font-bold">*</span>}
-                        {tooltip && (
-                          <span className="ml-1 text-gray-400 cursor-help" title={tooltip}>
-                            ⓘ
-                          </span>
+                  ].map(
+                    ({
+                      label,
+                      field,
+                      type,
+                      required,
+                      tooltip,
+                      options,
+                      accept,
+                    }) => (
+                      <div key={field} className="relative group z-10">
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          {label}{" "}
+                          {required && (
+                            <span className="text-red-600 font-bold">*</span>
+                          )}
+                          {tooltip && (
+                            <span
+                              className="ml-1 text-gray-400 cursor-help"
+                              title={tooltip}
+                            >
+                              ⓘ
+                            </span>
+                          )}
+                        </label>
+                        {type === "textarea" ? (
+                          <textarea
+                            value={employee[field]}
+                            onChange={(e) => handleInput(field, e.target.value)}
+                            className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
+                              errors[field]
+                                ? "border-red-500 animate-pulse"
+                                : ""
+                            }`}
+                            aria-label={label}
+                            rows="4"
+                          />
+                        ) : type === "select" ? (
+                          <select
+                            value={employee[field]}
+                            onChange={(e) => handleInput(field, e.target.value)}
+                            className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
+                              errors[field]
+                                ? "border-red-500 animate-pulse"
+                                : ""
+                            }`}
+                            aria-label={label}
+                            required={required}
+                          >
+                            <option value="">Select {label}</option>
+                            {options.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        ) : type === "file" ? (
+                          <input
+                            type="file"
+                            accept={accept}
+                            onChange={handleFileChange}
+                            className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
+                              errors[field]
+                                ? "border-red-500 animate-pulse"
+                                : ""
+                            }`}
+                            aria-label={label}
+                            required={required}
+                          />
+                        ) : (
+                          <input
+                            type={type}
+                            value={employee[field]}
+                            onChange={(e) => handleInput(field, e.target.value)}
+                            required={required}
+                            className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
+                              errors[field]
+                                ? "border-red-500 animate-pulse"
+                                : ""
+                            }`}
+                            aria-label={label}
+                          />
                         )}
-                      </label>
-                      {type === "textarea" ? (
-                        <textarea
-                          value={employee[field]}
-                          onChange={(e) => handleInput(field, e.target.value)}
-                          className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
-                            errors[field] ? "border-red-500 animate-pulse" : ""
-                          }`}
-                          aria-label={label}
-                          rows="4"
-                        />
-                      ) : type === "select" ? (
-                        <select
-                          value={employee[field]}
-                          onChange={(e) => handleInput(field, e.target.value)}
-                          className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                            errors[field] ? "border-red-500 animate-pulse" : ""
-                          }`}
-                          aria-label={label}
-                          required={required}
-                        >
-                          <option value="">Select {label}</option>
-                          {options.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      ) : type === "file" ? (
-                        <input
-                          type="file"
-                          accept={accept}
-                          onChange={handleFileChange}
-                          className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                            errors[field] ? "border-red-500 animate-pulse" : ""
-                          }`}
-                          aria-label={label}
-                          required={required}
-                        />
-                      ) : (
-                        <input
-                          type={type}
-                          value={employee[field]}
-                          onChange={(e) => handleInput(field, e.target.value)}
-                          required={required}
-                          className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
-                            errors[field] ? "border-red-500 animate-pulse" : ""
-                          }`}
-                          aria-label={label}
-                        />
-                      )}
-                      {errors[field] && (
-                        <p className="mt-1 text-sm text-red-600 font-medium">{errors[field]}</p>
-                      )}
-                    </div>
-                  ))}
+                        {errors[field] && (
+                          <p className="mt-1 text-sm text-red-600 font-medium">
+                            {errors[field]}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  )}
                 </div>
               )}
               {step === 3 && (
                 <div className="space-y-6">
                   <div className="relative group z-10">
                     <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Join Date <span className="text-red-600 font-bold">*</span>
+                      Join Date{" "}
+                      <span className="text-red-600 font-bold">*</span>
                     </label>
                     <input
                       type="date"
@@ -542,20 +681,28 @@ const AssignEmployee = () => {
                       required
                     />
                     {errors.joinDate && (
-                      <p className="mt-1 text-sm text-red-600 font-medium">{errors.joinDate}</p>
+                      <p className="mt-1 text-sm text-red-600 font-medium">
+                        {errors.joinDate}
+                      </p>
                     )}
                   </div>
                   <div className="relative group z-10">
                     <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Basic Salary <span className="text-red-600 font-bold">*</span>
-                      <span className="ml-1 text-gray-400 cursor-help" title="Monthly basic salary">
+                      Basic Salary{" "}
+                      <span className="text-red-600 font-bold">*</span>
+                      <span
+                        className="ml-1 text-gray-400 cursor-help"
+                        title="Monthly basic salary"
+                      >
                         ⓘ
                       </span>
                     </label>
                     <input
                       type="number"
                       value={employee.basicSalary}
-                      onChange={(e) => handleInput("basicSalary", e.target.value)}
+                      onChange={(e) =>
+                        handleInput("basicSalary", e.target.value)
+                      }
                       className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
                         errors.basicSalary ? "border-red-500 animate-pulse" : ""
                       }`}
@@ -563,20 +710,28 @@ const AssignEmployee = () => {
                       required
                     />
                     {errors.basicSalary && (
-                      <p className="mt-1 text-sm text-red-600 font-medium">{errors.basicSalary}</p>
+                      <p className="mt-1 text-sm text-red-600 font-medium">
+                        {errors.basicSalary}
+                      </p>
                     )}
                   </div>
                   <div className="relative group z-10">
                     <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Allowances <span className="text-red-600 font-bold">*</span>
-                      <span className="ml-1 text-gray-400 cursor-help" title="Monthly allowances">
+                      Allowances{" "}
+                      <span className="text-red-600 font-bold">*</span>
+                      <span
+                        className="ml-1 text-gray-400 cursor-help"
+                        title="Monthly allowances"
+                      >
                         ⓘ
                       </span>
                     </label>
                     <input
                       type="number"
                       value={employee.allowances}
-                      onChange={(e) => handleInput("allowances", e.target.value)}
+                      onChange={(e) =>
+                        handleInput("allowances", e.target.value)
+                      }
                       className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
                         errors.allowances ? "border-red-500 animate-pulse" : ""
                       }`}
@@ -584,13 +739,18 @@ const AssignEmployee = () => {
                       required
                     />
                     {errors.allowances && (
-                      <p className="mt-1 text-sm text-red-600 font-medium">{errors.allowances}</p>
+                      <p className="mt-1 text-sm text-red-600 font-medium">
+                        {errors.allowances}
+                      </p>
                     )}
                   </div>
                   <div className="relative group z-10">
                     <label className="block text-sm font-medium text-gray-900 mb-2">
                       Bonuses <span className="text-red-600 font-bold">*</span>
-                      <span className="ml-1 text-gray-400 cursor-help" title="Monthly bonuses">
+                      <span
+                        className="ml-1 text-gray-400 cursor-help"
+                        title="Monthly bonuses"
+                      >
                         ⓘ
                       </span>
                     </label>
@@ -605,19 +765,28 @@ const AssignEmployee = () => {
                       required
                     />
                     {errors.bonuses && (
-                      <p className="mt-1 text-sm text-red-600 font-medium">{errors.bonuses}</p>
+                      <p className="mt-1 text-sm text-red-600 font-medium">
+                        {errors.bonuses}
+                      </p>
                     )}
                   </div>
-                  {["Department Head", "Employee", "Manager"].includes(employee.roleType) && (
+                  {["Department Head", "Employee", "Manager"].includes(
+                    employee.roleType
+                  ) && (
                     <div className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Department <span className="text-red-600 font-bold">*</span>
+                        Department{" "}
+                        <span className="text-red-600 font-bold">*</span>
                       </label>
                       <select
                         value={employee.department}
-                        onChange={(e) => handleInput("department", e.target.value)}
+                        onChange={(e) =>
+                          handleInput("department", e.target.value)
+                        }
                         className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                          errors.department ? "border-red-500 animate-pulse" : ""
+                          errors.department
+                            ? "border-red-500 animate-pulse"
+                            : ""
                         }`}
                         aria-label="Select department"
                         required
@@ -630,46 +799,73 @@ const AssignEmployee = () => {
                         ))}
                       </select>
                       {errors.department && (
-                        <p className="mt-1 text-sm text-red-600 font-medium">{errors.department}</p>
+                        <p className="mt-1 text-sm text-red-600 font-medium">
+                          {errors.department}
+                        </p>
                       )}
                     </div>
                   )}
-                  {["Department Head", "Employee", "Manager"].includes(employee.roleType) && employee.department && (
-                    <div className="relative group z-10">
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        {employee.roleType === "Employee" ? "Position" : "Designation"} <span className="text-red-600 font-bold">*</span>
-                      </label>
-                      <select
-                        value={employee.position}
-                        onChange={(e) => handleInput("position", e.target.value)}
-                        className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                          errors.position ? "border-red-500 animate-pulse" : ""
-                        }`}
-                        aria-label="Select designation"
-                        required
-                      >
-                        <option value="">Select {employee.roleType === "Employee" ? "Position" : "Designation"}</option>
-                        {getFilteredDesignations().map((des) => (
-                          <option key={des.designation_name} value={des.designation_name}>
-                            {des.designation_name}
+                  {["Department Head", "Employee", "Manager"].includes(
+                    employee.roleType
+                  ) &&
+                    employee.department && (
+                      <div className="relative group z-10">
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          {employee.roleType === "Employee"
+                            ? "Position"
+                            : "Designation"}{" "}
+                          <span className="text-red-600 font-bold">*</span>
+                        </label>
+                        <select
+                          value={employee.position}
+                          onChange={(e) =>
+                            handleInput("position", e.target.value)
+                          }
+                          className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
+                            errors.position
+                              ? "border-red-500 animate-pulse"
+                              : ""
+                          }`}
+                          aria-label="Select designation"
+                          required
+                        >
+                          <option value="">
+                            Select{" "}
+                            {employee.roleType === "Employee"
+                              ? "Position"
+                              : "Designation"}
                           </option>
-                        ))}
-                      </select>
-                      {errors.position && (
-                        <p className="mt-1 text-sm text-red-600 font-medium">{errors.position}</p>
-                      )}
-                    </div>
-                  )}
+                          {getFilteredDesignations().map((des) => (
+                            <option
+                              key={des.designation_name}
+                              value={des.designation_name}
+                            >
+                              {des.designation_name}
+                            </option>
+                          ))}
+                        </select>
+                        {errors.position && (
+                          <p className="mt-1 text-sm text-red-600 font-medium">
+                            {errors.position}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   {["Employee", "Manager"].includes(employee.roleType) && (
                     <div className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Employment Type <span className="text-red-600 font-bold">*</span>
+                        Employment Type{" "}
+                        <span className="text-red-600 font-bold">*</span>
                       </label>
                       <select
                         value={employee.employmentType}
-                        onChange={(e) => handleInput("employmentType", e.target.value)}
+                        onChange={(e) =>
+                          handleInput("employmentType", e.target.value)
+                        }
                         className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                          errors.employmentType ? "border-red-500 animate-pulse" : ""
+                          errors.employmentType
+                            ? "border-red-500 animate-pulse"
+                            : ""
                         }`}
                         aria-label="Select employment type"
                         required
@@ -682,7 +878,9 @@ const AssignEmployee = () => {
                         ))}
                       </select>
                       {errors.employmentType && (
-                        <p className="mt-1 text-sm text-red-600 font-medium">{errors.employmentType}</p>
+                        <p className="mt-1 text-sm text-red-600 font-medium">
+                          {errors.employmentType}
+                        </p>
                       )}
                     </div>
                   )}
@@ -692,7 +890,7 @@ const AssignEmployee = () => {
                 {step > 1 && (
                   <button
                     type="button"
-                    className="block min-h-[48px] px-8 py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-800 hover:scale-105 transition-all duration-200 text-base font-medium z-50"
+                    className="block text-lg px-5 py-2 bg-slate-700 text-white rounded-xl hover:bg-slate-800 hover:scale-105 transition-all duration-200 font-medium z-50"
                     onClick={handlePrevious}
                   >
                     Previous
@@ -701,7 +899,7 @@ const AssignEmployee = () => {
                 {step < 3 ? (
                   <button
                     type="button"
-                    className="block min-h-[48px] px-8 py-3 bg-teal-600 text-white rounded-xl hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 hover:scale-105 transition-all duration-200 text-base font-medium ml-auto z-50"
+                    className="block text-lg px-5 py-2 bg-teal-600 text-white rounded-xl hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 hover:scale-105 transition-all duration-200 font-medium ml-auto z-50"
                     onClick={handleNext}
                   >
                     Next
@@ -709,7 +907,7 @@ const AssignEmployee = () => {
                 ) : (
                   <button
                     type="submit"
-                    className={`block min-h-[48px] px-8 py-3 bg-teal-600 text-white rounded-xl hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 hover:scale-105 transition-all duration-200 text-base font-medium flex items-center justify-center ml-auto z-50 ${
+                    className={`block text-lg px-5 py-2 bg-teal-600 text-white rounded-xl hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 hover:scale-105 transition-all duration-200 font-medium flex items-center justify-center ml-auto z-50 ${
                       isSubmitting ? "opacity-70 cursor-not-allowed" : ""
                     }`}
                     disabled={isSubmitting}

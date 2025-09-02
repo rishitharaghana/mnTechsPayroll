@@ -95,7 +95,7 @@ const Performance = () => {
         />
         <PageBreadcrumb
           items={[
-            { label: "Home", link: "/" },
+            { label: "Home", link: "/admin/dashboard" },
             { label: "Performance", link: "/admin/performance" },
           ]}
         />

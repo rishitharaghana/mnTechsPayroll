@@ -121,8 +121,8 @@ const TravelExpenseApproval = () => {
       <div className="flex justify-end">
         <PageBreadcrumb
           items={[
-            { label: "Home", link: "/" },
-            { label: "Travel Expenses", link: "/admin/travel-expenses" },
+            { label: "Home", link: "/andmin/dashboard" },
+            { label: "Travel Expenses", link: "/admin/travel-expense" },
           ]}
         />
         <PageMeta title="Travel Expense Approval" description="Approve travel expenses" />

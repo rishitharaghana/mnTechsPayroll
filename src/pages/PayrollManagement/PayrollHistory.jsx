@@ -127,12 +127,12 @@ const PayrollHistory = () => {
   return (
     <div className="w-78/100">
       <div className="flex justify-end">
-        <PageBreadcrumb
+        <PageBreadcrumb 
           items={[
-            { name: "Payroll Management", Link: "/payroll-management"},
-            { name: "Payroll History", Link: "/payroll-history"}, 
+            { label: "Home", link: "/admin/dashboard" },
+            { label: "Payroll History", link: "/pay-history" },
           ]}
-        />
+          />
         <pageMeta title="Payroll History" description="Payroll History" />
       </div>
     <div className="min-h-screen bg-white rounded-2xl p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">

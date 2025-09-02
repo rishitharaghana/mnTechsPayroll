@@ -269,8 +269,8 @@ function VisitingCard() {
             <div className="flex justify-end ">
               <PageBreadcrumb
                 items={[
-                  { label: "Home", href: "/" },
-                  { label: "Visiting Card", href: "/admin/visitingcards" },
+                  { label: "Home", link: "/admin/dashboard" },
+                  { label: "Visiting Card", link: "/admin/visitingcards" },
                 ]}
               />
               <PageMeta title="Visiting Card" />

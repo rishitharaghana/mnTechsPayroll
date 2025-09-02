@@ -312,11 +312,10 @@ const AddEmployeeReview = () => {
       <div className="flex justify-end">
         <PageBreadcrumb
           items={[
-            { label: "Home", to: "/" },
+            { label: "Home", link: "/admin/dashboard" },
             {
               label: "Add Employee Review",
-              to: "/add-employee-review",
-              active: true,
+              link: "/admin/add-performance",
             },
           ]}
         />

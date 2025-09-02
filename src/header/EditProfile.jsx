@@ -37,7 +37,7 @@ const EditProfile = () => {
       <div className="flex justify-end">
         <PageBreadcrumb
           items={[
-            { label: "Home", link: "/" },
+            { label: "Home", link: "/admin/dashboard" },
             { label: "Profile", link: "/profile" },
           ]}
         />

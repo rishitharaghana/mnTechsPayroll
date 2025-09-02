@@ -50,7 +50,7 @@ const IdCard = () => {
         <PageMeta title="ID Cards" description="Manage employee ID cards" />
         <PageBreadcrumb
           items={[
-            { label: "Home", link: "/" },
+            { label: "Home", link: "/admin/dashboard" },
             { label: "ID Cards", link: "/idcard" },
           ]}
         />
