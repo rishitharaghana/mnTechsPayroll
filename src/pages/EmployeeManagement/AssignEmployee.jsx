@@ -2,12 +2,13 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Users, UserCog, Briefcase } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { createEmployee, clearState } from "../../redux/slices/employeeSlice";
+import { createEmployee, clearState, fetchDepartments, fetchDesignations } from "../../redux/slices/employeeSlice";
+import { toast } from "react-toastify";
 
 const AssignEmployee = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, error, successMessage } = useSelector((state) => state.employee);
+  const { loading, error, successMessage, departments, designations } = useSelector((state) => state.employee);
   const { user } = useSelector((state) => state.auth);
 
   const [employee, setEmployee] = useState({
@@ -33,40 +34,6 @@ const AssignEmployee = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState(1);
 
-  const departments = [
-    "Administration",
-    "Business Management",
-    "Digital Marketing",
-    "Graphic Designing",
-    "HR",
-    "IT",
-    "Marketing",
-    "Telecalling Operations",
-  ];
-
-  const designations = {
-    Administration: ["Facility Manager", "Office Administrator"],
-    "Business Management": ["General Manager"],
-    "Digital Marketing": ["Digital Marketing Manager"],
-    "Graphic Designing": ["Design Manager"],
-    HR: ["HR Manager"],
-    IT: ["Technical Lead"],
-    Marketing: ["Marketing Manager"],
-    "Telecalling Operations": ["Telemarketing Manager"],
-  };
-
-  const employeeDesignations = {
-    Administration: ["Admin Assistant", "Front Desk Executive", "Operations Executive"],
-    "Business Management": ["Intern", "Junior BDE", "Junior BDM", "Senior BDE", "Senior BDM"],
-    "Digital Marketing": ["Intern", "Junior Digital Marketer", "Senior Digital Marketer"],
-    "Graphic Designing": ["Intern", "Junior Graphic Designer", "Senior Graphic Designer", "UI UX Designer"],
-    HR: ["HR Executive", "Payroll Executive", "Recruitment Specialist", "Training & Development Officer"],
-    IT: ["Senior Software Engineer", "Associate Software Engineer", "Front End Developer", "Full Stack Developer", "Intern"],
-    Marketing: ["Marketing Executive"],
-    "Telecalling Operations": ["Senior Tele Associate", "Junior Tele Associate", "Intern"],
-  };
-
-  const employmentTypes = ["Full-time", "Part-time", "Internship", "Contract"];
   const roleTypes = [
     { name: "HR", icon: <UserCog className="w-6 h-6" />, description: "Manage HR-related tasks" },
     { name: "Department Head", icon: <Users className="w-6 h-6" />, description: "Lead a department" },
@@ -75,6 +42,12 @@ const AssignEmployee = () => {
   ];
 
   const bloodGroups = ["A+ve", "A-ve", "B+ve", "B-ve", "AB+ve", "AB-ve", "O+ve", "O-ve"];
+  const employmentTypes = ["Full-time", "Part-time", "Internship", "Contract"];
+
+  useEffect(() => {
+    dispatch(fetchDepartments());
+    dispatch(fetchDesignations());
+  }, [dispatch]);
 
   useEffect(() => {
     if (
@@ -90,6 +63,67 @@ const AssignEmployee = () => {
       setErrors((prev) => ({ ...prev, emergencyPhone: "" }));
     }
   }, [employee.mobile, employee.emergencyPhone]);
+
+  // Filter departments based on role
+  const getFilteredDepartments = () => {
+    if (!departments) return [];
+    if (employee.roleType === "HR") {
+      return departments.filter((dept) => dept.department_name === "HR");
+    }
+    if (["Department Head", "Manager"].includes(employee.roleType)) {
+      return departments.filter(
+        (dept) => dept.department_name !== "HR" && dept.department_name !== "Manager"
+      );
+    }
+    // Employee can access all departments except "Manager"
+    return departments.filter((dept) => dept.department_name !== "Manager");
+  };
+
+  // Filter designations based on role and department
+  const getFilteredDesignations = () => {
+    if (!designations || !employee.department) return [];
+    const deptDesignations = designations.filter(
+      (des) => des.department_name === employee.department
+    );
+    if (employee.roleType === "HR") {
+      return deptDesignations.filter((des) =>
+        [
+          "HR Manager",
+          "HR Executive",
+          "Payroll Executive",
+          "Recruitment Specialist",
+          "Training & Development Officer",
+        ].includes(des.designation_name)
+      );
+    }
+    if (employee.roleType === "Department Head" || employee.roleType === "Manager") {
+      return deptDesignations.filter((des) =>
+        [
+          "Facility Manager",
+          "Office Administrator",
+          "General Manager",
+          "Digital Marketing Manager",
+          "Design Manager",
+          "Technical Lead",
+          "Marketing Manager",
+          "Telemarketing Manager",
+        ].includes(des.designation_name)
+      );
+    }
+    // Employee role gets all designations except head/manager-level ones
+    return deptDesignations.filter((des) =>
+      ![
+        "Facility Manager",
+        "Office Administrator",
+        "General Manager",
+        "Digital Marketing Manager",
+        "Design Manager",
+        "Technical Lead",
+        "Marketing Manager",
+        "Telemarketing Manager",
+      ].includes(des.designation_name)
+    );
+  };
 
   const handleInput = useCallback((field, value) => {
     setEmployee((prev) => {
@@ -107,8 +141,22 @@ const AssignEmployee = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    setEmployee((prev) => ({ ...prev, photo: file }));
-    setErrors((prev) => ({ ...prev, photo: "" }));
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file) {
+      if (!allowedTypes.includes(file.type)) {
+        setErrors((prev) => ({ ...prev, photo: "Only JPG, JPEG, or PNG files are allowed" }));
+        return;
+      }
+      if (file.size > maxSize) {
+        setErrors((prev) => ({ ...prev, photo: "Photo size must not exceed 5MB" }));
+        return;
+      }
+      setEmployee((prev) => ({ ...prev, photo: file }));
+      setErrors((prev) => ({ ...prev, photo: "" }));
+    } else {
+      setErrors((prev) => ({ ...prev, photo: "No file selected" }));
+    }
   };
 
   const validateStep = () => {
@@ -129,23 +177,29 @@ const AssignEmployee = () => {
       if (employee.emergencyPhone && !/^[0-9]{10}$/.test(employee.emergencyPhone)) {
         newErrors.emergencyPhone = "Emergency Phone must be a 10-digit number";
       }
-      if (employee.emergencyPhone && employee.emergencyPhone.trim() === employee.mobile.trim()) {
-        newErrors.emergencyPhone = "Mobile and emergency contact numbers cannot be the same";
-      }
       if (!employee.password) newErrors.password = "Password is required";
       if (employee.password && employee.password.length < 8) {
         newErrors.password = "Password must be at least 8 characters";
       }
       if (!employee.bloodGroup) newErrors.bloodGroup = "Blood Group is required";
       if (!employee.photo) newErrors.photo = "Photo is required";
+      else {
+        const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+        if (!allowedTypes.includes(employee.photo.type)) {
+          newErrors.photo = "Photo must be a JPG, JPEG, or PNG file";
+        }
+        if (employee.photo.size > 5 * 1024 * 1024) {
+          newErrors.photo = "Photo size must not exceed 5MB";
+        }
+      }
     }
     if (step === 3) {
       if (!employee.joinDate) newErrors.joinDate = "Join Date is required";
       if (["Department Head", "Employee", "Manager"].includes(employee.roleType) && !employee.department) {
-        newErrors.department = "Department is required";
+        newErrors.department = `Department is required for ${employee.roleType} role`;
       }
       if (["Department Head", "Employee", "Manager"].includes(employee.roleType) && !employee.position) {
-        newErrors.position = "Position is required";
+        newErrors.position = `Position is required for ${employee.roleType} role`;
       }
       if (["Employee", "Manager"].includes(employee.roleType) && !employee.employmentType) {
         newErrors.employmentType = "Employment Type is required";
@@ -201,24 +255,23 @@ const AssignEmployee = () => {
         formData.append("photo", employee.photo);
       }
 
-      if (employee.roleType === "Department Head") {
+      if (["Department Head", "Manager", "Employee"].includes(employee.roleType)) {
         formData.append("department_name", employee.department);
         formData.append("designation_name", employee.position);
-      } else if (employee.roleType === "Manager") {
-        formData.append("department_name", employee.department);
-        formData.append("designation_name", employee.position);
-        formData.append("employment_type", employee.employmentType);
-      } else if (employee.roleType === "Employee") {
-        formData.append("department_name", employee.department);
-        formData.append("designation_name", employee.position);
+      }
+      if (["Employee", "Manager"].includes(employee.roleType)) {
         formData.append("employment_type", employee.employmentType);
       }
 
-      console.log("Submitting Employee Data:", Object.fromEntries(formData));
+      console.log("FormData entries:");
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value instanceof File ? value.name : value);
+      }
 
       const resultAction = await dispatch(createEmployee(formData));
 
       if (createEmployee.fulfilled.match(resultAction)) {
+        toast.success("Employee created successfully");
         setEmployee({
           name: "",
           email: "",
@@ -240,8 +293,9 @@ const AssignEmployee = () => {
         setStep(1);
         setErrors({});
         dispatch(clearState());
-        navigate("/admin/assign-employee");
+        navigate("/admin/employees");
       } else {
+        toast.error(resultAction.payload || "Failed to create employee");
         setErrors({ submit: resultAction.payload || "Failed to create employee" });
       }
       setIsSubmitting(false);
@@ -394,7 +448,7 @@ const AssignEmployee = () => {
                       field: "photo",
                       type: "file",
                       required: true,
-                      accept: "image/*",
+                      accept: "image/jpeg,image/jpg,image/png",
                     },
                   ].map(({ label, field, type, required, tooltip, options, accept }) => (
                     <div key={field} className="relative group z-10">
@@ -561,9 +615,9 @@ const AssignEmployee = () => {
                         required
                       >
                         <option value="">Select Department</option>
-                        {departments.map((dept) => (
-                          <option key={dept} value={dept}>
-                            {dept}
+                        {getFilteredDepartments().map((dept) => (
+                          <option key={dept.id} value={dept.department_name}>
+                            {dept.department_name}
                           </option>
                         ))}
                       </select>
@@ -572,10 +626,10 @@ const AssignEmployee = () => {
                       )}
                     </div>
                   )}
-                  {["Department Head", "Manager"].includes(employee.roleType) && employee.department && (
+                  {["Department Head", "Employee", "Manager"].includes(employee.roleType) && employee.department && (
                     <div className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Designation <span className="text-red-600 font-bold">*</span>
+                        {employee.roleType === "Employee" ? "Position" : "Designation"} <span className="text-red-600 font-bold">*</span>
                       </label>
                       <select
                         value={employee.position}
@@ -586,36 +640,10 @@ const AssignEmployee = () => {
                         aria-label="Select designation"
                         required
                       >
-                        <option value="">Select Designation</option>
-                        {designations[employee.department]?.map((pos) => (
-                          <option key={pos} value={pos}>
-                            {pos}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.position && (
-                        <p className="mt-1 text-sm text-red-600 font-medium">{errors.position}</p>
-                      )}
-                    </div>
-                  )}
-                  {employee.roleType === "Employee" && employee.department && (
-                    <div className="relative group z-10">
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Position <span className="text-red-600 font-bold">*</span>
-                      </label>
-                      <select
-                        value={employee.position}
-                        onChange={(e) => handleInput("position", e.target.value)}
-                        className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                          errors.position ? "border-red-500 animate-pulse" : ""
-                        }`}
-                        aria-label="Select position"
-                        required
-                      >
-                        <option value="">Select Position</option>
-                        {employeeDesignations[employee.department]?.map((pos) => (
-                          <option key={pos} value={pos}>
-                            {pos}
+                        <option value="">Select {employee.roleType === "Employee" ? "Position" : "Designation"}</option>
+                        {getFilteredDesignations().map((des) => (
+                          <option key={des.designation_name} value={des.designation_name}>
+                            {des.designation_name}
                           </option>
                         ))}
                       </select>
