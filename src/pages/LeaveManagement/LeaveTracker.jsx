@@ -252,7 +252,7 @@ const LeaveTracker = () => {
   const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "?");
 
   return (
-    <div>
+    <div className="w-78/100">
       <div className="flex justify-end">
         <PageMeta
           title="Leave Tracker"
@@ -265,7 +265,7 @@ const LeaveTracker = () => {
           ]}
         />
       </div>
-      <div className="px-6 p-10 space-y-6 bg-gray-100 rounded-lg font-sans">
+      <div className="px-6 p-10 space-y-6 bg-slate-200 rounded-2xl font-sans">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="w-8/12">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-slate-700 bg-clip-text text-transparent">
@@ -298,7 +298,7 @@ const LeaveTracker = () => {
           {successMessage && <p className="text-green-600">{successMessage}</p>}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {summary.map((item, i) => (
             <button
               key={i}

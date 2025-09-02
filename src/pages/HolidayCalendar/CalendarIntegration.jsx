@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import { Link } from 'react-router-dom';
 
 const CalendarIntegration = () => {
   const currentYear = new Date().getFullYear();
@@ -106,7 +108,16 @@ const CalendarIntegration = () => {
   ];
 
   return (
-    <div className="space-y-8 bg-slate-50 min-h-screen p-6">
+    <div className="w-78/100">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+        items={[
+          {label:'Dashboard', link:'/'},
+          {label: 'Calendar Integration', link: '/holiday-calendar/calendar-integration'},
+        ]}
+        />
+      </div>
+    <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6">
       {/* Header */}
       <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -211,6 +222,7 @@ const CalendarIntegration = () => {
             Sign in with Google
           </button>
         )}
+      </div>
       </div>
     </div>
   );

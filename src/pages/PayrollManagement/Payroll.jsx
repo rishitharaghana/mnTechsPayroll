@@ -188,7 +188,7 @@ const Payroll = () => {
   };
 
   return (
-    <div>
+    <div className="w-78/100">
       <div className="flex justify-end">
         <PageMeta
           title="Payroll Management"

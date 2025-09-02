@@ -4,6 +4,8 @@ import { Calendar, Clock, FileText, MapPin } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { markAttendance, fetchEmployeeAttendance, clearState } from '../../redux/slices/attendanceSlice';
 import { fetchUserProfile } from '../../redux/slices/userSlice';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import PageMeta from '../../Components/common/PageMeta';
 
 const EmployeeAttendance = () => {
   const dispatch = useDispatch();
@@ -87,7 +89,20 @@ const EmployeeAttendance = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-gray-100 min-h-screen">
+    <div className="w-78/100">
+      <div className="flex justify-end">
+        <PageBreadcrumb 
+        items={[
+          { name: 'Dashboard', href: '/dashboard' },
+          { name: 'Employee Attendance', href: '/attendance/employee' },
+        ]}
+        />
+        <PageMeta 
+        title="Mark Attendance"
+        description="Submit your daily attendance for review"
+        />
+      </div>
+    <div className="p-6 space-y-6 bg-white rounded-2xl min-h-screen">
       <div>
         <h1 className="text-2xl font-bold text-center text-gray-900 mb-2 tracking-tight">
           Mark Attendance
@@ -259,6 +274,7 @@ const EmployeeAttendance = () => {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
     </div>
   );

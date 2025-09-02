@@ -6,7 +6,10 @@ import {
   downloadPayrollPDF,
 } from "../../redux/slices/payrollSlice";
 import DatePicker from "../../Components/ui/date/DatePicker"; // Import the custom DatePicker
-import { format, parse } from "date-fns";
+import { format} from "date-fns";
+import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
+import PageMeta from "../../Components/common/PageMeta";
+import { Link } from "react-router-dom";
 
 const PayrollHistory = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date("2025-08-01")); // Default to 2025-08-01
@@ -122,7 +125,17 @@ const PayrollHistory = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="w-78/100">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { name: "Payroll Management", Link: "/payroll-management"},
+            { name: "Payroll History", Link: "/payroll-history"}, 
+          ]}
+        />
+        <pageMeta title="Payroll History" description="Payroll History" />
+      </div>
+    <div className="min-h-screen bg-white rounded-2xl p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-start sm:items-center">
         <div className="w-7/12">
@@ -324,6 +337,7 @@ const PayrollHistory = () => {
           </table>
         </div>
       </div>
+    </div>
     </div>
   );
 };

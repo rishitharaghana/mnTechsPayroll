@@ -61,7 +61,8 @@ const GeneratePayroll = () => {
   };
 
   return (
-    <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6">
+    <div className="w-78/100">
+      <div className="flex justify-end">
       <PageMeta title="Generate Payroll" description="Generate payroll for all employees in a selected month." />
       <PageBreadcrumb
         items={[
@@ -69,7 +70,8 @@ const GeneratePayroll = () => {
           { label: "Generate Payroll", link: "/admin/generate-payroll" },
         ]}
       />
-
+      </div>
+      <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6">
       <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <h1 className="text-3xl font-bold text-white">💼 Generate Payroll</h1>
         <p className="text-slate-200 text-lg mt-1">
@@ -170,6 +172,7 @@ const GeneratePayroll = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

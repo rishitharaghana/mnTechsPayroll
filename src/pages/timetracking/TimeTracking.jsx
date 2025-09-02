@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux';
 import { Users, MapPin, Search, Download } from 'lucide-react';
 import { fetchActiveSiteVisits, initializeWebSocket } from '../../redux/slices/siteVisitSlice';
 import LiveTrackingTable from '../timetracking/LiveTrackingTable';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 
 const TimeTracking = () => {
   const dispatch = useDispatch();
@@ -16,7 +17,14 @@ const TimeTracking = () => {
   }, [dispatch]);
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="w-78/100">
+      <div className="flex justify-end">
+        <PageBreadcrumb 
+          items={[
+            { label: "Home", link: "/" },
+            { label: "Time Tracking", link: "/admin/time-tracking" }]}/>
+      </div>
+    <div className="space-y-4 bg-white rounded-2xl p-6">
       <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-md border border-white/20 p-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
           <div>
@@ -70,6 +78,7 @@ const TimeTracking = () => {
           <LiveTrackingTable searchTerm={searchTerm} filterStatus={filterStatus} />
         )}
       </div>
+    </div>
     </div>
   );
 };

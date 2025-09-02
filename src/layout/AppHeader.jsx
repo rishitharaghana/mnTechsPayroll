@@ -29,9 +29,8 @@ const AppHeader = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                 Payroll
               </h1> */}
               <h1 className="text-xl font-bold bg-gradient-to-r from-teal-600 to-slate-700 bg-clip-text text-transparent">
-  Payroll
-</h1>
-
+                Payroll
+              </h1>
             </div>
           </div>
 
