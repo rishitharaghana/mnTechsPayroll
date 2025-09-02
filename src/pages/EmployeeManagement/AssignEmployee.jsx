@@ -240,7 +240,7 @@ const AssignEmployee = () => {
         setStep(1);
         setErrors({});
         dispatch(clearState());
-        navigate("/admin/employees");
+        navigate("/admin/assign-employee");
       } else {
         setErrors({ submit: resultAction.payload || "Failed to create employee" });
       }

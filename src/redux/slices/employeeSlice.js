@@ -4,7 +4,7 @@ import axios from "axios";
 
 export const createEmployee = createAsyncThunk(
   "employee/createEmployee",
-  async (employeeData, { rejectWithValue }) => {
+  async (formData, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
       if (!userToken) {
@@ -12,14 +12,10 @@ export const createEmployee = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const formData = new FormData();
-      Object.keys(employeeData).forEach((key) => {
-        if (key === "photo" && employeeData[key]) {
-          formData.append(key, employeeData[key]);
-        } else {
-          formData.append(key, employeeData[key]);
-        }
-      });
+      console.log("FormData entries in thunk:");
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value instanceof File ? value.name : value);
+      }
 
       const response = await axios.post(
         "http://localhost:3007/api/employees",
@@ -34,7 +30,7 @@ export const createEmployee = createAsyncThunk(
       console.log("Create employee response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Create employee error:", error.response?.data);
+      console.error("Create employee error:", error.response?.data || error.message);
       return rejectWithValue(
         error.response?.data?.error || "Failed to create employee"
       );
