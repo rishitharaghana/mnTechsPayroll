@@ -22,8 +22,8 @@ const Employee = () => {
   const [roleFilter, setRoleFilter] = useState("all");
 
   // Get unique departments and roles for filter options
-  const departments = [...new Set(employees.map(emp => emp.department_name))];
-  const roles = [...new Set(employees.map(emp => emp.role))];
+  const departments = [...new Set(employees.map((emp) => emp.department_name))];
+  const roles = [...new Set(employees.map((emp) => emp.role))];
 
   useEffect(() => {
     dispatch(fetchEmployees());
@@ -35,14 +35,15 @@ const Employee = () => {
   const filtered = employees.filter((emp) => {
     const name = emp.full_name || emp.name || "";
     const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
-    const matchesDepartment = departmentFilter === "all" || emp.department_name === departmentFilter;
+    const matchesDepartment =
+      departmentFilter === "all" || emp.department_name === departmentFilter;
     const matchesRole = roleFilter === "all" || emp.role === roleFilter;
     return matchesSearch && matchesDepartment && matchesRole;
   });
 
   const getSalary = (emp) => {
     if (emp.role === "employee" || emp.role === "manager") {
-      return (emp.basic_salary * 12) + (emp.allowances || 0);
+      return emp.basic_salary * 12 + (emp.allowances || 0);
     }
     return null;
   };
@@ -72,7 +73,10 @@ const Employee = () => {
             { label: "Employees", link: "/admin/employees" },
           ]}
         />
-        <PageMeta title="Employee Management" description="Manage your employees efficiently." />
+        <PageMeta
+          title="Employee Management"
+          description="Manage your employees efficiently."
+        />
       </div>
 
       <div className="flex justify-between items-center mb-6">
@@ -83,36 +87,45 @@ const Employee = () => {
       </div>
 
       <div className="mb-6 flex bg-white shadow-md p-4 rounded-2xl flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
+        <div className="relative flex-1 w-5/12 ">
           <input
             type="text"
             placeholder="Search by name..."
-            className="w-full p-2 pl-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-8/12 p-2 pl-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <Filter className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <Filter
+            className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+            size={16}
+          />
         </div>
-        <select
-          className="p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          value={departmentFilter}
-          onChange={(e) => setDepartmentFilter(e.target.value)}
-        >
-          <option value="all">All Departments</option>
-          {departments.map((dept) => (
-            <option key={dept} value={dept}>{dept}</option>
-          ))}
-        </select>
-        <select
-          className="p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-        >
-          <option value="all">All Roles</option>
-          {roles.map((role) => (
-            <option key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1)}</option>
-          ))}
-        </select>
+        <div className="flex justify-items-end gap-3 items-end">
+          <select
+            className="p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={departmentFilter}
+            onChange={(e) => setDepartmentFilter(e.target.value)}
+          >
+            <option value="all">All Departments</option>
+            {departments.map((dept) => (
+              <option key={dept} value={dept}>
+                {dept}
+              </option>
+            ))}
+          </select>
+          <select
+            className="p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+          >
+            <option value="all">All Roles</option>
+            {roles.map((role) => (
+              <option key={role} value={role}>
+                {role.charAt(0).toUpperCase() + role.slice(1)}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {loading && (
@@ -137,10 +150,14 @@ const Employee = () => {
               />
             </div>
 
-            <div className="flex justify-between items-center mb-2">
+            <div className="mb-2">
               <h3 className="font-bold text-lg text-gray-900">{emp.name}</h3>
-              <div className="flex space-x-2">
-                <Link
+              <div className="w-full flex justify-between items-center">
+                 <div className="w-8/12">
+                  <p className="text-indigo-600 font-medium">{emp.employee_id}</p>
+                 </div>
+                 <div className="w-4/12 flex items-center justify-end">
+                  <Link
                   to={`/admin/employees/edit/${emp.role}/${emp.id}`}
                   className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
                 >
@@ -149,10 +166,9 @@ const Employee = () => {
                 <button className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg">
                   <Trash2 size={16} />
                 </button>
+                </div>
               </div>
             </div>
-
-            <p className="text-indigo-600 font-medium">{emp.employee_id}</p>
 
             <div className="space-y-2 text-gray-600 text-sm mt-2">
               <div className="flex items-center gap-2">
@@ -170,7 +186,9 @@ const Employee = () => {
 
             <div className="pt-3 border-t border-gray-200 mt-3">
               <div className="flex justify-between mb-1">
-                <span className="text-sm text-gray-600">{emp.department_name}</span>
+                <span className="text-sm text-gray-600">
+                  {emp.department_name}
+                </span>
                 {(emp.role === "employee" || emp.role === "manager") && (
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -183,10 +201,15 @@ const Employee = () => {
                   </span>
                 )}
               </div>
-              <p className="font-medium text-gray-900">{emp.designation_name}</p>
-              {(emp.role === "employee" || emp.role === "manager") && getSalary(emp) && (
-                <p className="text-sm text-gray-600">Salary: ${getSalary(emp).toLocaleString()}</p>
-              )}
+              <p className="font-medium text-gray-900">
+                {emp.designation_name}
+              </p>
+              {(emp.role === "employee" || emp.role === "manager") &&
+                getSalary(emp) && (
+                  <p className="text-sm text-gray-600">
+                    Salary: ${getSalary(emp).toLocaleString()}
+                  </p>
+                )}
             </div>
           </div>
         ))}

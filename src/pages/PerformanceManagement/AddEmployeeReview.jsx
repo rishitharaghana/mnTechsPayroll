@@ -102,28 +102,45 @@ const AddEmployeeReview = () => {
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleDateChange = (date, section, field, index = null) => {
-    const formattedDate =
-      date && !isNaN(new Date(date))
-        ? new Date(date).toISOString().split("T")[0]
-        : "";
-    if (index !== null) {
-      setFormData((prev) => {
-        const updatedSection = [...prev[section]];
+  const handleDateChange = (date, section, field, index = null, subField = null) => {
+  let formattedDate = "";
+  if (date && !isNaN(new Date(date))) {
+    const d = new Date(date);
+    formattedDate = d.toLocaleDateString("en-CA"); // gives YYYY-MM-DD in local timezone
+  }
+
+  if (index !== null && subField) {
+    setFormData((prev) => {
+      const updatedSection = [...prev[section]];
+      if (section === "goals" && subField.startsWith("tasks_")) {
+        const taskIndex = parseInt(subField.split("_")[1]);
+        updatedSection[index].tasks[taskIndex] = {
+          ...updatedSection[index].tasks[taskIndex],
+          [field]: formattedDate,
+        };
+      } else if (section === "appraisal" && field === "achievements") {
+        updatedSection[index] = {
+          ...updatedSection[index],
+          [subField]: formattedDate,
+        };
+      } else {
         updatedSection[index] = {
           ...updatedSection[index],
           [field]: formattedDate,
         };
-        return { ...prev, [section]: updatedSection };
-      });
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [section]: { ...prev[section], [field]: formattedDate },
-      }));
-    }
-    setFormErrors((prev) => ({ ...prev, [field]: "" }));
-  };
+      }
+      return { ...prev, [section]: updatedSection };
+    });
+  } else {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: { ...prev[section], [field]: formattedDate },
+    }));
+  }
+
+  setFormErrors((prev) => ({ ...prev, [field]: "" }));
+};
+
 
   const addItem = (section) => {
     setFormData((prev) => ({
