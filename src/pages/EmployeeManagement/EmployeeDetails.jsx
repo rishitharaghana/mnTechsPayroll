@@ -916,7 +916,7 @@ useEffect(() => {
   };
 
   return (
-    <div>
+    <div className="w-78/100">
       <style>
         {`
           .react-datepicker-wrapper {
@@ -954,13 +954,13 @@ useEffect(() => {
         />
         <PageBreadcrumb
           items={[
-            { label: "Home", link: "/" },
-            { label: "Employee Details", link: "/admin/employee-details" },
+            { label: "Home", link: "/emp-dashboard" },
+            { label: "Employee Details", link: "/employee/employee-details" },
           ]}
         />
       </div>
-      <div className="flex items-center justify-center p-4">
-        <div className="max-w-4xl w-full bg-white rounded-2xl shadow-md border border-gray-100 p-8">
+      <div className="w-full flex items-center justify-center">
+        <div className="w-full bg-white rounded-2xl shadow-md border border-gray-100 p-8">
           <h2 className="text-2xl font-bold text-center text-gray-900 mb-8 tracking-tight">
             Employee Details Form
           </h2>

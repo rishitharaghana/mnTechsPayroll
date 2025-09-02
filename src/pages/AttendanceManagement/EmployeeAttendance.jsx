@@ -93,8 +93,8 @@ const EmployeeAttendance = () => {
       <div className="flex justify-end">
         <PageBreadcrumb 
         items={[
-          { name: 'Dashboard', href: '/dashboard' },
-          { name: 'Employee Attendance', href: '/attendance/employee' },
+          { label: "Home", link: "/emp-dashboard" },
+          { label: "Mark Attendance", link: "/employee/employee-attendance" },
         ]}
         />
         <PageMeta 
@@ -110,7 +110,7 @@ const EmployeeAttendance = () => {
         <p className="text-gray-600 text-center">Submit your daily attendance for review</p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+      <div className="bg-white rounded-2xl shadow-md border-1 border-gray-200 p-6">
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex flex-col">
             <label className="mb-1 text-sm font-bold text-black tracking-tight">Employee</label>
@@ -209,19 +209,19 @@ const EmployeeAttendance = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+              className={`flex items-center space-x-2 px-5 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
                 loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800 hover:scale-105'
               }`}
               aria-label="Submit Attendance"
             >
               <FileText size={20} />
-              <span>Submit Attendance</span>
+              <span>Submit</span>
             </button>
           </div>
         </form>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+      <div className="bg-white rounded-2xl shadow-md border-1 border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Attendance Submissions</h3>
         <div className="overflow-x-auto">
           <table className="w-full table-fixed border-collapse">

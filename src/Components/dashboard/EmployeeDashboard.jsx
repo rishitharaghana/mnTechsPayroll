@@ -63,11 +63,11 @@ const EmployeeDashboard = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 sm:p-8 lg:p-10 font-sans space-y-2">
+    <div className="w-78/100 min-h-screen bg-white rounded-2xl p-6 font-sans space-y-6">
       <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-2xl border border-teal-700/50 p-6 sm:p-8 mb-8 shadow-sm hover:shadow-md transition-all duration-300">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h1 className="text-3xl font-extrabold text-white tracking-tight">
               Hello, {user?.name || 'Employee'}!
             </h1>
             <p className="text-gray-200 text-lg mt-1">Manage your leave, attendance, and more with ease.</p>
@@ -75,7 +75,7 @@ const EmployeeDashboard = () => {
           <div className="mt-4 md:mt-0 text-right">
             <p className="text-gray-300 text-sm">Today's Date & Time</p>
             <p className="text-xl font-semibold text-white">
-              {formattedDate} at {formattedTime} IST
+              {formattedDate} at {formattedTime} 
             </p>
           </div>
         </div>
