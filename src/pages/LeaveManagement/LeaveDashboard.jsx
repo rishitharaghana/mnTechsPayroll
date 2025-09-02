@@ -176,7 +176,7 @@ const LeaveDashboard = () => {
         />
         <PageBreadcrumb
           items={[
-            { label: "Home", link: "/" },
+            { label: "Home", link: "/admin-dashboard" },
             { label: "Leave Dashboard", link: "/leave-dashboard" },
           ]}
         />

@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 
-// Dummy employee images from Unsplash
 const placeholderImages = [
   "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
   "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",

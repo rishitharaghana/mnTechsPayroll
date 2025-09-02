@@ -1,68 +1,43 @@
-import React, { useState } from 'react';
-import { MapPin, Clock, Calendar, ChevronRight, TrendingUp, MessageSquare } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { MapPin, Clock, Calendar, ChevronRight, TrendingUp } from 'lucide-react';
+import { fetchVisitHistory } from '../../redux/slices/siteVisitSlice';
 
 const EmployeeVisitHistory = () => {
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const dispatch = useDispatch();
+  const { visits = [], loading, error } = useSelector((state) => state.siteVisit);
 
-  const visits = [
-    {
-      id: '1',
-      date: '2024-01-15',
-      project: 'Metro Shopping Complex',
-      location: 'Downtown District, Block A',
-      startTime: '09:30 AM',
-      endTime: '02:15 PM',
-      duration: '4h 45m',
-      status: 'completed'
-    },
-    {
-      id: '2',
-      date: '2024-01-12',
-      project: 'Riverside Office Tower',
-      location: 'Business Park, Phase 2',
-      startTime: '10:15 AM',
-      endTime: '01:30 PM',
-      duration: '3h 15m',
-      status: 'completed'
-    },
-    {
-      id: '3',
-      date: '2024-01-10',
-      project: 'Green Valley Residentials',
-      location: 'Suburban Area, Sector 5',
-      startTime: '08:45 AM',
-      endTime: '03:20 PM',
-      duration: '6h 35m',
-      status: 'completed'
-    },
-    {
-      id: '4',
-      date: '2024-01-08',
-      project: 'Tech Hub Development',
-      location: 'IT Corridor, Building C',
-      startTime: '11:00 AM',
-      endTime: '04:30 PM',
-      duration: '5h 30m',
-      status: 'completed'
-    }
-  ];
+  useEffect(() => {
+    dispatch(fetchVisitHistory());
+  }, [dispatch]);
+
+  const formatDuration = (ms) => {
+    const seconds = Math.floor(ms / 1000);
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+  };
 
   const totalHours = visits.reduce((acc, visit) => {
-    const [hours, minutes] = visit.duration.split('h ');
-    const h = parseInt(hours);
-    const m = parseInt(minutes.replace('m', ''));
-    return acc + h + (m / 60);
+    if (visit.end_time) {
+      const start = new Date(visit.start_time);
+      const end = new Date(visit.end_time);
+      const diff = (end - start) / (1000 * 60 * 60);
+      return acc + diff;
+    }
+    return acc;
   }, 0);
 
   return (
     <div className="space-y-6 relative">
-      {/* Header Stats */}
+      {loading && <p className="p-4 text-gray-600">Loading...</p>}
+      {error && <p className="p-4 text-red-600">Error: {error}</p>}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
           { icon: <Calendar className="w-5 h-5 text-white" />, label: 'Total Visits', value: visits.length, bg: 'from-slate-700 to-slate-700' },
           { icon: <Clock className="w-5 h-5 text-white" />, label: 'Total Hours', value: `${totalHours.toFixed(1)}h`, bg: 'from-slate-700 to-slate-700' },
-          { icon: <MapPin className="w-5 h-5 text-white" />, label: 'Locations', value: '8', bg: 'from-slate-700 to-slate-700' },
-          { icon: <TrendingUp className="w-5 h-5 text-white" />, label: 'Avg Duration', value: `${(totalHours / visits.length).toFixed(1)}h`, bg: 'from-slate-700 to-slate-700' }
+          { icon: <MapPin className="w-5 h-5 text-white" />, label: 'Locations', value: new Set(visits.map((v) => v.site_name)).size, bg: 'from-slate-700 to-slate-700' },
+          { icon: <TrendingUp className="w-5 h-5 text-white" />, label: 'Avg Duration', value: visits.length ? `${(totalHours / visits.length).toFixed(1)}h` : '0h', bg: 'from-slate-700 to-slate-700' },
         ].map((stat, idx) => (
           <div key={idx} className="bg-white/80 backdrop-blur-xl rounded-xl shadow-md border border-gray-100 p-4">
             <div className="flex items-center space-x-3">
@@ -77,8 +52,6 @@ const EmployeeVisitHistory = () => {
           </div>
         ))}
       </div>
-
-      {/* Visit History List */}
       <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-lg border border-gray-100 p-6">
         <h3 className="text-xl font-bold text-gray-900 mb-4">Recent Site Visits</h3>
         <div className="space-y-3">
@@ -94,40 +67,44 @@ const EmployeeVisitHistory = () => {
                       {index + 1}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 text-sm">{visit.project}</h4>
-                      <p className="text-teal-700 text-xs font-medium">{visit.location}</p>
+                      <h4 className="font-semibold text-gray-900 text-sm">{visit.site_name}</h4>
+                      <p className="text-teal-700 text-xs font-medium">{visit.site_name}</p>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
                     <div className="flex items-center space-x-2 bg-blue-50 rounded p-2">
                       <Calendar className="w-4 h-4 text-slate-700" />
                       <div>
                         <p className="font-medium text-gray-900">
-                          {new Date(visit.date).toLocaleDateString('en-US', {
+                          {new Date(visit.start_time).toLocaleDateString('en-US', {
                             weekday: 'short',
                             month: 'short',
-                            day: 'numeric'
+                            day: 'numeric',
                           })}
                         </p>
                         <p className="text-teal-700 text-[10px]">Visit Date</p>
                       </div>
                     </div>
-
                     <div className="flex items-center space-x-2 bg-green-50 rounded p-2">
                       <Clock className="w-4 h-4 text-slate-700" />
                       <div>
-                        <p className="font-medium text-gray-900">{visit.startTime} - {visit.endTime}</p>
+                        <p className="font-medium text-gray-900">
+                          {new Date(visit.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -{' '}
+                          {visit.end_time
+                            ? new Date(visit.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            : 'Active'}
+                        </p>
                         <p className="text-teal-700 text-[10px]">Time Range</p>
                       </div>
                     </div>
-
                     <div className="flex items-center space-x-2 bg-purple-50 rounded p-2">
                       <div className="w-4 h-4 bg-slate-700 rounded-full flex items-center justify-center">
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900">{visit.duration}</p>
+                        <p className="font-bold text-gray-900">
+                          {visit.end_time ? visit.duration : 'Active'}
+                        </p>
                         <p className="text-slate-700 text-[10px]">Duration</p>
                       </div>
                     </div>
@@ -139,7 +116,6 @@ const EmployeeVisitHistory = () => {
           ))}
         </div>
       </div>
-
     </div>
   );
 };

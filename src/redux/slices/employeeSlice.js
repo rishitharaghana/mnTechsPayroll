@@ -292,7 +292,6 @@ export const fetchEmployeeById = createAsyncThunk(
     }
   }
 );
-
 export const getCurrentUserProfile = createAsyncThunk(
   "employee/getCurrentUserProfile",
   async (_, { rejectWithValue }) => {
@@ -337,7 +336,6 @@ export const getEmployeeProgress = createAsyncThunk(
     }
   }
 );
-
 const employeeSlice = createSlice({
   name: "employee",
   initialState: {

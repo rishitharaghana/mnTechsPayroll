@@ -1,30 +1,39 @@
+
 import React, { useState, useEffect } from 'react';
-import { MapPin, Clock, Play, MessageCircle, History, Star, X } from 'lucide-react';
-import EmployeeLiveTrack from '../../pages/timetracking/EmployeeLiveTrack';
-import EmployeeVisitHistory from '../../pages/timetracking/EmployeeVisitHistory';
-import EmployeeFeedback from '../../pages/timetracking/EmployeeFeedback';
+import { useDispatch, useSelector } from 'react-redux';
+import { MapPin, Clock, Play, History, Star } from 'lucide-react';
+import { initializeWebSocket } from '../../redux/slices/siteVisitSlice';
+import EmployeeLiveTrack from './EmployeeLiveTrack';
+import EmployeeVisitHistory from './EmployeeVisitHistory';
+// import EmployeeFeedback from '../timetracking/EmployeeFeedback';
 
 const EmployeeTimeTracking = () => {
+  const dispatch = useDispatch();
+  const { currentVisit, locations, error } = useSelector((state) => state.siteVisit);
   const [isTracking, setIsTracking] = useState(false);
   const [trackingTime, setTrackingTime] = useState(0);
   const [startTime, setStartTime] = useState(null);
   const [currentLocation, setCurrentLocation] = useState('');
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('tracking');
+  const [showConsent, setShowConsent] = useState(!localStorage.getItem('locationConsent'));
 
   const employee = {
     id: 'EMP001',
     name: 'John Davidson',
     employeeId: 'JD-2024-001',
     department: 'Project Management',
-    avatar: 'JD'
+    avatar: 'JD',
   };
+
+  useEffect(() => {
+    dispatch(initializeWebSocket());
+  }, [dispatch]);
 
   useEffect(() => {
     let interval = null;
     if (isTracking) {
       interval = setInterval(() => {
-        setTrackingTime(time => time + 1);
+        setTrackingTime((time) => time + 1);
       }, 1000);
     }
     return () => {
@@ -32,23 +41,32 @@ const EmployeeTimeTracking = () => {
     };
   }, [isTracking]);
 
-  const handleStartTracking = () => {
-    setIsTracking(true);
-    setTrackingTime(0);
-    setStartTime(new Date());
-    setCurrentLocation('Downtown Office Complex');
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        setCurrentLocation(`${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`);
-      });
+  useEffect(() => {
+    if (currentVisit) {
+      setIsTracking(true);
+      setStartTime(new Date(currentVisit.start_time));
+      const latestLocation = locations.find(
+        (loc) => loc.visitId === currentVisit.visit_id && loc.employeeId === employee.id
+      );
+      setCurrentLocation(
+        latestLocation
+          ? `${latestLocation.latitude.toFixed(4)}, ${latestLocation.longitude.toFixed(4)}`
+          : currentVisit.site_name || 'Location not available'
+      );
+      const start = new Date(currentVisit.start_time);
+      const now = new Date();
+      setTrackingTime(Math.floor((now - start) / 1000));
+    } else {
+      setIsTracking(false);
+      setCurrentLocation('');
+      setStartTime(null);
+      setTrackingTime(0);
     }
-  };
+  }, [currentVisit, locations, employee.id]);
 
-  const handleStopTracking = () => {
-    setIsTracking(false);
-    setCurrentLocation('');
-    setStartTime(null);
+  const handleConsent = () => {
+    localStorage.setItem('locationConsent', 'true');
+    setShowConsent(false);
   };
 
   const formatTime = (seconds) => {
@@ -65,11 +83,29 @@ const EmployeeTimeTracking = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
+      {/* Consent Modal */}
+      {showConsent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-sm">
+            <h3 className="text-lg font-semibold text-gray-900">Location Tracking Consent</h3>
+            <p className="text-sm text-gray-600 mt-2">
+              Allow location tracking for site visits? This will share your location with your employer.
+            </p>
+            <button
+              onClick={handleConsent}
+              className="mt-4 w-full bg-gradient-to-r from-blue-600 to-teal-600 text-white py-2 rounded-lg hover:from-teal-700 hover:to-teal-700"
+            >
+              Agree
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Employee Profile Card */}
       <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-md border border-white/10 p-6">
         <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-3 sm:space-y-0 sm:space-x-4">
-          <div className="w-16 h-16 bg-gradient-to-br bg-slate-700 rounded-xl flex items-center justify-center text-white font-semibold text-lg shadow-md">
+          <div className="w-16 h-16 bg-gradient-to-br from-slate-700 to-slate-700 rounded-xl flex items-center justify-center text-white font-semibold text-lg shadow-md">
             {employee.avatar}
           </div>
           <div className="flex-1 text-center sm:text-left">
@@ -83,15 +119,11 @@ const EmployeeTimeTracking = () => {
             }`}
           >
             <span
-              className={`w-2 h-2 rounded-full mr-1.5 ${
-                isTracking ? 'bg-green-500' : 'bg-gray-400'
-              }`}
+              className={`w-2 h-2 rounded-full mr-1.5 ${isTracking ? 'bg-green-500' : 'bg-gray-400'}`}
             ></span>
             {isTracking ? 'On Site Visit' : 'Available'}
           </div>
         </div>
-
-        {/* Quick Stats */}
         {isTracking && (
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-blue-50 rounded-lg p-3 border border-blue-100 flex items-center space-x-2">
@@ -113,12 +145,13 @@ const EmployeeTimeTracking = () => {
             <div className="bg-purple-50 rounded-lg p-3 border border-purple-100 flex items-center space-x-2">
               <MapPin className="w-5 h-5 text-purple-600" />
               <div>
-                <p className="text-xs font-semibold text-purple-900">Live Tracking</p>
-                <p className="text-xs text-purple-600">Active</p>
+                <p className="text-xs font-semibold text-purple-900">{currentLocation}</p>
+                <p className="text-xs text-purple-600">Live Location</p>
               </div>
             </div>
           </div>
         )}
+        {error && <p className="mt-4 text-red-600 text-sm">{error}</p>}
       </div>
 
       {/* Navigation Tabs */}
@@ -127,7 +160,7 @@ const EmployeeTimeTracking = () => {
           {[
             { id: 'tracking', label: 'Live Tracking', icon: MapPin },
             { id: 'history', label: 'Visit History', icon: History },
-            { id: 'feedback', label: 'Feedback', icon: Star },
+            // { id: 'feedback', label: 'Feedback', icon: Star },
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -145,21 +178,18 @@ const EmployeeTimeTracking = () => {
         </div>
       </div>
 
-      {/* Active Section Content */}
       {activeSection === 'tracking' && (
         <EmployeeLiveTrack
           isTracking={isTracking}
           trackingTime={trackingTime}
           startTime={startTime}
           currentLocation={currentLocation}
-          onStartTracking={handleStartTracking}
-          onStopTracking={handleStopTracking}
           formatTime={formatTime}
           formatDuration={formatDuration}
         />
       )}
       {activeSection === 'history' && <EmployeeVisitHistory />}
-      {activeSection === 'feedback' && <EmployeeFeedback />}      
+      {/* {activeSection === 'feedback' && <EmployeeFeedback />} */}
     </div>
   );
 };
