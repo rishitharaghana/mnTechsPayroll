@@ -41,29 +41,25 @@ export const downloadPayslip = createAsyncThunk(
 
 // Fetch all payslips
 export const fetchPayslips = createAsyncThunk(
-  "payslip/fetchPayslips",
+  "employee/fetchPayslips",
   async (_, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      if (!userToken) throw new Error("No authentication token found");
       const { token } = JSON.parse(userToken);
 
-      const response = await axios.get(`${API_BASE}/api/payslips`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      console.log("Fetched payslips:", response.data);
-      return Array.isArray(response.data) ? response.data : [];
+      const response = await axios.get(
+        "http://localhost:3007/api/employees/payslips",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return response.data; // ensure backend sends { data: [...] }
     } catch (error) {
-      console.error("Fetch payslips error:", error);
-      const message =
-        error.message === "Network Error"
-          ? "Network error: Please check your connection"
-          : error.response?.data?.message || "Failed to fetch payslips";
-      return rejectWithValue(message);
+      console.error("Fetch payslips error:", error.response?.data || error.message);
+      return rejectWithValue(error.response?.data?.error || "Failed to fetch payslips");
     }
   }
 );
+
 
 // Payslip slice
 const payslipSlice = createSlice({

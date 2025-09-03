@@ -18,7 +18,7 @@ const Payslip = () => {
 
   const { user, role, isAuthenticated } = useSelector((state) => state.auth);
   const { loading, error, payslips } = useSelector((state) => state.payslip);
-  const { employees } = useSelector((state) => state.employee); // ✅ from employeeSlice
+  const { employees } = useSelector((state) => state.employee);
 
   const [selectedMonth, setSelectedMonth] = useState(startOfMonth(new Date()));
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(
@@ -27,16 +27,16 @@ const Payslip = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
 
-  // Fetch employees + payslips
+  // Fetch employees + payslips on load
   useEffect(() => {
     if (isAuthenticated) {
-      dispatch(fetchEmployees()); // ✅ fetch employees here
+      dispatch(fetchEmployees());
       dispatch(fetchPayslips());
       dispatch(clearError());
     }
   }, [dispatch, isAuthenticated]);
 
-  // Filter payslips
+  // Filter payslips based on role, employee, month, and status
   const filteredPayslips = useMemo(() => {
     const formattedMonth = format(selectedMonth, "yyyy-MM");
     return (Array.isArray(payslips) ? payslips : [])
@@ -82,7 +82,9 @@ const Payslip = () => {
       );
       return;
     }
-    dispatch(downloadPayslip({ employeeId: selectedEmployeeId, month: formattedMonth }))
+    dispatch(
+      downloadPayslip({ employeeId: selectedEmployeeId, month: formattedMonth })
+    )
       .unwrap()
       .catch((err) => setDownloadError(err || "Failed to download payslip"));
   };
@@ -168,8 +170,8 @@ const Payslip = () => {
                   className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 text-slate-900"
                 >
                   <option value="">Select Employee</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
+                  {employees.map((emp, index) => (
+                    <option key={`${emp.id}-${index}`} value={emp.id}>
                       {emp.full_name} ({emp.id})
                     </option>
                   ))}
@@ -205,9 +207,9 @@ const Payslip = () => {
         )}
         {!loading && filteredPayslips.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredPayslips.map((slip) => (
+            {filteredPayslips.map((slip, index) => (
               <div
-                key={slip.employee_id + slip.month}
+                key={`${slip.employee_id}-${slip.month}-${index}`}
                 className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow"
               >
                 <h2 className="text-xl font-semibold text-slate-900 mb-2">
@@ -228,7 +230,9 @@ const Payslip = () => {
                 <button
                   onClick={() => {
                     setSelectedEmployeeId(slip.employee_id);
-                    setSelectedMonth(parse(slip.month, "yyyy-MM", new Date()));
+                    setSelectedMonth(
+                      parse(slip.month, "yyyy-MM", new Date())
+                    );
                     openPreview();
                   }}
                   className="mt-4 w-full flex items-center justify-center bg-teal-600 text-white py-2 rounded-lg hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
@@ -260,9 +264,9 @@ const Payslip = () => {
                     slip.employee_id === selectedEmployeeId &&
                     slip.month === format(selectedMonth, "yyyy-MM")
                 )
-                .map((slip) => (
+                .map((slip, index) => (
                   <PayslipGenerator
-                    key={slip.employee_id + slip.month}
+                    key={`${slip.employee_id}-${slip.month}-${index}`}
                     employee={slip}
                     selectedMonth={slip.month}
                   />
