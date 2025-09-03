@@ -3,21 +3,22 @@ import { ArrowLeft, Download, Printer, Share2 } from 'lucide-react';
 import VisitCardTemplate from '../Cards/VisitCardTemplate';
 
 const VisitCardPreview = ({ employee, style, onBack }) => {
+  if (!employee) return null;
+
   const handleDownload = () => {
-    alert(`Downloading ${employee.name}'s ${style} business card as high-resolution PDF`);
+    alert(`Downloading ${employee.full_name}'s ${style} business card as high-resolution PDF`);
   };
 
   const handlePrint = () => {
-    alert(`Preparing ${employee.name}'s business card for printing...`);
+    alert(`Preparing ${employee.full_name}'s business card for printing...`);
   };
 
   const handleShare = () => {
-    alert(`Sharing ${employee.name}'s business card preview...`);
+    alert(`Sharing ${employee.full_name}'s business card preview...`);
   };
 
   return (
     <div className="min-h-screen">
-        
       {/* Header */}
       <div className="bg-white rounded-2xl shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -103,35 +104,35 @@ const VisitCardPreview = ({ employee, style, onBack }) => {
           </div>
         </div>
 
-        {/* Card Information */}
+        {/* Employee Information */}
         <div className="w-full gap-8">
-          <div className="w-120 bg-white rounded-2xl shadow-md p-6">
+          <div className="w-full bg-white rounded-2xl shadow-md p-6">
             <h3 className="text-lg font-bold text-teal-700 mb-4">Employee Information</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="w-1/2 text-slate-700 font-semibold">Name</span>
-                <span className="w-1/1 text-slate-700 font-semibold">: {employee.name}</span>
+                <span className="w-1/2 text-slate-700 font-semibold">: {employee.full_name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="w-1/2 text-slate-700 font-semibold">Position</span>
-                <span className="w-1/1 text-slate-700 font-semibold">: {employee.position}</span>
+                <span className="w-1/2 text-slate-700 font-semibold">Designation</span>
+                <span className="w-1/2 text-slate-700 font-semibold">: {employee.designation_name}</span>
               </div>
               <div className="flex justify-between">
                 <span className="w-1/2 text-slate-700 font-semibold">Department</span>
-                <span className="w-1/1 text-slate-700 font-semibold">: {employee.department}</span>
+                <span className="w-1/2 text-slate-700 font-semibold">: {employee.department_name}</span>
               </div>
               <div className="flex justify-between">
                 <span className="w-1/2 text-slate-700 font-semibold">Email</span>
-                <span className="w-1/1 text-slate-700 font-semibold">: {employee.email}</span>
+                <span className="w-1/2 text-slate-700 font-semibold">: {employee.email}</span>
               </div>
               <div className="flex justify-between">
-                <span className="w-1/2 text-slate-700 font-semibold">Phone</span>
-                <span className="w-1/1 text-slate-700 font-semibold">: {employee.phone}</span>
+                <span className="w-1/2 text-slate-700 font-semibold">Mobile</span>
+                <span className="w-1/2 text-slate-700 font-semibold">: {employee.mobile}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="w-1/2 text-slate-700 font-semibold">Website</span>
-                <span className="w-1/1 text-slate-700 font-semibold">: {employee.website}</span>
-              </div>
+              {/* <div className="flex justify-between">
+                <span className="w-1/2 text-slate-700 font-semibold">Photo</span>
+                <span className="w-1/2 text-slate-700 font-semibold">: {employee.photo_url ? "Uploaded" : "Not Uploaded"}</span>
+              </div> */}
             </div>
           </div>
         </div>
