@@ -436,6 +436,114 @@ export const createRole = createAsyncThunk(
   }
 );
 
+export const fetchEmployeePersonalDetails = createAsyncThunk(
+  "employee/fetchEmployeePersonalDetails",
+  async (employeeId, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get(
+        `http://localhost:3007/api/employees/personal-details/${employeeId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("Fetch personal details response:", response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error("Fetch personal details error:", error.response?.data);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch personal details"
+      );
+    } 
+  }
+);
+
+export const fetchEmployeeEducationDetails = createAsyncThunk(
+  "employee/fetchEmployeeEducationDetails",
+  async (employeeId, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get(
+        `http://localhost:3007/api/employees/education-details/${employeeId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("Fetch education details response:", response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error("Fetch education details error:", error.response?.data);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch education details"
+      );
+    }
+  }
+);
+
+export const fetchEmployeeDocuments = createAsyncThunk(
+  "employee/fetchEmployeeDocuments",
+  async (employeeId, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get(
+        `http://localhost:3007/api/employees/documents/${employeeId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("Fetch documents response:", response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error("Fetch documents error:", error.response?.data);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch documents"
+      );
+    }
+  }
+);
+
+export const fetchEmployeeBankDetails = createAsyncThunk(
+  "employee/fetchEmployeeBankDetails",
+  async (employeeId, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get(
+        `http://localhost:3007/api/employees/bank-details/${employeeId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("Fetch bank details response:", response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error("Fetch bank details error:", error.response?.data);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch bank details"
+      );
+    }
+  }
+);
+
 const employeeSlice = createSlice({
   name: "employee",
   initialState: {
@@ -444,6 +552,10 @@ const employeeSlice = createSlice({
     designations: [], 
      roles: [],
     currentEmployee: null,
+    personalDetails: null,
+    educationDetails:null,
+    documents :[],
+    bankDetails: null,
     loading: false,
     error: null,
     successMessage: null,
@@ -455,6 +567,10 @@ const employeeSlice = createSlice({
       state.loading = false;
       state.error = null;
       state.successMessage = null;
+      state.personalDetails = null;
+      state.bankDetails = null;
+      state.documents = null;
+      state.educationDetails= null;
       state.employeeId = null;
       state.currentEmployee = null;
     },
@@ -677,6 +793,54 @@ const employeeSlice = createSlice({
         });
       })
       .addCase(createRole.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+       .addCase(fetchEmployeePersonalDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchEmployeePersonalDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        state.personalDetails = action.payload;
+      })
+      .addCase(fetchEmployeePersonalDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchEmployeeEducationDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchEmployeeEducationDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        state.educationDetails = action.payload;
+      })
+      .addCase(fetchEmployeeEducationDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchEmployeeDocuments.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchEmployeeDocuments.fulfilled, (state, action) => {
+        state.loading = false;
+        state.documents = action.payload;
+      })
+      .addCase(fetchEmployeeDocuments.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchEmployeeBankDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchEmployeeBankDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        state.bankDetails = action.payload;
+      })
+      .addCase(fetchEmployeeBankDetails.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

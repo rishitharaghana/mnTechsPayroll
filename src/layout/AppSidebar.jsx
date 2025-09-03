@@ -60,6 +60,12 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/admin/assign-employee",
           allowedRoles: ["super_admin", "hr"],
         },
+         {
+          id: "assign-employee",
+          label: "View Employees",
+          path: "/admin/view-employees",
+          allowedRoles: ["super_admin", "hr"],
+        },
       ],
     },
     {

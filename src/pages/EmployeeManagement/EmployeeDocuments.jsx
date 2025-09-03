@@ -1,4 +1,3 @@
-// components/DocumentsForm.jsx
 import FileUpload from "./EmployeeFileUpload";
 
 const EmployeeDocuments = ({ formData, errors, handleChange }) => {

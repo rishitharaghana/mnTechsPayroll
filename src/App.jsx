@@ -43,6 +43,7 @@ import "react-toastify/dist/ReactToastify.css";
 import ChangePassword from "./pages/Login/ChangePassword";
 import TravelExpenseApproval from "./pages/TravelExpenses/TravelExpenseApproval";
 import TravelExpenseSubmission from "./pages/TravelExpenses/TravelExpensesSubmission";
+import ViewEmployeeDetails from "./pages/EmployeeManagement/ViewEmployeeDetails";
 
 const App = () => {
   return (
@@ -78,6 +79,8 @@ const App = () => {
                   />
                 }
               >
+                                <Route path="/admin/view-employees" element={<ViewEmployeeDetails />} />
+
                 <Route path="/admin/dashboard" element={<Dashboard />} />
                 <Route path="/admin/employees" element={<Employee />} />
                 <Route
