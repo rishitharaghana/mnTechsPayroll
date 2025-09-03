@@ -219,18 +219,7 @@ const ViewEmployeeDetails = () => {
   };
 
   return (
-    <div className="w-full p-6">
-      <style>
-        {`
-          .animate-fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-          }
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}
-      </style>
+    <div className="w-78/100">
       <div className="flex justify-end">
         <PageMeta
           title="Employee List"
@@ -243,6 +232,18 @@ const ViewEmployeeDetails = () => {
           ]}
         />
       </div>
+    <div className="w-full">
+      <style>
+        {`
+          .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}
+      </style>
       <div className="w-full bg-white rounded-2xl shadow-md border border-gray-100 p-8">
         <h2 className="text-2xl font-bold text-center text-gray-900 mb-8 tracking-tight">
           Employee List
@@ -299,6 +300,7 @@ const ViewEmployeeDetails = () => {
         )}
       </div>
       {selectedEmployee && <EmployeeDetailsPopup employee={selectedEmployee} />}
+    </div>
     </div>
   );
 };
