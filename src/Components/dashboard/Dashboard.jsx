@@ -114,21 +114,15 @@ const AdminDashboard = () => {
 
   return (
     <div className="w-78/100 space-y-8 bg-white rounded-2xl min-h-screen p-6">
-      <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-8 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="bg-gradient-to-r from-slate-700 to-teal-600 rounded-lg border border-slate-200/50 p-8 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
-            <h1 className="text-2xl font-bold text-white mb-2">
+            <h1 className="text-3xl font-extrabold text-white tracking-tight">
               Welcome back, {user?.name || role.toUpperCase()}!
             </h1>
-            <p className="text-slate-200 text-md">
+            <p className="text-gray-200 text-lg mt-1">
               {user?.name && <span>{user.name}, </span>}
-              Here's what's happening with your {role === 'dept_head' ? 'team' : 'organization'} today.
-            </p>
-          </div>
-          <div className="mt-4 md:mt-0 text-right">
-            <p className="text-sm text-slate-200">Today's Date & Time</p>
-            <p className="text-lg font-semibold text-white">
-              {formattedDate} at {formattedTime}
+              Here to access your workspace {role === 'dept_head' ? 'team' : 'organization'} today.
             </p>
           </div>
         </div>

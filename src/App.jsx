@@ -124,6 +124,7 @@ const App = () => {
                   path="/admin/travel-expsense/details"
                   element={<TravelExpenseSubmission />}
                 />
+                <Route path="/admin/employees/preview/:id" element={<EmployeePreviewPage />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={["employee"]} />}>
@@ -156,7 +157,7 @@ const App = () => {
               <Route
                 element={
                   <ProtectedRoute
-                    allowedRoles={["employee", "manager", "hr", "dept_head"]}
+                    allowedRoles={["employee", "manager", "dept_head"]}
                   />
                 }
               >
@@ -168,7 +169,6 @@ const App = () => {
                   path="/admin/calendar"
                   element={<CalendarIntegration />}
                 />
-                <Route path="/admin/employees/preview/:id" element={<EmployeePreviewPage />} />
               </Route>
 
               <Route path="/userprofile" element={<UserProfile />} />
