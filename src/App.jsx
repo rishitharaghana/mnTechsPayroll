@@ -25,7 +25,6 @@ import LeaveApplication from "./pages/LeaveManagement/LeaveApplication";
 import LeaveDashboard from "./pages/LeaveManagement/LeaveDashboard";
 import IdCard from "./pages/Cards/IdCard";
 import ViewIdCard from "./pages/Cards/ViewIdCard";
-import IdCardForm from "./form/IdCardForm";
 import VisitingCard from "./pages/Cards/VisitingCard";
 import CalendarIntegration from "./pages/HolidayCalendar/CalendarIntegration";
 import TimeTracking from "./pages/timetracking/TimeTracking";
@@ -173,9 +172,7 @@ const App = () => {
 
               <Route path="/userprofile" element={<UserProfile />} />
               <Route path="/profile" element={<EditProfile />} />
-              <Route path="/idcard" element={<IdCard />} />
-              <Route path="/idcard/idcard-form" element={<IdCardForm />} />
-              <Route path="/idcard/:id" element={<ViewIdCard />} />
+              <Route path="/idcard/" element={<ViewIdCard />} />
               <Route path="/visitingcard-form" element={<VisitingCardForm />} />
             </Route>
           </Route>
