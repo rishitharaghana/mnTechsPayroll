@@ -1,3 +1,4 @@
+// Employee.jsx
 import React, { useEffect, useState } from "react";
 import {
   Edit,
@@ -7,6 +8,7 @@ import {
   Calendar,
   UserPlus,
   Filter,
+  Fullscreen,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -87,7 +89,7 @@ const Employee = () => {
         </div>
 
         <div className="mb-6 flex bg-white shadow-md p-4 border-1 border-gray-200 rounded-xl flex-col sm:flex-row gap-4">
-          <div className="relative flex-1 w-5/12 ">
+          <div className="relative flex-1 w-5/12">
             <input
               type="text"
               placeholder="Search by name..."
@@ -164,6 +166,13 @@ const Employee = () => {
                       className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
                     >
                       <Edit size={16} />
+                    </Link>
+                    <Link
+                      to={`/admin/employees/preview/${emp.id}`}
+                      state={{ employee: emp }} // Pass employee data via state
+                      className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                    >
+                      <Fullscreen size={16} />
                     </Link>
                     <button className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg">
                       <Trash2 size={16} />

@@ -1,5 +1,8 @@
-const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
-  const stepGroups = [
+// src/components/EmployeePreview.jsx
+import React from "react";
+
+const EmployeePreview = ({ formData, error, successMessage, closePreview, activeTab }) => {
+  const tabGroups = [
     {
       title: "Personal Details",
       fields: [
@@ -14,10 +17,9 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
           value: formData.image ? (
             <div className="flex flex-col items-center">
               <img
-                src={URL.createObjectURL(formData.image)}
+                src={typeof formData.image === "string" ? formData.image : URL.createObjectURL(formData.image)}
                 alt="Employee"
-                className="w-24 h-24 rounded-lg"
-                style={{ maxHeight: "100px", objectFit: "cover" }}
+                className="w-32 h-32 rounded-lg shadow-md object-cover"
               />
             </div>
           ) : (
@@ -62,17 +64,16 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
         {
           label: "10th Class Document",
           value: formData.tenthClassDoc ? (
-            formData.tenthClassDoc.type.startsWith("image/") ? (
+            formData.tenthClassDoc.includes(".jpg") || formData.tenthClassDoc.includes(".png") ? (
               <img
-                src={URL.createObjectURL(formData.tenthClassDoc)}
+                src={formData.tenthClassDoc}
                 alt="10th Class Document"
-                className="w-24 h-24 rounded-lg"
-                style={{ maxHeight: "100px", objectFit: "cover" }}
+                className="w-32 h-32 rounded-lg shadow-md object-cover"
               />
-            ) : formData.tenthClassDoc.type === "application/pdf" ? (
+            ) : formData.tenthClassDoc.includes(".pdf") ? (
               <div className="flex flex-col items-center">
                 <svg
-                  className="w-10 h-10 text-red-500"
+                  className="w-12 h-12 text-red-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -85,7 +86,14 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span className="text-sm text-gray-600 mt-2">PDF Uploaded</span>
+                <a
+                  href={formData.tenthClassDoc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-teal-600 hover:underline text-sm mt-2"
+                >
+                  View PDF
+                </a>
               </div>
             ) : (
               "Unsupported file type"
@@ -97,17 +105,16 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
         {
           label: "Intermediate Document",
           value: formData.intermediateDoc ? (
-            formData.intermediateDoc.type.startsWith("image/") ? (
+            formData.intermediateDoc.includes(".jpg") || formData.intermediateDoc.includes(".png") ? (
               <img
-                src={URL.createObjectURL(formData.intermediateDoc)}
+                src={formData.intermediateDoc}
                 alt="Intermediate Document"
-                className="w-24 h-24 rounded-lg"
-                style={{ maxHeight: "100px", objectFit: "cover" }}
+                className="w-32 h-32 rounded-lg shadow-md object-cover"
               />
-            ) : formData.intermediateDoc.type === "application/pdf" ? (
+            ) : formData.intermediateDoc.includes(".pdf") ? (
               <div className="flex flex-col items-center">
                 <svg
-                  className="w-10 h-10 text-red-500"
+                  className="w-12 h-12 text-red-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -120,7 +127,14 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span className="text-sm text-gray-600 mt-2">PDF Uploaded</span>
+                <a
+                  href={formData.intermediateDoc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-teal-600 hover:underline text-sm mt-2"
+                >
+                  View PDF
+                </a>
               </div>
             ) : (
               "Unsupported file type"
@@ -132,17 +146,16 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
         {
           label: "Graduation Document",
           value: formData.graduationDoc ? (
-            formData.graduationDoc.type.startsWith("image/") ? (
+            formData.graduationDoc.includes(".jpg") || formData.graduationDoc.includes(".png") ? (
               <img
-                src={URL.createObjectURL(formData.graduationDoc)}
+                src={formData.graduationDoc}
                 alt="Graduation Document"
-                className="w-24 h-24 rounded-lg"
-                style={{ maxHeight: "100px", objectFit: "cover" }}
+                className="w-32 h-32 rounded-lg shadow-md object-cover"
               />
-            ) : formData.graduationDoc.type === "application/pdf" ? (
+            ) : formData.graduationDoc.includes(".pdf") ? (
               <div className="flex flex-col items-center">
                 <svg
-                  className="w-10 h-10 text-red-500"
+                  className="w-12 h-12 text-red-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -155,7 +168,14 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span className="text-sm text-gray-600 mt-2">PDF Uploaded</span>
+                <a
+                  href={formData.graduationDoc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-teal-600 hover:underline text-sm mt-2"
+                >
+                  View PDF
+                </a>
               </div>
             ) : (
               "Unsupported file type"
@@ -167,17 +187,16 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
         {
           label: "Postgraduation Document",
           value: formData.postgraduationDoc ? (
-            formData.postgraduationDoc.type.startsWith("image/") ? (
+            formData.postgraduationDoc.includes(".jpg") || formData.postgraduationDoc.includes(".png") ? (
               <img
-                src={URL.createObjectURL(formData.postgraduationDoc)}
+                src={formData.postgraduationDoc}
                 alt="Postgraduation Document"
-                className="w-24 h-24 rounded-lg"
-                style={{ maxHeight: "100px", objectFit: "cover" }}
+                className="w-32 h-32 rounded-lg shadow-md object-cover"
               />
-            ) : formData.postgraduationDoc.type === "application/pdf" ? (
+            ) : formData.postgraduationDoc.includes(".pdf") ? (
               <div className="flex flex-col items-center">
                 <svg
-                  className="w-10 h-10 text-red-500"
+                  className="w-12 h-12 text-red-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -190,7 +209,14 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span className="text-sm text-gray-600 mt-2">PDF Uploaded</span>
+                <a
+                  href={formData.postgraduationDoc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-teal-600 hover:underline text-sm mt-2"
+                >
+                  View PDF
+                </a>
               </div>
             ) : (
               "Unsupported file type"
@@ -202,17 +228,16 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
         {
           label: "Aadhar Document",
           value: formData.aadharDoc ? (
-            formData.aadharDoc.type.startsWith("image/") ? (
+            formData.aadharDoc.includes(".jpg") || formData.aadharDoc.includes(".png") ? (
               <img
-                src={URL.createObjectURL(formData.aadharDoc)}
+                src={formData.aadharDoc}
                 alt="Aadhar Document"
-                className="w-24 h-24 rounded-lg"
-                style={{ maxHeight: "100px", objectFit: "cover" }}
+                className="w-32 h-32 rounded-lg shadow-md object-cover"
               />
-            ) : formData.aadharDoc.type === "application/pdf" ? (
+            ) : formData.aadharDoc.includes(".pdf") ? (
               <div className="flex flex-col items-center">
                 <svg
-                  className="w-10 h-10 text-red-500"
+                  className="w-12 h-12 text-red-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -225,7 +250,14 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span className="text-sm text-gray-600 mt-2">PDF Uploaded</span>
+                <a
+                  href={formData.aadharDoc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-teal-600 hover:underline text-sm mt-2"
+                >
+                  View PDF
+                </a>
               </div>
             ) : (
               "Unsupported file type"
@@ -237,17 +269,16 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
         {
           label: "PAN Document",
           value: formData.panDoc ? (
-            formData.panDoc.type.startsWith("image/") ? (
+            formData.panDoc.includes(".jpg") || formData.panDoc.includes(".png") ? (
               <img
-                src={URL.createObjectURL(formData.panDoc)}
+                src={formData.panDoc}
                 alt="PAN Document"
-                className="w-24 h-24 rounded-lg"
-                style={{ maxHeight: "100px", objectFit: "cover" }}
+                className="w-32 h-32 rounded-lg shadow-md object-cover"
               />
-            ) : formData.panDoc.type === "application/pdf" ? (
+            ) : formData.panDoc.includes(".pdf") ? (
               <div className="flex flex-col items-center">
                 <svg
-                  className="w-10 h-10 text-red-500"
+                  className="w-12 h-12 text-red-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -260,7 +291,14 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span className="text-sm text-gray-600 mt-2">PDF Uploaded</span>
+                <a
+                  href={formData.panDoc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-teal-600 hover:underline text-sm mt-2"
+                >
+                  View PDF
+                </a>
               </div>
             ) : (
               "Unsupported file type"
@@ -281,50 +319,43 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview }) => {
   ];
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-teal-500 to-blue-600 bg-opacity-80 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8 relative shadow-2xl">
-        <button
-          onClick={closePreview}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
-          aria-label="Close preview"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-        <h3 className="text-2xl font-bold text-gray-900 mb-6 tracking-tight">Preview Employee Details</h3>
-        {error && (
-          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>
-        )}
-        {successMessage && (
-          <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">{successMessage}</div>
-        )}
-        <div className="space-y-8">
-          {stepGroups.map((group, index) => (
-            <div
-              key={index}
-              className="bg-gray-50 rounded-lg p-6 shadow-sm animate-fade-in"
-              style={{ animationDelay: `${index * 200}ms` }}
-            >
-              <h4 className="text-lg font-semibold text-teal-600 mb-4">{group.title}</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
-                {group.fields.map((field, idx) => (
-                  <p key={idx} className="flex flex-col gap-2">
-                    <strong>{field.label}:</strong> {field.value}
-                  </p>
-                ))}
-              </div>
+    <div className="relative">
+      {/* Error and Success Messages */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg shadow-md animate-fade-in">
+          {error}
+        </div>
+      )}
+      {successMessage && (
+        <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-lg shadow-md animate-fade-in">
+          {successMessage}
+        </div>
+      )}
+
+      {/* Content Area with Animation */}
+      <div
+        className="bg-white rounded-lg p-6 shadow-md transition-all duration-300 animate-fade-in"
+        style={{ animationDelay: `${activeTab * 100}ms` }}
+      >
+        <h4 className="text-xl font-semibold text-teal-600 mb-6">{tabGroups[activeTab].title}</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700">
+          {tabGroups[activeTab].fields.map((field, idx) => (
+            <div key={idx} className="flex flex-col gap-2">
+              <strong className="text-sm font-medium text-gray-900">{field.label}:</strong>
+              <div className="text-sm">{field.value}</div>
             </div>
           ))}
         </div>
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={closePreview}
-            className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all duration-300 text-sm font-medium"
-          >
-            Close
-          </button>
-        </div>
+      </div>
+
+      {/* Back Button */}
+      <div className="mt-6">
+        <button
+          onClick={closePreview}
+          className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-300 text-sm font-medium"
+        >
+          Back to Employees
+        </button>
       </div>
     </div>
   );

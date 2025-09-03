@@ -44,6 +44,7 @@ import ChangePassword from "./pages/Login/ChangePassword";
 import TravelExpenseApproval from "./pages/TravelExpenses/TravelExpenseApproval";
 import TravelExpenseSubmission from "./pages/TravelExpenses/TravelExpensesSubmission";
 import ViewEmployeeDetails from "./pages/EmployeeManagement/ViewEmployeeDetails";
+import EmployeePreviewPage from "./pages/EmployeeManagement/EmployeePreviewPage";
 
 const App = () => {
   return (
@@ -79,7 +80,10 @@ const App = () => {
                   />
                 }
               >
-                                <Route path="/admin/view-employees" element={<ViewEmployeeDetails />} />
+                <Route
+                  path="/admin/view-employees"
+                  element={<ViewEmployeeDetails />}
+                />
 
                 <Route path="/admin/dashboard" element={<Dashboard />} />
                 <Route path="/admin/employees" element={<Employee />} />
@@ -152,7 +156,7 @@ const App = () => {
               <Route
                 element={
                   <ProtectedRoute
-                    allowedRoles={["employee", "manager", "dept_head"]}
+                    allowedRoles={["employee", "manager", "hr", "dept_head"]}
                   />
                 }
               >
@@ -164,6 +168,7 @@ const App = () => {
                   path="/admin/calendar"
                   element={<CalendarIntegration />}
                 />
+                <Route path="/admin/employees/preview/:id" element={<EmployeePreviewPage />} />
               </Route>
 
               <Route path="/userprofile" element={<UserProfile />} />
