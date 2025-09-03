@@ -1,6 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
+// Base API URL
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3007";
+
+// Download payslip PDF
 export const downloadPayslip = createAsyncThunk(
   "payslip/downloadPayslip",
   async ({ employeeId, month }, { rejectWithValue }) => {
@@ -9,7 +13,7 @@ export const downloadPayslip = createAsyncThunk(
       if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
       const { token } = JSON.parse(userToken);
 
-      const response = await axios.get(`/api/payslip/${employeeId}/${month}`, {
+      const response = await axios.get(`${API_BASE}/api/payslip/${employeeId}/${month}`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: "blob",
       });
@@ -26,15 +30,16 @@ export const downloadPayslip = createAsyncThunk(
       return { success: true, employeeId, month };
     } catch (error) {
       const message =
-        error.response?.data?.message || error.message === "Network Error"
+        error.message === "Network Error"
           ? "Network error: Please check your connection"
-          : "Failed to download payslip";
+          : error.response?.data?.message || "Failed to download payslip";
       console.error("Download payslip error:", error);
       return rejectWithValue(message);
     }
   }
 );
 
+// Fetch all payslips
 export const fetchPayslips = createAsyncThunk(
   "payslip/fetchPayslips",
   async (_, { rejectWithValue }) => {
@@ -43,19 +48,24 @@ export const fetchPayslips = createAsyncThunk(
       if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
       const { token } = JSON.parse(userToken);
 
-      const response = await axios.get("/api/payslips", {
+      const response = await axios.get(`${API_BASE}/api/payslips`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       console.log("Fetched payslips:", response.data);
-      return Array.isArray(response.data) ? response.data : response.data.data || [];
+      return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
       console.error("Fetch payslips error:", error);
-      const message = error.response?.data?.message || "Failed to fetch payslips";
+      const message =
+        error.message === "Network Error"
+          ? "Network error: Please check your connection"
+          : error.response?.data?.message || "Failed to fetch payslips";
       return rejectWithValue(message);
     }
   }
 );
 
+// Payslip slice
 const payslipSlice = createSlice({
   name: "payslip",
   initialState: {

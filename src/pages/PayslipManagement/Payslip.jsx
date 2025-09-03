@@ -7,6 +7,7 @@ import {
   fetchPayslips,
   clearError,
 } from "../../redux/slices/payslipSlice";
+import { fetchEmployees } from "../../redux/slices/employeeSlice";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 import PayslipGenerator from "./PaySlipGenerator";
@@ -14,8 +15,11 @@ import DatePicker from "../../Components/ui/date/DatePicker";
 
 const Payslip = () => {
   const dispatch = useDispatch();
+
   const { user, role, isAuthenticated } = useSelector((state) => state.auth);
   const { loading, error, payslips } = useSelector((state) => state.payslip);
+  const { employees } = useSelector((state) => state.employee); // ✅ from employeeSlice
+
   const [selectedMonth, setSelectedMonth] = useState(startOfMonth(new Date()));
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(
     role === "employee" && user?.employee_id ? user.employee_id : ""
@@ -23,23 +27,22 @@ const Payslip = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
 
-  // Fetch payslips on mount
+  // Fetch employees + payslips
   useEffect(() => {
     if (isAuthenticated) {
+      dispatch(fetchEmployees()); // ✅ fetch employees here
       dispatch(fetchPayslips());
       dispatch(clearError());
     }
   }, [dispatch, isAuthenticated]);
 
-  // Filter payslips based on role, employee, and month
+  // Filter payslips
   const filteredPayslips = useMemo(() => {
     const formattedMonth = format(selectedMonth, "yyyy-MM");
     return (Array.isArray(payslips) ? payslips : [])
       .filter((slip) => {
-        // Employees can only see their own payslips
         if (role === "employee" && slip.employee_id !== user?.employee_id)
           return false;
-        // Filter by selected employee and month, and only show approved payslips
         return (
           (!selectedEmployeeId || slip.employee_id === selectedEmployeeId) &&
           slip.month === formattedMonth &&
@@ -59,24 +62,6 @@ const Payslip = () => {
       }));
   }, [payslips, selectedMonth, selectedEmployeeId, role, user]);
 
-  // Get unique employees and months
-  const employees = useMemo(() => {
-    return [
-      ...new Set(
-        payslips.map((slip) => ({
-          employee_id: slip.employee_id,
-          employee_name: slip.employee,
-        }))
-      ),
-    ];
-  }, [payslips]);
-
-  const payPeriods = useMemo(() => {
-    return [...new Set(payslips.map((slip) => slip.month))].sort(
-      (a, b) => new Date(b + "-01") - new Date(a + "-01")
-    );
-  }, [payslips]);
-
   const openPreview = () => setShowPreview(true);
   const closePreview = () => setShowPreview(false);
 
@@ -86,7 +71,6 @@ const Payslip = () => {
       setDownloadError("Please select both an employee and a month");
       return;
     }
-
     const formattedMonth = format(selectedMonth, "yyyy-MM");
     const slip = filteredPayslips.find(
       (slip) =>
@@ -98,10 +82,7 @@ const Payslip = () => {
       );
       return;
     }
-
-    dispatch(
-      downloadPayslip({ employeeId: selectedEmployeeId, month: formattedMonth })
-    )
+    dispatch(downloadPayslip({ employeeId: selectedEmployeeId, month: formattedMonth }))
       .unwrap()
       .catch((err) => setDownloadError(err || "Failed to download payslip"));
   };
@@ -115,8 +96,9 @@ const Payslip = () => {
   }
 
   return (
-    <div className="w-78/100">
-      <div className="flex justify-end">
+    <div className="w-4/5 mx-auto">
+      {/* Meta & Breadcrumb */}
+      <div className="flex justify-between items-center mb-6">
         <PageMeta
           title="Payslip Management"
           description="Manage and generate employee payslips"
@@ -128,8 +110,10 @@ const Payslip = () => {
           ]}
         />
       </div>
-      <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6">
-        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+
+      <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6 shadow-md">
+        {/* Header */}
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold text-slate-800">Payslips</h1>
@@ -140,12 +124,12 @@ const Payslip = () => {
             <button
               onClick={handleDownload}
               disabled={loading || !selectedEmployeeId || !selectedMonth}
-              className="px-6 py-3 bg-slate-700 text-white rounded-lg transition-transform duration-300 transform hover:scale-105 disabled:bg-teal-700 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-slate-700 text-white rounded-lg transition-transform duration-300 transform hover:scale-105 disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center"
               aria-label="Download payslip PDF"
             >
               {loading ? (
                 <svg
-                  className="animate-spin h-5 w-5 mr-2 inline"
+                  className="animate-spin h-5 w-5 mr-2"
                   viewBox="0 0 24 24"
                 >
                   <circle
@@ -171,7 +155,7 @@ const Payslip = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {role !== "employee" && (
               <div>
@@ -182,12 +166,11 @@ const Payslip = () => {
                   value={selectedEmployeeId}
                   onChange={(e) => setSelectedEmployeeId(e.target.value)}
                   className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 text-slate-900"
-                  aria-label="Select employee"
                 >
                   <option value="">Select Employee</option>
                   {employees.map((emp) => (
-                    <option key={emp.employee_id} value={emp.employee_id}>
-                      {emp.employee_name} ({emp.employee_id})
+                    <option key={emp.id} value={emp.id}>
+                      {emp.full_name} ({emp.id})
                     </option>
                   ))}
                 </select>
@@ -202,7 +185,6 @@ const Payslip = () => {
                 value={selectedMonth}
                 onChange={(date) => setSelectedMonth(startOfMonth(date))}
                 maxDate={new Date()}
-                titleClassName="text-slate-500 text-sm font-medium"
               />
             </div>
           </div>
@@ -210,12 +192,12 @@ const Payslip = () => {
 
         {/* Payslip List */}
         {loading && (
-          <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm text-center">
+          <div className="bg-white rounded-lg border border-slate-200 p-6 text-center">
             <p className="text-slate-500">Loading payslips...</p>
           </div>
         )}
         {!loading && filteredPayslips.length === 0 && (
-          <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm text-center">
+          <div className="bg-white rounded-lg border border-slate-200 p-6 text-center">
             <p className="text-slate-500">
               No approved payslips found for {format(selectedMonth, "yyyy-MM")}.
             </p>
@@ -226,18 +208,18 @@ const Payslip = () => {
             {filteredPayslips.map((slip) => (
               <div
                 key={slip.employee_id + slip.month}
-                className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
+                className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow"
               >
                 <h2 className="text-xl font-semibold text-slate-900 mb-2">
                   {slip.employee}
                 </h2>
-                <p className="text-slate-500 text-sm mb-1">
+                <p className="text-slate-500 text-sm">
                   <strong>Month:</strong> {slip.month}
                 </p>
-                <p className="text-slate-500 text-sm mb-1">
+                <p className="text-slate-500 text-sm">
                   <strong>Department:</strong> {slip.department}
                 </p>
-                <p className="text-slate-500 text-sm mb-1">
+                <p className="text-slate-500 text-sm">
                   <strong>Position:</strong> {slip.position}
                 </p>
                 <p className="text-teal-600 font-bold text-lg mt-2">
@@ -249,8 +231,7 @@ const Payslip = () => {
                     setSelectedMonth(parse(slip.month, "yyyy-MM", new Date()));
                     openPreview();
                   }}
-                  className="mt-4 w-full flex items-center justify-center bg-teal-600 text-white py-2 rounded-lg hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105"
-                  aria-label={`View payslip for ${slip.employee} ${slip.month}`}
+                  className="mt-4 w-full flex items-center justify-center bg-teal-600 text-white py-2 rounded-lg hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
                 >
                   <Eye size={18} className="mr-2" />
                   View Payslip
@@ -263,11 +244,10 @@ const Payslip = () => {
         {/* Preview Modal */}
         {showPreview && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm max-w-lg w-full max-h-[80vh] overflow-y-auto relative">
+            <div className="bg-white rounded-lg border border-slate-200 p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto relative shadow-lg">
               <button
                 onClick={closePreview}
-                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
-                aria-label="Close preview"
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
               >
                 <X size={24} />
               </button>
@@ -289,8 +269,7 @@ const Payslip = () => {
                 ))}
               <button
                 onClick={closePreview}
-                className="w-full bg-slate-700 text-white py-2 rounded-lg hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 transition-transform duration-300 transform hover:scale-105"
-                aria-label="Close preview"
+                className="mt-4 w-full bg-slate-700 text-white py-2 rounded-lg hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 transition"
               >
                 Close
               </button>

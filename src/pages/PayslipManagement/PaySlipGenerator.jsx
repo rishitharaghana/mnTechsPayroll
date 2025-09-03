@@ -1,51 +1,73 @@
-import React from 'react';
+const PayslipGenerator = ({ employee = {}, selectedMonth }) => {
+  const formatCurrency = (value) =>
+    `₹${(value || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
 
-const PayslipGenerator = ({ employee, selectedMonth }) => {
-  const formatCurrency = (value) => `₹${(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const grossSalary =
+    (employee.basic_salary || 0) +
+    (employee.hra || 0) +
+    (employee.da || 0) +
+    (employee.other_allowances || 0);
 
   return (
     <div className="space-y-4 p-4 bg-white rounded-lg border border-slate-200">
-      <div className="flex justify-between">
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">{employee.employee_name}</h2>
-          <p className="text-slate-500">Month: {selectedMonth}</p>
+          <h2 className="text-xl font-bold text-slate-900">
+            {employee.employee_name || "-"}
+          </h2>
+          <p className="text-slate-500">Month: {selectedMonth || "-"}</p>
         </div>
-        <img src="/company_logo.png" alt="Company Logo" className="w-24" />
+        <img
+          src="/company_logo.png"
+          alt="Company Logo"
+          className="w-24 object-contain"
+        />
       </div>
+
+      {/* Employee & Company Info */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <h3 className="font-semibold text-slate-800">Employee Details</h3>
-          <p><strong>ID:</strong> {employee.employee_id}</p>
-          <p><strong>Department:</strong> {employee.department}</p>
-          <p><strong>Position:</strong> {employee.position}</p>
-          <p><strong>PAN:</strong> {employee.pan_number || '-'}</p>
-          <p><strong>UAN:</strong> {employee.uan_number || '-'}</p>
-          <p><strong>Bank A/C:</strong> {employee.bank_account_number || '-'}</p>
-          <p><strong>IFSC:</strong> {employee.ifsc_code || '-'}</p>
+          <p><strong>ID:</strong> {employee.employee_id || "-"}</p>
+          <p><strong>Department:</strong> {employee.department || "-"}</p>
+          <p><strong>Position:</strong> {employee.position || "-"}</p>
+          <p><strong>PAN:</strong> {employee.pan_number || "-"}</p>
+          <p><strong>UAN:</strong> {employee.uan_number || "-"}</p>
+          <p><strong>Bank A/C:</strong> {employee.bank_account_number || "-"}</p>
+          <p><strong>IFSC:</strong> {employee.ifsc_code || "-"}</p>
         </div>
         <div>
           <h3 className="font-semibold text-slate-800">Company Details</h3>
-          <p><strong>Name:</strong> {employee.company_name}</p>
-          <p><strong>PAN:</strong> {employee.company_pan}</p>
-          <p><strong>GSTIN:</strong> {employee.company_gstin}</p>
+          <p><strong>Name:</strong> {employee.company_name || "-"}</p>
+          <p><strong>PAN:</strong> {employee.company_pan || "-"}</p>
+          <p><strong>GSTIN:</strong> {employee.company_gstin || "-"}</p>
         </div>
       </div>
+
+      {/* Salary Breakdown */}
       <div className="grid grid-cols-2 gap-4">
+        {/* Earnings */}
         <div>
           <h3 className="font-semibold text-slate-800">Earnings</h3>
-          <table className="w-full border-collapse">
+          <table className="w-full border border-slate-300">
             <tbody>
               <tr><td>Basic Salary</td><td>{formatCurrency(employee.basic_salary)}</td></tr>
               <tr><td>HRA</td><td>{formatCurrency(employee.hra)}</td></tr>
               <tr><td>DA</td><td>{formatCurrency(employee.da)}</td></tr>
               <tr><td>Other Allowances</td><td>{formatCurrency(employee.other_allowances)}</td></tr>
-              <tr><td><strong>Gross Salary</strong></td><td><strong>{formatCurrency(employee.gross_salary)}</strong></td></tr>
+              <tr><td><strong>Gross Salary</strong></td><td><strong>{formatCurrency(grossSalary)}</strong></td></tr>
             </tbody>
           </table>
         </div>
+
+        {/* Deductions */}
         <div>
           <h3 className="font-semibold text-slate-800">Deductions</h3>
-          <table className="w-full border-collapse">
+          <table className="w-full border border-slate-300">
             <tbody>
               <tr><td>PF</td><td>{formatCurrency(employee.pf_deduction)}</td></tr>
               <tr><td>ESIC</td><td>{formatCurrency(employee.esic_deduction)}</td></tr>
@@ -56,13 +78,21 @@ const PayslipGenerator = ({ employee, selectedMonth }) => {
           </table>
         </div>
       </div>
+
+      {/* Extra Info */}
       <div>
-        <p><strong>Status:</strong> {employee.status}</p>
-        <p><strong>Payment Method:</strong> {employee.payment_method}</p>
-        <p><strong>Payment Date:</strong> {new Date(employee.payment_date).toLocaleDateString('en-IN')}</p>
-        <p><strong>Generated By:</strong> {employee.created_by}</p>
+        <p><strong>Status:</strong> {employee.status || "-"}</p>
+        <p><strong>Payment Method:</strong> {employee.payment_method || "-"}</p>
+        <p>
+          <strong>Payment Date:</strong>{" "}
+          {employee.payment_date ? new Date(employee.payment_date).toLocaleDateString("en-IN") : "-"}
+        </p>
+        <p><strong>Generated By:</strong> {employee.created_by || "-"}</p>
       </div>
-      <p className="text-sm text-slate-500">Note: This payslip is subject to statutory compliance as per Indian laws.</p>
+
+      <p className="text-sm text-slate-500">
+        Note: This payslip is subject to statutory compliance as per Indian laws.
+      </p>
     </div>
   );
 };
