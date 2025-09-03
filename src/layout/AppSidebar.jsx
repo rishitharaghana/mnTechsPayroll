@@ -226,6 +226,13 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       allowedRoles: ["super_admin", "hr", "manager", "dept_head"],
     },
     {
+      id: "idcard",
+      label: "ID Card",
+      icon: IdCardIcon,
+      path: "/employee/employee-idcards",
+      allowedRoles: ["employee"],
+    },
+    {
       id: "travelexpenses",
       label: "Travel Expenses",
       icon: Waypoints,

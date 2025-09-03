@@ -44,6 +44,7 @@ import TravelExpenseApproval from "./pages/TravelExpenses/TravelExpenseApproval"
 import TravelExpenseSubmission from "./pages/TravelExpenses/TravelExpensesSubmission";
 import ViewEmployeeDetails from "./pages/EmployeeManagement/ViewEmployeeDetails";
 import EmployeePreviewPage from "./pages/EmployeeManagement/EmployeePreviewPage";
+import EmployeeIdCards from "./pages/Cards/EmployeeIdCards";
 
 const App = () => {
   return (
@@ -139,6 +140,7 @@ const App = () => {
                   path="/employee/leave-dashboard"
                   element={<LeaveDashboard />}
                 />
+                <Route path="/employee/employee-idcards" element={<EmployeeIdCards />} />
                 <Route
                   path="/employee/employee-details"
                   element={<EmployeeDetails />}
