@@ -15,7 +15,7 @@ import Payroll from "./pages/PayrollManagement/Payroll";
 import GeneratePayroll from "./pages/PayrollManagement/GeneratePayroll";
 import PayrollHistory from "./pages/PayrollManagement/PayrollHistory";
 import Payslip from "./pages/PayslipManagement/Payslip";
-import PayslipGenerator from "./pages/PayslipManagement/PaySlipGenerator";
+import PayslipGenerator from "./pages/PayslipManagement/PayslipGenerator";
 import PayslipForm from "./form/PayslipForm";
 import EmployeePayslip from "./pages/PayslipManagement/EmployeePayslip";
 import Performance from "./pages/PerformanceManagement/Performance";

@@ -37,7 +37,7 @@ const AssignEmployee = () => {
     bloodGroup: "",
     photo: null,
     dateOfBirth: "",
-    gender: "", // Added Gender
+    gender: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -83,7 +83,7 @@ const AssignEmployee = () => {
     "O-ve",
   ];
   const employmentTypes = ["Full-time", "Part-time", "Internship", "Contract"];
-  const genders = ["Male", "Female", "Others"]; // Added Gender options
+  const genders = ["Male", "Female", "Others"];
 
   useEffect(() => {
     dispatch(fetchDepartments());
@@ -227,15 +227,16 @@ const AssignEmployee = () => {
       ) {
         newErrors.email = "Invalid email format";
       }
-      if (!employee.mobile) newErrors.mobile = "Mobile is required";
+      if (!employee.mobile) newErrors.mobile = "Mobile number is required";
       if (employee.mobile && !/^[0-9]{10}$/.test(employee.mobile)) {
-        newErrors.mobile = "Mobile must be a 10-digit number";
+        newErrors.mobile = "Mobile number must be a 10-digit number";
       }
       if (
         employee.emergencyPhone &&
         !/^[0-9]{10}$/.test(employee.emergencyPhone)
       ) {
-        newErrors.emergencyPhone = "Emergency Phone must be a 10-digit number";
+        newErrors.emergencyPhone =
+          "Emergency Phone must be a 10-digit number";
       }
       if (
         employee.emergencyPhone &&
@@ -264,16 +265,19 @@ const AssignEmployee = () => {
       // Validate Date of Birth
       if (!employee.dateOfBirth) {
         newErrors.dateOfBirth = "Date of Birth is required";
+      } else if (isNaN(new Date(employee.dateOfBirth).getTime())) {
+        newErrors.dateOfBirth = "Invalid Date of Birth";
       } else {
         const today = new Date();
         const dob = new Date(employee.dateOfBirth);
-        const age = today.getFullYear() - dob.getFullYear();
+        // Calculate age, accounting for month and day differences
+        let age = today.getFullYear() - dob.getFullYear();
         const monthDiff = today.getMonth() - dob.getMonth();
         if (
           monthDiff < 0 ||
           (monthDiff === 0 && today.getDate() < dob.getDate())
         ) {
-          age--;
+          age--; // Adjust age if birthday hasn't occurred this year
         }
         if (age < 18) {
           newErrors.dateOfBirth = "Employee must be at least 18 years old";
@@ -317,23 +321,31 @@ const AssignEmployee = () => {
         newErrors.basicSalary = "Basic Salary is required";
       if (
         employee.basicSalary &&
-        (isNaN(employee.basicSalary) || parseFloat(employee.basicSalary) < 0)
+        (isNaN(employee.basicSalary) ||
+          parseFloat(employee.basicSalary) < 0 ||
+          employee.basicSalary.trim() === "")
       ) {
-        newErrors.basicSalary = "Basic Salary must be a non-negative number";
+        newErrors.basicSalary =
+          "Basic Salary must be a valid non-negative number";
       }
       if (!employee.allowances) newErrors.allowances = "Allowances is required";
       if (
         employee.allowances &&
-        (isNaN(employee.allowances) || parseFloat(employee.allowances) < 0)
+        (isNaN(employee.allowances) ||
+          parseFloat(employee.allowances) < 0 ||
+          employee.allowances.trim() === "")
       ) {
-        newErrors.allowances = "Allowances must be a non-negative number";
+        newErrors.allowances =
+          "Allowances must be a valid non-negative number";
       }
       if (!employee.bonuses) newErrors.bonuses = "Bonuses is required";
       if (
         employee.bonuses &&
-        (isNaN(employee.bonuses) || parseFloat(employee.bonuses) < 0)
+        (isNaN(employee.bonuses) ||
+          parseFloat(employee.bonuses) < 0 ||
+          employee.bonuses.trim() === "")
       ) {
-        newErrors.bonuses = "Bonuses must be a non-negative number";
+        newErrors.bonuses = "Bonuses must be a valid non-negative number";
       }
     }
     return newErrors;
@@ -359,20 +371,23 @@ const AssignEmployee = () => {
       };
 
       const formData = new FormData();
-      formData.append("role", roleMap[employee.roleType]);
-      formData.append("name", employee.name);
-      formData.append("email", employee.email);
-      formData.append("mobile", employee.mobile);
-      formData.append("emergency_phone", employee.emergencyPhone || "");
-      formData.append("address", employee.address || "");
-      formData.append("password", employee.password);
-      formData.append("basic_salary", parseFloat(employee.basicSalary) || 0);
+      formData.append("role", roleMap[employee.roleType] || "");
+      formData.append("name", employee.name.trim() || "");
+      formData.append("email", employee.email.trim() || "");
+      formData.append("mobile", employee.mobile.trim() || "");
+      formData.append("emergency_phone", employee.emergencyPhone.trim() || "");
+      formData.append("address", employee.address.trim() || "");
+      formData.append("password", employee.password || "");
+      formData.append(
+        "basic_salary",
+        parseFloat(employee.basicSalary) || 0
+      );
       formData.append("allowances", parseFloat(employee.allowances) || 0);
       formData.append("bonuses", parseFloat(employee.bonuses) || 0);
       formData.append("join_date", employee.joinDate || "");
       formData.append("blood_group", employee.bloodGroup || "");
       formData.append("date_of_birth", employee.dateOfBirth || "");
-      formData.append("gender", employee.gender || ""); // Added Gender
+      formData.append("gender", employee.gender || "");
       if (employee.photo) {
         formData.append("photo", employee.photo);
       }
@@ -380,11 +395,11 @@ const AssignEmployee = () => {
       if (
         ["Department Head", "Manager", "Employee"].includes(employee.roleType)
       ) {
-        formData.append("department_name", employee.department);
-        formData.append("designation_name", employee.position);
+        formData.append("department_name", employee.department || "");
+        formData.append("designation_name", employee.position || "");
       }
       if (["Employee", "Manager"].includes(employee.roleType)) {
-        formData.append("employment_type", employee.employmentType);
+        formData.append("employment_type", employee.employmentType || "");
       }
 
       console.log("FormData entries:");
@@ -414,7 +429,7 @@ const AssignEmployee = () => {
           bloodGroup: "",
           photo: null,
           dateOfBirth: "",
-          gender: "", // Reset Gender
+          gender: "",
         });
         setStep(1);
         setErrors({});
