@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Eye, User, Building, Archive } from "lucide-react";
+import Select from "react-select";
 import VisitCardPreview from "./VisitCardPreview";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees, updateEmployee } from "../../redux/slices/employeeSlice.js";
 
-// Card styles
 const cardStyles = [
   { id: "modern", name: "Modern Template", image: "/assets/ModernTempFront.png" },
   { id: "classic", name: "Classic Template", image: "/assets/ClassicTempFront.png" },
@@ -14,7 +14,122 @@ const cardStyles = [
   { id: "corporate", name: "Corporate Template", image: "/assets/CorporateTempFront.png" },
 ];
 
-// CardStylePopup Component
+const employeeSelectStyles = {
+  control: (provided) => ({
+    ...provided,
+    border: "1px solid #e2e8f0", 
+    borderRadius: "0.5rem",
+    boxShadow: "none",
+    "&:hover": {
+      borderColor: "#64748b", 
+    },
+    fontSize: "0.875rem", 
+    fontWeight: "500", 
+    backgroundColor: "#f1f5f9", 
+    padding: "0.08rem",
+  }),
+  menu: (provided) => ({
+    ...provided,
+    borderRadius: "0.3rem",
+    border: "1px solid #000000", 
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)", 
+    maxHeight: "320px", 
+    zIndex: 100,
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    fontSize: "0.875rem", 
+    fontWeight: "500", 
+    color: state.isSelected ? "#ffffff" : "#1e293b",
+    backgroundColor: state.isSelected
+      ? "#475569" 
+      : state.isFocused
+      ? "#e2e8f0" 
+      : "#ffffff",
+    "&:hover": {
+      backgroundColor: "#e2e8f0", 
+    },
+    padding: "0.4rem",
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "#1e293b",
+    fontSize: "0.875rem", 
+    fontWeight: "500", 
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: "#64748b", 
+    fontSize: "0.875rem", 
+    fontWeight: "500", 
+  }),
+  dropdownIndicator: (provided) => ({
+    ...provided,
+    color: "#64748b", 
+    "&:hover": {
+      color: "#475569", 
+    },
+  }),
+};
+
+const cardStyleSelectStyles = {
+  control: (provided) => ({
+    ...provided,
+    border: "1px solid #b2d9d4",
+    borderRadius: "0.5rem",
+    boxShadow: "none",
+    "&:hover": {
+      borderColor: "#2dd4bf",
+    },
+    fontSize: "0.875rem", 
+    fontWeight: "500", 
+    backgroundColor: "#e6f7f5", 
+    padding: "0.08rem",
+  }),
+  menu: (provided) => ({
+    ...provided,
+    borderRadius: "0.5rem",
+    border: "1px solid #b2d9d4",
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+    maxHeight: "200px",
+    zIndex: 100,
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    fontSize: "0.875rem",
+    fontWeight: "500", 
+    color: state.isSelected ? "#ffffff" : "#1e293b", 
+    backgroundColor: state.isSelected
+      ? "#0f766e" 
+      : state.isFocused
+      ? "#b2d9d4" 
+      : "#ffffff",
+    "&:hover": {
+      backgroundColor: "#b2d9d4", 
+    },
+    padding: "0.5rem 1rem",
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "#1e293b", 
+    fontSize: "0.875rem", 
+    fontWeight: "500", 
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: "#5eead4", 
+    fontSize: "0.875rem", 
+    fontWeight: "500",
+  }),
+  dropdownIndicator: (provided) => ({
+    ...provided,
+    color: "#5eead4", 
+    "&:hover": {
+      color: "#0f766e", 
+    },
+  }),
+};
+
 const CardStylePopup = ({ style, onClose }) => {
   const cardImages = {
     modern: {
@@ -97,17 +212,25 @@ function VisitingCard() {
   const [showPopup, setShowPopup] = useState(false);
   const [popupStyle, setPopupStyle] = useState(null);
 
-  // ✅ Fetch employees from Redux on mount
   useEffect(() => {
     dispatch(fetchEmployees());
   }, [dispatch]);
 
-  // ✅ Auto-select first employee after fetch
   useEffect(() => {
     if (employees.length > 0 && !selectedEmployee) {
       setSelectedEmployee(employees[0]);
     }
   }, [employees, selectedEmployee]);
+
+  const employeeOptions = employees.map((emp) => ({
+    value: emp.id,
+    label: `${emp.full_name} | ${emp.designation_name}`, 
+  }));
+
+  const cardStyleOptions = cardStyles.map((style) => ({
+    value: style.id,
+    label: style.name,
+  }));
 
   const handleGenerateSingle = () => {
     if (!selectedEmployee) return;
@@ -187,40 +310,40 @@ function VisitingCard() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Select Employee
                       </label>
-                      <select
-                        value={selectedEmployee?.id || ""}
-                        onChange={(e) => {
+                      <Select
+                        options={employeeOptions}
+                        value={employeeOptions.find(
+                          (option) => option.value === selectedEmployee?.id
+                        )}
+                        onChange={(selectedOption) => {
                           const emp = employees.find(
-                            (x) => String(x.id) === e.target.value
+                            (x) => x.id === selectedOption.value
                           );
                           setSelectedEmployee(emp);
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      >
-                        {employees.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.full_name} - {emp.designation_name}
-                          </option>
-                        ))}
-                      </select>
+                        styles={employeeSelectStyles}
+                        placeholder="Select an employee"
+                        isSearchable
+                      />
                     </div>
 
-                    {/* Style Dropdown */}
+                    {/* Card Style Selector */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Select Card Style
                       </label>
-                      <select
-                        value={selectedStyle}
-                        onChange={(e) => setSelectedStyle(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 bg-white shadow-sm"
-                      >
-                        {cardStyles.map((style) => (
-                          <option key={style.id} value={style.id}>
-                            {style.name}
-                          </option>
-                        ))}
-                      </select>
+                      <Select
+                        options={cardStyleOptions}
+                        value={cardStyleOptions.find(
+                          (option) => option.value === selectedStyle
+                        )}
+                        onChange={(selectedOption) =>
+                          setSelectedStyle(selectedOption.value)
+                        }
+                        styles={cardStyleSelectStyles}
+                        placeholder="Select a card style"
+                        isSearchable
+                      />
                     </div>
 
                     {/* Preview Button */}
@@ -237,7 +360,7 @@ function VisitingCard() {
                 )}
               </div>
 
-              {/* Card Styles Grid */}
+              {/* Card Styles Grid (unchanged) */}
               <div className="bg-white rounded-2xl shadow-md border p-6 mb-8">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">
                   Card Styles
@@ -273,7 +396,7 @@ function VisitingCard() {
                 </div>
               </div>
 
-              {/* Generation Options */}
+              {/* Generation Options (unchanged) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white border rounded-lg shadow-sm p-6 text-center hover:shadow-md">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
