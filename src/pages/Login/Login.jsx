@@ -11,6 +11,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [uiRole, setUiRole] = useState('Admin');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false); // Added state for Remember Me
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
@@ -49,7 +50,7 @@ const Login = () => {
       ...provided,
       color: '#1e293b',
       fontSize: '0.875rem',
-      fontWeight: '600',
+      fontWeight: '500',
       fontFamily: 'sans-serif',
     }),
     menu: (provided) => ({
@@ -69,7 +70,7 @@ const Login = () => {
         : 'white',
       color: '#1e293b',
       fontSize: '0.875rem',
-      fontWeight: '600',
+      fontWeight: '500',
       fontFamily: 'sans-serif',
       padding: '0.75rem 1rem',
       '&:hover': {
@@ -122,6 +123,8 @@ const Login = () => {
             isTemporaryPassword: result.isTemporaryPassword || false,
           })
         );
+        // Store rememberMe preference if needed
+        localStorage.setItem('rememberMe', rememberMe);
       }
 
       if (result.success) {
@@ -225,6 +228,25 @@ const Login = () => {
             </div>
           </div>
 
+          <div className="flex justify-between items-center">
+            <label className="flex items-center space-x-2 text-sm text-slate-600">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-3 w-3 text-teal-600 focus:ring-teal-600 border-slate-200/50 rounded"
+                aria-label="Remember Me"
+              />
+              <span>Remember Me</span>
+            </label>
+            <Link
+              to="/forgot-password"
+              className="text-sm text-teal-600 hover:text-teal-700 transition-colors duration-200"
+            >
+              Forgot Password?
+            </Link>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
@@ -233,16 +255,6 @@ const Login = () => {
             {loading ? 'Logging in...' : `Login as ${uiRole}`}
           </button>
         </form>
-
-        <div className="mt-3 text-center">
-          <Link
-            to="/forgot-password"
-            className="text-sm text-teal-600 hover:text-teal-700 flex items-center justify-center space-x-1.5 transition-colors duration-200"
-          >
-            <Mail size={16} />
-            <span>Forgot Password?</span>
-          </Link>
-        </div>
       </div>
     </div>
   );
