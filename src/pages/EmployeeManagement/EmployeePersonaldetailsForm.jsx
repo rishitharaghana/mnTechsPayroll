@@ -1,4 +1,3 @@
-// components/PersonalDetailsForm.jsx
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar } from "lucide-react";
@@ -85,6 +84,34 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         </select>
         {errors.gender && <span className="text-red-500 text-xs mt-1">{errors.gender}</span>}
       </div>
+      {/* PAN Card Number */}
+      <div className="flex flex-col">
+        <label className="mb-1 text-sm font-bold text-black tracking-tight">PAN Card Number</label>
+        <input
+          type="text"
+          name="panCard"
+          value={formData.panCard}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
+          placeholder="e.g., ABCDE1234F"
+          maxLength={10}
+        />
+        {errors.panCard && <span className="text-red-500 text-xs mt-1">{errors.panCard}</span>}
+      </div>
+      {/* Aadhar Card Number */}
+      <div className="flex flex-col">
+        <label className="mb-1 text-sm font-bold text-black tracking-tight">Aadhar Card Number</label>
+        <input
+          type="text"
+          name="aadharCard"
+          value={formData.aadharCard}
+          onChange={handleChange}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
+          placeholder="e.g., 123456789012"
+          maxLength={12}
+        />
+        {errors.aadharCard && <span className="text-red-500 text-xs mt-1">{errors.aadharCard}</span>}
+      </div>
       <div className="flex flex-col col-span-2">
         <FileUpload
           name="image"
@@ -97,7 +124,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         {errors.image && <span className="text-red-500 text-xs mt-1">{errors.image}</span>}
       </div>
       <div className="flex flex-col col-span-2">
-        <label className="mb-1 text-sm font-bold text-black tracking-tight">Present Address</label>
+        <label className="mb-1 text-sm font-bold text-black tracking-tight">Current Address</label>
         <input
           type="text"
           name="presentAddress"
@@ -111,7 +138,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         )}
       </div>
       <div className="flex flex-col col-span-2">
-        <label className="mb-1 text-sm font-bold text-black tracking-tight">Previous Address</label>
+        <label className="mb-1 text-sm font-bold text-black tracking-tight">Permanent Address</label>
         <input
           type="text"
           name="previousAddress"

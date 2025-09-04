@@ -10,7 +10,7 @@ import {
 } from "../../redux/slices/employeeSlice";
 import { toast } from "react-toastify";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
-import PageMeta from "./../../Components/common/PageMeta";
+import PageMeta from "../../Components/common/PageMeta";
 
 const AssignEmployee = () => {
   const navigate = useNavigate();
@@ -36,6 +36,8 @@ const AssignEmployee = () => {
     password: "",
     bloodGroup: "",
     photo: null,
+    dateOfBirth: "",
+    gender: "", // Added Gender
   });
 
   const [errors, setErrors] = useState({});
@@ -81,6 +83,7 @@ const AssignEmployee = () => {
     "O-ve",
   ];
   const employmentTypes = ["Full-time", "Part-time", "Internship", "Contract"];
+  const genders = ["Male", "Female", "Others"]; // Added Gender options
 
   useEffect(() => {
     dispatch(fetchDepartments());
@@ -234,6 +237,14 @@ const AssignEmployee = () => {
       ) {
         newErrors.emergencyPhone = "Emergency Phone must be a 10-digit number";
       }
+      if (
+        employee.emergencyPhone &&
+        employee.mobile &&
+        employee.emergencyPhone.trim() === employee.mobile.trim()
+      ) {
+        newErrors.emergencyPhone =
+          "Mobile and emergency contact numbers cannot be the same";
+      }
       if (!employee.password) newErrors.password = "Password is required";
       if (employee.password && employee.password.length < 8) {
         newErrors.password = "Password must be at least 8 characters";
@@ -249,6 +260,33 @@ const AssignEmployee = () => {
         if (employee.photo.size > 5 * 1024 * 1024) {
           newErrors.photo = "Photo size must not exceed 5MB";
         }
+      }
+      // Validate Date of Birth
+      if (!employee.dateOfBirth) {
+        newErrors.dateOfBirth = "Date of Birth is required";
+      } else {
+        const today = new Date();
+        const dob = new Date(employee.dateOfBirth);
+        const age = today.getFullYear() - dob.getFullYear();
+        const monthDiff = today.getMonth() - dob.getMonth();
+        if (
+          monthDiff < 0 ||
+          (monthDiff === 0 && today.getDate() < dob.getDate())
+        ) {
+          age--;
+        }
+        if (age < 18) {
+          newErrors.dateOfBirth = "Employee must be at least 18 years old";
+        }
+        if (dob > today) {
+          newErrors.dateOfBirth = "Date of Birth cannot be in the future";
+        }
+      }
+      // Validate Gender
+      if (!employee.gender) {
+        newErrors.gender = "Gender is required";
+      } else if (!genders.includes(employee.gender)) {
+        newErrors.gender = "Please select a valid gender option";
       }
     }
     if (step === 3) {
@@ -333,6 +371,8 @@ const AssignEmployee = () => {
       formData.append("bonuses", parseFloat(employee.bonuses) || 0);
       formData.append("join_date", employee.joinDate || "");
       formData.append("blood_group", employee.bloodGroup || "");
+      formData.append("date_of_birth", employee.dateOfBirth || "");
+      formData.append("gender", employee.gender || ""); // Added Gender
       if (employee.photo) {
         formData.append("photo", employee.photo);
       }
@@ -373,6 +413,8 @@ const AssignEmployee = () => {
           password: "",
           bloodGroup: "",
           photo: null,
+          dateOfBirth: "",
+          gender: "", // Reset Gender
         });
         setStep(1);
         setErrors({});
@@ -550,6 +592,20 @@ const AssignEmployee = () => {
                       tooltip: "Optional address",
                     },
                     {
+                      label: "Date of Birth",
+                      field: "dateOfBirth",
+                      type: "date",
+                      required: true,
+                      tooltip: "Employee must be at least 18 years old",
+                    },
+                    {
+                      label: "Gender",
+                      field: "gender",
+                      type: "select",
+                      required: true,
+                      options: genders,
+                    },
+                    {
                       label: "Password",
                       field: "password",
                       type: "password",
@@ -645,6 +701,11 @@ const AssignEmployee = () => {
                             value={employee[field]}
                             onChange={(e) => handleInput(field, e.target.value)}
                             required={required}
+                            max={
+                              type === "date"
+                                ? new Date().toISOString().split("T")[0]
+                                : undefined
+                            }
                             className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
                               errors[field]
                                 ? "border-red-500 animate-pulse"

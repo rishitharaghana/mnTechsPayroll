@@ -8,6 +8,7 @@ const EmployeeIdCards = () => {
   const dispatch = useDispatch();
   const { employees, loading, error } = useSelector((state) => state.employee);
   const [card, setCard] = useState(null);
+  console.log("card", card);
 
   // Fetch the logged-in employee's profile
   useEffect(() => {

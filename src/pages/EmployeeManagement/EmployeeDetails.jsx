@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
-import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
-import PageMeta from '../../Components/common/PageMeta'
+import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
+import PageMeta from "../../Components/common/PageMeta";
 import {
   createEmployeePersonalDetails,
   createEducationDetails,
@@ -12,11 +12,11 @@ import {
   getEmployeeProgress,
 } from "../../redux/slices/employeeSlice";
 import StepNavigation from "../../Components/common/StepNavigation";
-import EmployeePersonaldetailsForm from './EmployeePersonaldetailsForm'
-import EmployeeEducationDetailsForm from './EmployeeEducationDetailsForm'
-import EmployeePreview from "./EmployeePreview";
+import EmployeePersonaldetailsForm from "./EmployeePersonaldetailsForm";
+import EmployeeEducationDetailsForm from "./EmployeeEducationDetailsForm";
 import EmployeeDocuments from "./EmployeeDocuments";
 import EmployeeBankDetailsForm from "./EmployeeBankDetailsForm";
+import EmployeePreview from "./EmployeePreview";
 
 const steps = ["Personal Details", "Education Details", "Documents", "Bank Details", "Preview"];
 
@@ -34,6 +34,8 @@ const EmployeeDetails = () => {
     phone: "",
     email: "",
     gender: "",
+    panCard: "", // Added for PAN card number
+    aadharCard: "", // Added for Aadhar card number
     image: null,
     presentAddress: "",
     previousAddress: "",
@@ -59,6 +61,13 @@ const EmployeeDetails = () => {
     panDoc: null,
     ifscNumber: "",
     bankACnumber: "",
+    dateOfBirth: "",
+    bloodGroup: "",
+    basicSalary: "",
+    allowances: "",
+    bonuses: "",
+    department: "",
+    position: "",
   });
   const [errors, setErrors] = useState({});
 
@@ -83,9 +92,21 @@ const EmployeeDetails = () => {
         setFormData((prev) => ({
           ...prev,
           employee_id: employee.employee_id || employeeId,
-          fullName: employee.fullName || "",
+          fullName: employee.full_name || "",
           email: employee.email || "",
           phone: employee.mobile || "",
+          gender: employee.gender || "",
+          panCard: employee.pan_card || "", // Added
+          aadharCard: employee.aadhar_card || "", // Added
+          dateOfBirth: employee.date_of_birth || "",
+          bloodGroup: employee.blood_group || "",
+          joiningDate: employee.join_date || "",
+          employmentType: employee.employment_type || "",
+          department: employee.department_name || "",
+          position: employee.designation_name || "",
+          basicSalary: employee.basic_salary || "",
+          allowances: employee.allowances || "",
+          bonuses: employee.bonuses || "",
         }));
       }
     }
@@ -140,9 +161,10 @@ const EmployeeDetails = () => {
         const requiredFields = [
           "fatherName",
           "motherName",
-          "gender",
           "presentAddress",
           "positionType",
+          "panCard", // Added
+          "aadharCard", // Added
         ];
         requiredFields.forEach((field) => {
           if (!formData[field]?.trim()) {
@@ -151,6 +173,12 @@ const EmployeeDetails = () => {
               .replace(/^./, (str) => str.toUpperCase())} is required`;
           }
         });
+        if (formData.panCard && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCard)) {
+          newErrors.panCard = "Invalid PAN card number (e.g., ABCDE1234F)";
+        }
+        if (formData.aadharCard && !/^\d{12}$/.test(formData.aadharCard)) {
+          newErrors.aadharCard = "Invalid Aadhar card number (12 digits)";
+        }
         if (formData.positionType === "experienced") {
           const experiencedFields = [
             "employerIdName",
@@ -165,12 +193,6 @@ const EmployeeDetails = () => {
                 .replace(/^./, (str) => str.toUpperCase())} is required`;
             }
           });
-        }
-        if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          newErrors.email = "Valid email is required";
-        }
-        if (!formData.phone || !/^\+?\d{10,15}$/.test(formData.phone)) {
-          newErrors.phone = "Valid phone number is required";
         }
         break;
       }
@@ -280,6 +302,8 @@ const EmployeeDetails = () => {
             phone: formData.phone,
             email: formData.email,
             gender: formData.gender,
+            panCard: formData.panCard, // Added
+            aadharCard: formData.aadharCard, // Added
             presentAddress: formData.presentAddress,
             previousAddress: formData.previousAddress,
             positionType: formData.positionType,
@@ -288,6 +312,8 @@ const EmployeeDetails = () => {
             employmentType: formData.employmentType,
             joiningDate: formData.joiningDate,
             contractEndDate: formData.contractEndDate,
+            dateOfBirth: formData.dateOfBirth,
+            bloodGroup: formData.bloodGroup,
           };
           await dispatch(createEmployeePersonalDetails(personalData)).unwrap();
           return true;
@@ -364,6 +390,8 @@ const EmployeeDetails = () => {
           phone: "",
           email: "",
           gender: "",
+          panCard: "", // Added
+          aadharCard: "", // Added
           image: null,
           presentAddress: "",
           previousAddress: "",
@@ -389,6 +417,13 @@ const EmployeeDetails = () => {
           panDoc: null,
           ifscNumber: "",
           bankACnumber: "",
+          dateOfBirth: "",
+          bloodGroup: "",
+          basicSalary: "",
+          allowances: "",
+          bonuses: "",
+          department: "",
+          position: "",
         });
         setCurrentStep(0);
         setIsPreviewOpen(false);
@@ -429,6 +464,11 @@ const EmployeeDetails = () => {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
           }
+          .readonly-field {
+            background-color: #f3f4f6;
+            color: #4b5563;
+            cursor: not-allowed;
+          }
         `}
       </style>
       <div className="flex justify-end">
@@ -452,9 +492,6 @@ const EmployeeDetails = () => {
                 : error}
             </div>
           )}
-          {/* {successMessage && (
-            <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">{successMessage}</div>
-          )} */}
           {loading && (
             <div className="mb-4 p-4 bg-blue-100 text-blue-700 rounded-lg">Loading...</div>
           )}

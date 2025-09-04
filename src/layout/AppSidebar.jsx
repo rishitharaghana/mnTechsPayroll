@@ -219,6 +219,13 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       allowedRoles: ["super_admin", "hr"],
     },
     {
+      id: "visitingcards",
+      label: "Visiting Cards",
+      icon: IdCardIcon,
+      path: "/employee/employee-visitingcards",
+      allowedRoles: ["employee"],
+    },
+    {
       id: "idcard",
       label: "ID Card",
       icon: IdCardIcon,

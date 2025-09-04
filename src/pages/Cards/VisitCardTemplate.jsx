@@ -10,6 +10,7 @@ const VisitCardTemplate = ({ style, employee, isPreview, sideFront }) => {
   const employeePhone = employee?.mobile || "-";
   const employeeEmail = employee?.email || "-";
   const employeeAddress = employee?.address || "-";
+  console.log("Address:", employee);
   const employeeWebsite = employee?.website || "-";
 
   const renderFrontSide = () => {

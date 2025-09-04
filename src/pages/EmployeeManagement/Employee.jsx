@@ -30,7 +30,7 @@ const Employee = () => {
   useEffect(() => {
     dispatch(fetchEmployees());
     return () => {
-      dispatch(clearState());
+      dispatch(clearState()); 
     };
   }, [dispatch]);
 

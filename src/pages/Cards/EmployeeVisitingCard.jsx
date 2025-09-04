@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Eye, User, Building, Archive } from "lucide-react";
-import VisitCardPreview from "./VisitCardPreview";
+import { useDispatch, useSelector } from "react-redux";
+import { getCurrentUserProfile } from "../../redux/slices/employeeSlice.js";
+import VisitCardPreview from "./VisitCardPreview"; // Assuming this component exists
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchEmployees, updateEmployee } from "../../redux/slices/employeeSlice.js";
 
-// Card styles
+// Card styles (same as in VisitingCard)
 const cardStyles = [
   { id: "modern", name: "Modern Template", image: "/assets/ModernTempFront.png" },
   { id: "classic", name: "Classic Template", image: "/assets/ClassicTempFront.png" },
@@ -14,7 +14,7 @@ const cardStyles = [
   { id: "corporate", name: "Corporate Template", image: "/assets/CorporateTempFront.png" },
 ];
 
-// CardStylePopup Component
+// CardStylePopup Component (reused from VisitingCard)
 const CardStylePopup = ({ style, onClose }) => {
   const cardImages = {
     modern: {
@@ -87,50 +87,36 @@ const CardStylePopup = ({ style, onClose }) => {
   );
 };
 
-function VisitingCard() {
+const EmployeeVisitingCard = () => {
   const dispatch = useDispatch();
   const { employees, loading, error } = useSelector((state) => state.employee);
 
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedStyle, setSelectedStyle] = useState("modern");
   const [showPreview, setShowPreview] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [popupStyle, setPopupStyle] = useState(null);
 
-  // ✅ Fetch employees from Redux on mount
+  // Fetch current user profile on mount
   useEffect(() => {
-    dispatch(fetchEmployees());
+    dispatch(getCurrentUserProfile());
   }, [dispatch]);
 
-  // ✅ Auto-select first employee after fetch
-  useEffect(() => {
-    if (employees.length > 0 && !selectedEmployee) {
-      setSelectedEmployee(employees[0]);
-    }
-  }, [employees, selectedEmployee]);
+  // Get the logged-in employee's data (assuming employees array contains the current user)
+  const currentEmployee = employees.length > 0 ? employees[0] : null;
 
   const handleGenerateSingle = () => {
-    if (!selectedEmployee) return;
+    if (!currentEmployee) return;
     alert(
-      `✅ Single card generated!\n\nEmployee: ${selectedEmployee.full_name}\nStyle: ${selectedStyle}`
+      `✅ Single card generated!\n\nEmployee: ${currentEmployee.full_name}\nStyle: ${selectedStyle}`
     );
   };
 
   const handleGenerateDepartment = () => {
-    if (!selectedEmployee) return;
-    const departmentEmployees = employees.filter(
-      (emp) => emp.department_name === selectedEmployee.department_name
-    );
-    alert(
-      `✅ Department cards generated!\n\nDepartment: ${selectedEmployee.department_name}\nCards: ${departmentEmployees.length}`
-    );
+    alert("This feature is available only to administrators.");
   };
 
   const handleBulkExport = () => {
-    const departments = [...new Set(employees.map((emp) => emp.department_name))];
-    alert(
-      `✅ Bulk export completed!\n\nTotal Employees: ${employees.length}\nDepartments: ${departments.join(", ")}`
-    );
+    alert("This feature is available only to administrators.");
   };
 
   const handleStyleClick = (styleId) => {
@@ -143,7 +129,7 @@ function VisitingCard() {
       <div className="min-h-screen">
         {showPreview ? (
           <VisitCardPreview
-            employee={selectedEmployee}
+            employee={currentEmployee}
             style={selectedStyle}
             onBack={() => setShowPreview(false)}
           />
@@ -155,11 +141,11 @@ function VisitingCard() {
             <div className="flex justify-end">
               <PageBreadcrumb
                 items={[
-                  { label: "Home", link: "/admin/dashboard" },
-                  { label: "Visiting Card", link: "/admin/visitingcards" },
+                  { label: "Home", link: "/dashboard" },
+                  { label: "My Visiting Card", link: "/employee/visiting-card" },
                 ]}
               />
-              <PageMeta title="Visiting Card" />
+              <PageMeta title="My Visiting Card" />
             </div>
 
             <div className="w-full bg-white rounded-2xl px-4 sm:px-6 lg:px-8 py-8">
@@ -167,42 +153,29 @@ function VisitingCard() {
               <div className="bg-white border rounded-2xl shadow-md p-6 mb-8">
                 <div className="mb-9">
                   <h1 className="text-2xl font-bold text-slate-700 mb-1">
-                    Visiting Card Generator
+                    My Visiting Card
                   </h1>
                   <p className="text-gray-400">
-                    Create professional business cards for employees
+                    Create your personalized business card
                   </p>
                 </div>
 
                 {loading ? (
-                  <p className="text-slate-500">Loading employees...</p>
+                  <p className="text-slate-500">Loading your details...</p>
                 ) : error ? (
                   <p className="text-red-500">{error}</p>
-                ) : employees.length === 0 ? (
-                  <p className="text-slate-500">No employees available.</p>
+                ) : !currentEmployee ? (
+                  <p className="text-slate-500">No employee data available.</p>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Employee Selector */}
+                    {/* Employee Info (Read-only) */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Select Employee
+                        Your Details
                       </label>
-                      <select
-                        value={selectedEmployee?.id || ""}
-                        onChange={(e) => {
-                          const emp = employees.find(
-                            (x) => String(x.id) === e.target.value
-                          );
-                          setSelectedEmployee(emp);
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      >
-                        {employees.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.full_name} - {emp.designation_name}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100">
+                        {currentEmployee.full_name} - {currentEmployee.designation_name}
+                      </div>
                     </div>
 
                     {/* Style Dropdown */}
@@ -275,15 +248,16 @@ function VisitingCard() {
 
               {/* Generation Options */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Single Card */}
                 <div className="bg-white border rounded-lg shadow-sm p-6 text-center hover:shadow-md">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <User className="w-8 h-8 text-blue-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Single Card
+                    Generate Your Card
                   </h3>
                   <p className="text-gray-600 mb-4 text-sm">
-                    Generate a high-quality card for one employee
+                    Generate a high-quality card with your details
                   </p>
                   <button
                     onClick={handleGenerateSingle}
@@ -293,7 +267,8 @@ function VisitingCard() {
                   </button>
                 </div>
 
-                <div className="bg-white border rounded-lg shadow-sm p-6 text-center hover:shadow-md">
+                {/* Department Cards (Disabled for Employees) */}
+                <div className="bg-white border rounded-lg shadow-sm p-6 text-center opacity-50">
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Building className="w-8 h-8 text-green-600" />
                   </div>
@@ -305,13 +280,15 @@ function VisitingCard() {
                   </p>
                   <button
                     onClick={handleGenerateDepartment}
-                    className="w-full bg-green-100 hover:bg-green-200 text-green-700 font-medium py-2 px-4 rounded-lg"
+                    className="w-full bg-green-100 text-green-700 font-medium py-2 px-4 rounded-lg opacity-50 cursor-not-allowed"
+                    disabled
                   >
                     Generate Batch
                   </button>
                 </div>
 
-                <div className="bg-white border rounded-lg shadow-sm p-6 text-center hover:shadow-md">
+                {/* Bulk Export (Disabled for Employees) */}
+                <div className="bg-white border rounded-lg shadow-sm p-6 text-center opacity-50">
                   <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Archive className="w-8 h-8 text-purple-600" />
                   </div>
@@ -323,7 +300,8 @@ function VisitingCard() {
                   </p>
                   <button
                     onClick={handleBulkExport}
-                    className="w-full bg-purple-100 hover:bg-purple-200 text-purple-700 font-medium py-2 px-4 rounded-lg"
+                    className="w-full bg-purple-100 text-purple-700 font-medium py-2 px-4 rounded-lg opacity-50 cursor-not-allowed"
+                    disabled
                   >
                     Export All
                   </button>
@@ -335,6 +313,6 @@ function VisitingCard() {
       </div>
     </div>
   );
-}
+};
 
-export default VisitingCard;
+export default EmployeeVisitingCard;

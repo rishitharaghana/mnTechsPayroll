@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../../redux/slices/authSlice';
 import { Lock, Mail, UserCircle, Phone, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Select from 'react-select';
 
 const Login = () => {
   const [mobileNumber, setMobileNumber] = useState('');
@@ -14,6 +15,86 @@ const Login = () => {
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
 
+  // Role options for React Select
+  const roleOptions = [
+    { value: 'Admin', label: 'Admin' },
+    { value: 'HR', label: 'HR' },
+    { value: 'Department Head', label: 'Department Head' },
+    { value: 'Manager', label: 'Manager' },
+    { value: 'employee', label: 'Employee' },
+  ];
+
+  // Custom styles for React Select
+  const customSelectStyles = {
+    control: (provided) => ({
+      ...provided,
+      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+      borderColor: 'rgba(148, 163, 184, 0.5)',
+      borderRadius: '1rem',
+      padding: '0.2rem 0.75rem',
+      boxShadow: 'none',
+      '&:hover': {
+        borderColor: 'rgba(148, 163, 184, 0.5)',
+      },
+      '&:focus-within': {
+        borderColor: '#0d9488',
+        boxShadow: '0 0 0 2px rgba(13, 148, 136, 0.5)',
+      },
+    }),
+    valueContainer: (provided) => ({
+      ...provided,
+      padding: '0',
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: '#1e293b',
+      fontSize: '0.875rem',
+      fontWeight: '600',
+      fontFamily: 'sans-serif',
+    }),
+    menu: (provided) => ({
+      ...provided,
+      backgroundColor: 'white',
+      borderRadius: '1rem',
+      marginTop: '0.25rem',
+      border: '1px solid rgba(148, 163, 184, 0.5)',
+      overflow: 'hidden',
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected
+        ? 'rgba(13, 148, 136, 0.1)'
+        : state.isFocused
+        ? 'rgba(13, 148, 136, 0.05)'
+        : 'white',
+      color: '#1e293b',
+      fontSize: '0.875rem',
+      fontWeight: '600',
+      fontFamily: 'sans-serif',
+      padding: '0.75rem 1rem',
+      '&:hover': {
+        backgroundColor: 'rgba(13, 148, 136, 0.05)',
+      },
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: '#94a3b8',
+      fontSize: '0.875rem',
+      fontWeight: '600',
+      fontFamily: 'sans-serif',
+    }),
+    indicatorSeparator: () => ({
+      display: 'none',
+    }),
+    dropdownIndicator: (provided) => ({
+      ...provided,
+      color: '#94a3b8',
+      '&:hover': {
+        color: '#64748b',
+      },
+    }),
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -21,7 +102,7 @@ const Login = () => {
         uiRole === 'Admin' ? 'super_admin' :
         uiRole === 'HR' ? 'hr' :
         uiRole === 'Department Head' ? 'dept_head' :
-        uiRole === 'Manager' ? 'manager' : // Added Manager mapping
+        uiRole === 'Manager' ? 'manager' :
         'employee';
 
       const result = await dispatch(
@@ -54,7 +135,7 @@ const Login = () => {
             case 'hr':
             case 'super_admin':
             case 'dept_head':
-            case 'manager': // Added Manager to admin dashboard navigation
+            case 'manager':
               navigate('/admin/dashboard', { replace: true });
               break;
             default:
@@ -91,18 +172,15 @@ const Login = () => {
             <label className="block text-sm font-medium text-slate-600 mb-1.5">Role</label>
             <div className="flex items-center space-x-2">
               <UserCircle size={18} className="text-slate-400" />
-              <select
-                value={uiRole}
-                onChange={(e) => setUiRole(e.target.value)}
-                className="w-full px-3 py-2 bg-white/70 border border-slate-200/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-600 text-slate-900 font-sans appearance-none"
+              <Select
+                options={roleOptions}
+                value={roleOptions.find((option) => option.value === uiRole)}
+                onChange={(selectedOption) => setUiRole(selectedOption.value)}
+                styles={customSelectStyles}
+                className="w-full"
+                placeholder="Select Role"
                 aria-label="Select Role"
-              >
-                <option value="Admin">Admin</option>
-                <option value="HR">HR</option>
-                <option value="Department Head">Department Head</option>
-                <option value="Manager">Manager</option> {/* Added Manager option */}
-                <option value="employee">Employee</option>
-              </select>
+              />
             </div>
           </div>
 

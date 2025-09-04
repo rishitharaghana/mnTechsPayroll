@@ -45,6 +45,7 @@ import TravelExpenseSubmission from "./pages/TravelExpenses/TravelExpensesSubmis
 import ViewEmployeeDetails from "./pages/EmployeeManagement/ViewEmployeeDetails";
 import EmployeePreviewPage from "./pages/EmployeeManagement/EmployeePreviewPage";
 import EmployeeIdCards from "./pages/Cards/EmployeeIdCards";
+import EmployeeVisitingCard from "./pages/Cards/EmployeeVisitingCard";
 
 const App = () => {
   return (
@@ -124,7 +125,10 @@ const App = () => {
                   path="/admin/travel-expsense/details"
                   element={<TravelExpenseSubmission />}
                 />
-                <Route path="/admin/employees/preview/:id" element={<EmployeePreviewPage />} />
+                <Route
+                  path="/admin/employees/preview/:id"
+                  element={<EmployeePreviewPage />}
+                />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={["employee"]} />}>
@@ -140,7 +144,14 @@ const App = () => {
                   path="/employee/leave-dashboard"
                   element={<LeaveDashboard />}
                 />
-                <Route path="/employee/employee-idcards" element={<EmployeeIdCards />} />
+                <Route
+                  path="/employee/employee-idcards"
+                  element={<EmployeeIdCards />}
+                />
+                <Route
+                  path="/employee/employee-visitingcards"
+                  element={<EmployeeVisitingCard />}
+                />
                 <Route
                   path="/employee/employee-details"
                   element={<EmployeeDetails />}

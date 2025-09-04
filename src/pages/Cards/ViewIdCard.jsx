@@ -11,6 +11,7 @@ const ViewIdCard = () => {
   const dispatch = useDispatch();
 
   const { employees, loading, error } = useSelector((state) => state.employee);
+  console.log(employees, "employees");
 
   const [card, setCard] = useState(null);
   const [selectedId, setSelectedId] = useState("");
