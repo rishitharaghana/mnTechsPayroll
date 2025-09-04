@@ -14,7 +14,6 @@ import {
 import StepNavigation from "../../Components/common/StepNavigation";
 import EmployeePersonaldetailsForm from './EmployeePersonaldetailsForm'
 import EmployeeEducationDetailsForm from './EmployeeEducationDetailsForm'
-
 import EmployeePreview from "./EmployeePreview";
 import EmployeeDocuments from "./EmployeeDocuments";
 import EmployeeBankDetailsForm from "./EmployeeBankDetailsForm";

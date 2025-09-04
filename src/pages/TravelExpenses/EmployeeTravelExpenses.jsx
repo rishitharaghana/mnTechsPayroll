@@ -33,7 +33,7 @@ const EmployeeTravelExpenses = () => {
   const [department, setDepartment] = useState(profile?.department_name || "");
   const [submissionStatus, setSubmissionStatus] = useState("draft");
 
-  const employeeName = profile ? `${profile.name} (${profile.employee_id})` : "Unknown";
+  const employeeName = profile ? `${profile.full_name} (${profile.employee_id})` : "Unknown";
 
   const calculateTotal = debounce(() => {
     const total = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
@@ -75,6 +75,13 @@ const EmployeeTravelExpenses = () => {
       }, 2000);
     }
   }, [error, userError, successMessage, dispatch, user?.role]);
+
+  useEffect(()=>{
+    if(profile?.department_name){
+      setDepartment(profile.department_name)
+    }
+  },[profile]);
+
 
   const handleExpenseChange = (index, field, value) => {
     const newExpenses = [...expenses];
@@ -201,12 +208,12 @@ const EmployeeTravelExpenses = () => {
                   <FileText size={20} className="text-teal-600" />
                   <input
                     type="text"
-                    placeholder="Enter department"
-                    className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
                     value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    aria-label="Department"
+                    disabled
+                    className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 cursor-not-allowed"
+                    aria-label="Employee"
                   />
+
                 </div>
               </div>
             </div>

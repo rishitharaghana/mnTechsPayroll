@@ -1,24 +1,29 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Base API URL
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3007";
-
-// Download payslip PDF//
 export const downloadPayslip = createAsyncThunk(
   "payslip/downloadPayslip",
-  async ({ employeeId, month }, { rejectWithValue }) => {
+  async ({ employeeId, month }, { rejectWithValue, getState }) => {
     try {
       const userToken = localStorage.getItem("userToken");
       if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
       const { token } = JSON.parse(userToken);
 
-      const response = await axios.get(`${API_BASE}/api/payslip/${employeeId}/${month}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        responseType: "blob",
-      });
+      const { user } = getState().auth;
+      console.log("User data:", user, "Requested employeeId:", employeeId, "month:", month); // Debug
+      if (user.role === "employee" && user.employee_id !== employeeId) {
+        return rejectWithValue("Access denied: You can only download your own payslip");
+      }
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const response = await axios.get(
+        `http://localhost:3007/api/payslip/${employeeId}/${month}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
       const a = document.createElement("a");
       a.href = url;
       a.download = `Payslip_${employeeId}_${month}.pdf`;
@@ -29,30 +34,31 @@ export const downloadPayslip = createAsyncThunk(
 
       return { success: true, employeeId, month };
     } catch (error) {
-      const message =
-        error.message === "Network Error"
-          ? "Network error: Please check your connection"
-          : error.response?.data?.message || "Failed to download payslip";
-      console.error("Download payslip error:", error);
-      return rejectWithValue(message);
+      console.error("Download payslip error:", error.response?.data || error.message);
+      let message = "Failed to download payslip";
+      if (error.response?.status === 403) message = "Access denied";
+      else if (error.response?.status === 404) message = error.response.data.error || "No payroll record found";
+      else if (error.message === "Network Error") message = "Network error: Please check your connection";
+      return rejectWithValue(error.response?.data?.error || message);
     }
   }
 );
 
-// Fetch all payslips
 export const fetchPayslips = createAsyncThunk(
-  "employee/fetchPayslips",
+  "payslip/fetchPayslips",
   async (_, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) throw new Error("No authentication token found");
+      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
       const { token } = JSON.parse(userToken);
 
       const response = await axios.get(
         "http://localhost:3007/api/employees/payslips",
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      return response.data; // ensure backend sends { data: [...] }
+
+      console.log("fetchPayslips response:", response.data);
+      return response.data.data; // Expecting { message, data } from backend
     } catch (error) {
       console.error("Fetch payslips error:", error.response?.data || error.message);
       return rejectWithValue(error.response?.data?.error || "Failed to fetch payslips");
@@ -60,8 +66,6 @@ export const fetchPayslips = createAsyncThunk(
   }
 );
 
-
-// Payslip slice
 const payslipSlice = createSlice({
   name: "payslip",
   initialState: {

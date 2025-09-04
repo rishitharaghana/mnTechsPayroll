@@ -7,10 +7,10 @@ import {
   Calculator,
   FileSpreadsheet,
 } from "lucide-react";
-import PayslipGenerator from "../PayslipManagement/PaySlipGenerator";
+import PayslipGenerator from "../PayslipManagement/PayslipGenerator";
 import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
-import { fetchPayroll } from "../../redux/slices/payrollSlice";
+import { fetchPayroll, generatePayroll } from "../../redux/slices/payrollSlice";
 import { useDispatch, useSelector } from "react-redux";
 import DatePicker from "../../Components/ui/date/DatePicker";
 import { format, parse, startOfMonth } from "date-fns";
@@ -29,16 +29,10 @@ const Payroll = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const dispatch = useDispatch();
-  const {
-    payrollList = [],
-    loading,
-    error,
-    successMessage,
-  } = useSelector((state) => state.payroll);
+  const { payrollList = [], loading, error, successMessage } = useSelector((state) => state.payroll);
+  const { user, role } = useSelector((state) => state.auth);
 
-  const [selectedMonth, setSelectedMonth] = useState(
-    parse("2025-08", "yyyy-MM", new Date())
-  );
+  const [selectedMonth, setSelectedMonth] = useState(startOfMonth(new Date()));
 
   useEffect(() => {
     const formattedMonth = format(selectedMonth, "yyyy-MM");
@@ -76,8 +70,8 @@ const Payroll = () => {
                 (sum, emp) => sum + (parseFloat(emp.gross_salary) || 0),
                 0
               ) / payrollList.length
-            ).toFixed(2)
-          : 0
+            ).toLocaleString("en-IN", { maximumFractionDigits: 2 })
+          : "0.00"
       }`,
       change: "+3.1%",
       icon: TrendingUp,
@@ -92,15 +86,10 @@ const Payroll = () => {
     },
   ];
 
-  useEffect(() => {
-    console.log("Summary Stats:", summaryStats);
-  }, [payrollList]);
-
-  const payrollData = payrollList || [];
-
   const getStatusColor = (status) => {
     switch (status) {
       case "Processed":
+      case "Approved":
         return "bg-green-100 text-green-800";
       case "Pending":
         return "bg-yellow-100 text-yellow-800";
@@ -111,14 +100,15 @@ const Payroll = () => {
     }
   };
 
-  const filteredData = payrollData
+  const filteredData = payrollList
     .filter(
       (emp) =>
         emp.employee_name
           ?.toLowerCase()
           .includes(filters.search.toLowerCase()) &&
         (!filters.department || emp.department === filters.department) &&
-        (!filters.status || emp.status === filters.status)
+        (!filters.status || emp.status === filters.status) &&
+        (role !== "employee" || emp.employee_id === user.id)
     )
     .sort((a, b) => {
       if (sortConfig.key) {
@@ -181,10 +171,16 @@ const Payroll = () => {
     link.href = URL.createObjectURL(blob);
     link.download = `Payroll_${format(selectedMonth, "yyyy-MM")}.csv`;
     link.click();
+    URL.revokeObjectURL(link.href);
   };
 
   const handleProcessPayroll = () => {
-    alert(`Processing payroll for ${format(selectedMonth, "yyyy-MM")}...`);
+    const formattedMonth = format(selectedMonth, "yyyy-MM");
+    dispatch(generatePayroll({ month: formattedMonth })).then((result) => {
+      if (generatePayroll.fulfilled.match(result)) {
+        dispatch(fetchPayroll({ month: formattedMonth }));
+      }
+    });
   };
 
   return (
@@ -221,14 +217,17 @@ const Payroll = () => {
                   onChange={(date) => setSelectedMonth(startOfMonth(date))}
                   maxDate={new Date()}
                   titleClassName="text-slate-200 text-sm font-medium"
+                  showOnlyMonthYear
                 />
               </div>
-              <button
-                onClick={handleProcessPayroll}
-                className="px-3 flex items-baseline py-2 bg-white text-teal-600 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105"
-              >
-                Process
-              </button>
+              {["hr", "super_admin"].includes(role) && (
+                <button
+                  onClick={handleProcessPayroll}
+                  className="px-3 flex items-baseline py-2 bg-white text-teal-600 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105"
+                >
+                  Process
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -288,7 +287,8 @@ const Payroll = () => {
               className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
             >
               <option value="">All Departments</option>
-              <option value="Engineering">Engineering</option>
+              <option value="IT">IT</option>
+              <option value="HR">HR</option>
               <option value="Marketing">Marketing</option>
               <option value="Design">Design</option>
             </select>
@@ -300,6 +300,7 @@ const Payroll = () => {
             >
               <option value="">All Statuses</option>
               <option value="Processed">Processed</option>
+              <option value="Approved">Approved</option>
               <option value="Pending">Pending</option>
               <option value="Failed">Failed</option>
             </select>
@@ -349,9 +350,7 @@ const Payroll = () => {
                             : null
                         }
                         className={`px-6 py-4 text-left font-medium text-white uppercase tracking-wider ${
-                          ["Employee", "Gross Salary", "Net Salary"].includes(
-                            col
-                          )
+                          ["Employee", "Gross Salary", "Net Salary"].includes(col)
                             ? "cursor-pointer hover:text-slate-200"
                             : ""
                         }`}
@@ -371,7 +370,7 @@ const Payroll = () => {
                 <tbody className="divide-y divide-slate-200">
                   {paginatedData.map((emp) => (
                     <tr
-                      key={emp.id}
+                      key={emp.employee_id}
                       className="hover:bg-slate-50 transition-colors duration-200"
                     >
                       <td className="px-6 py-4">
@@ -384,30 +383,19 @@ const Payroll = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="font-medium text-slate-900 truncate">
-                          ₹
-                          {parseFloat(emp.gross_salary || 0).toLocaleString(
-                            "en-IN"
-                          )}
+                          ₹{(parseFloat(emp.gross_salary) || 0).toLocaleString("en-IN")}
                         </div>
                         <div className="text-slate-500 text-xs">Base</div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-red-600 font-medium truncate">
-                          ₹
-                          {parseFloat(emp.pf_deduction || 0).toLocaleString(
-                            "en-IN"
-                          )}
+                          ₹{(parseFloat(emp.pf_deduction) || 0).toLocaleString("en-IN")}
                         </div>
-                        <div className="text-slate-500 text-xs">
-                          Provident Fund
-                        </div>
+                        <div className="text-slate-500 text-xs">Provident Fund</div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="font-bold text-teal-600 truncate">
-                          ₹
-                          {parseFloat(emp.net_salary || 0).toLocaleString(
-                            "en-IN"
-                          )}
+                          ₹{(parseFloat(emp.net_salary) || 0).toLocaleString("en-IN")}
                         </div>
                         <div>Take-home</div>
                       </td>

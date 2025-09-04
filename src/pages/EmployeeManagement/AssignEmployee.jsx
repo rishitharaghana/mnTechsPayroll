@@ -377,7 +377,7 @@ const AssignEmployee = () => {
         setStep(1);
         setErrors({});
         dispatch(clearState());
-        navigate("/admin/employees");
+        navigate("/admin/assign-employee");
       } else {
         toast.error(resultAction.payload || "Failed to create employee");
         setErrors({

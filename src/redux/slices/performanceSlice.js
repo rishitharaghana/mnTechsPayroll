@@ -91,16 +91,38 @@ export const fetchEmployeePerformance = createAsyncThunk(
   async (employee_id, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) {
-        return rejectWithValue("No authentication token found. Please log in.");
-      }
-
+      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(`http://localhost:3007/api/employee-performance/${employee_id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      return response.data.data;
+      console.log("fetchEmployeePerformance - Requesting for employee_id:", employee_id);
+      const response = await axios.get(
+        `http://localhost:3007/api/employee-performance/${encodeURIComponent(employee_id)}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("fetchEmployeePerformance - Response:", response.data);
+      return {
+        ...response.data.data,
+        goals: Array.isArray(response.data.data.goals) ? response.data.data.goals : [],
+        tasks: Array.isArray(response.data.data.tasks) ? response.data.data.tasks : [],
+        competencies: Array.isArray(response.data.data.competencies) ? response.data.data.competencies : [],
+        achievements: Array.isArray(response.data.data.achievements) ? response.data.data.achievements : [],
+        feedback: Array.isArray(response.data.data.feedback) ? response.data.data.feedback : [],
+        learningGrowth: Array.isArray(response.data.data.learningGrowth) ? response.data.data.learningGrowth : [],
+      };
     } catch (error) {
+      console.error("fetchEmployeePerformance - Error:", error.response?.data || error.message);
+      if (error.response?.status === 404) {
+        console.log("fetchEmployeePerformance - Employee not found, returning empty data");
+        return {
+          goals: [],
+          tasks: [],
+          competencies: [],
+          achievements: [],
+          feedback: [],
+          learningGrowth: [],
+        };
+      }
       return rejectWithValue(error.response?.data?.error || "Failed to fetch performance data");
     }
   }
@@ -134,6 +156,7 @@ const performanceSlice = createSlice({
     performance: null,
     loading: false,
     error: null,
+     employees: [],
     successMessage: null,
   },
   reducers: {

@@ -108,10 +108,7 @@ const AdminDashboard = () => {
   const recentActivities = recentActivitiesByRole[role] || [];
   const performanceMetrics = performanceMetricsByRole[role] || [];
 
-  const currentDateTime = new Date('2025-08-13T17:11:00+05:30');
-  const formattedDate = new Intl.DateTimeFormat('en-US', { dateStyle: 'full' }).format(currentDateTime);
-  const formattedTime = new Intl.DateTimeFormat('en-US', { timeStyle: 'short', timeZone: 'Asia/Kolkata' }).format(currentDateTime);
-
+ 
   return (
     <div className="w-78/100 space-y-8 bg-white rounded-2xl min-h-screen p-6">
       <div className="bg-gradient-to-r from-slate-700 to-teal-600 rounded-lg border border-slate-200/50 p-8 shadow-sm hover:shadow-md transition-shadow duration-300">

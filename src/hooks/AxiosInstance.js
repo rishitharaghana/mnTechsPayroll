@@ -1,14 +1,15 @@
-import axios from 'axios';
+// import axios from 'axios';
 
 
-const ngrokAxiosInstance = axios.create({
+// const ngrokAxiosInstance = axios.create({
 
-     baseURL: 'https://fe2663e99cb4.ngrok-free.app',
+//     //  baseURL: 'https://fe2663e99cb4.ngrok-free.app',
+//     baseURL: '',
 
-  headers: {
-    'Content-Type': 'application/json',
-  },  
-});
+//   headers: {
+//     'Content-Type': 'application/json',
+//   },  
+// });
 
 
-export default ngrokAxiosInstance;
+// export default ngrokAxiosInstance;
