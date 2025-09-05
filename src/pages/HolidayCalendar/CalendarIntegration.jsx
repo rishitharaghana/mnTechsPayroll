@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import PageMeta from '../../Components/common/PageMeta';
 import { Link } from 'react-router-dom';
 
 const CalendarIntegration = () => {
@@ -116,8 +117,9 @@ const CalendarIntegration = () => {
           {label: 'Calendar Integration', link: '/admin/calendar'},
         ]}
         />
+        <PageMeta title="Calendar Integration" />
       </div>
-    <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6">
+    <div className="space-y-8 bg-white rounded-2xl p-6">
       {/* Header */}
       <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

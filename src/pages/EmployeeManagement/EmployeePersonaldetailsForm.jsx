@@ -57,6 +57,24 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         {errors.phone && <span className="text-red-500 text-xs mt-1">{errors.phone}</span>}
       </div>
       <div className="flex flex-col">
+        <label className="mb-1 text-sm font-bold text-black tracking-tight">Date of Birth</label>
+        <div className="relative">
+          <DatePicker
+            selected={formData.dateOfBirth ? new Date(formData.dateOfBirth) : null}
+            onChange={(date) => handleDateChange("dateOfBirth", date)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 pr-10"
+            dateFormat="yyyy-MM-dd"
+            placeholderText="Select date of birth"
+            showYearDropdown
+            scrollableYearDropdown
+            yearDropdownItemNumber={100}
+            maxDate={new Date()}
+          />
+          <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+        </div>
+        {errors.dateOfBirth && <span className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</span>}
+      </div>
+      <div className="flex flex-col">
         <label className="mb-1 text-sm font-bold text-black tracking-tight">Email</label>
         <input
           type="email"

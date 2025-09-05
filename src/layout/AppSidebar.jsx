@@ -162,8 +162,21 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "calendar",
       label: "Calendar",
       icon: Calendar,
-      path: "/admin/calendar",
       allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
+      children: [
+        {
+          id: "calendar",
+          label: "Holiday Calendar",
+          path: "/admin/calendar",
+          allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
+        },
+        {
+          id: "calendar",
+          label: "Annual Calendar",
+          path: "/admin/annual-calendar",
+          allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
+        }
+      ]
     },
     {
       id: "performance",

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Trash2, Upload, FileText, Calendar, MapPin } from "lucide-react";
+import { Trash2, Upload, FileText, Calendar, MapPin, Grid3X3 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { submitTravelExpense, clearState } from "../../redux/slices/travelExpensesSlice";
@@ -205,7 +205,7 @@ const EmployeeTravelExpenses = () => {
               <div>
                 <label className="text-md font-semibold text-slate-700 mb-1 block">Department</label>
                 <div className="flex items-center space-x-2">
-                  <FileText size={20} className="text-teal-600" />
+                  <Grid3X3 size={20} className="text-teal-600" />
                   <input
                     type="text"
                     value={department}

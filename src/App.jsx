@@ -46,6 +46,7 @@ import ViewEmployeeDetails from "./pages/EmployeeManagement/ViewEmployeeDetails"
 import EmployeePreviewPage from "./pages/EmployeeManagement/EmployeePreviewPage";
 import EmployeeIdCards from "./pages/Cards/EmployeeIdCards";
 import EmployeeVisitingCard from "./pages/Cards/EmployeeVisitingCard";
+import AnnualCalendar from "./pages/HolidayCalendar/AnnualCalendar";
 
 const App = () => {
   return (
@@ -169,7 +170,7 @@ const App = () => {
               <Route
                 element={
                   <ProtectedRoute
-                    allowedRoles={["employee", "manager", "dept_head"]}
+                    allowedRoles={["super_admin", "hr", "employee", "manager", "dept_head"]}
                   />
                 }
               >
@@ -181,6 +182,7 @@ const App = () => {
                   path="/admin/calendar"
                   element={<CalendarIntegration />}
                 />
+                <Route path="/admin/annual-calendar" element={<AnnualCalendar />} />
               </Route>
 
               <Route path="/userprofile" element={<UserProfile />} />
