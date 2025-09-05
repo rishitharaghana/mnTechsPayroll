@@ -251,7 +251,7 @@ const LeaveTracker = () => {
   const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "?");
 
   return (
-    <div className="w-78/100">
+    <div className="w-full lg:w-[78%]">
       <div className="flex justify-end">
         <PageMeta
           title="Leave Tracker"
