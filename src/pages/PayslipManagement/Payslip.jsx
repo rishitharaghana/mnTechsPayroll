@@ -7,7 +7,10 @@ import {
   fetchPayslips,
   clearError,
 } from "../../redux/slices/payslipSlice";
-import { fetchEmployees, fetchDepartments } from "../../redux/slices/employeeSlice";
+import {
+  fetchEmployees,
+  fetchDepartments,
+} from "../../redux/slices/employeeSlice";
 import {
   generatePayroll,
   generatePayrollForEmployee,
@@ -20,14 +23,28 @@ import PayslipGenerator from "./PayslipGenerator";
 const Payslip = () => {
   const dispatch = useDispatch();
   const { user, role, isAuthenticated } = useSelector((state) => state.auth);
-  const { payslips = [], totalRecords = 0, loading, error } = useSelector((state) => state.payslip);
-  const { employees, departments, loading: employeesLoading, error: employeesError } = useSelector(
-    (state) => state.employee
+  const {
+    payslips = [],
+    totalRecords = 0,
+    loading,
+    error,
+  } = useSelector((state) => state.payslip);
+  const {
+    employees,
+    departments,
+    loading: employeesLoading,
+    error: employeesError,
+  } = useSelector((state) => state.employee);
+  const { loading: payrollLoading, error: payrollError } = useSelector(
+    (state) => state.payroll
   );
-  const { loading: payrollLoading, error: payrollError } = useSelector((state) => state.payroll);
 
-  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
-  const [paymentDate, setPaymentDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [selectedMonth, setSelectedMonth] = useState(
+    format(new Date(), "yyyy-MM")
+  );
+  const [paymentDate, setPaymentDate] = useState(
+    format(new Date(), "yyyy-MM-dd")
+  );
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(
     role === "employee" && user?.employee_id ? user.employee_id : ""
   );
@@ -40,7 +57,13 @@ const Payslip = () => {
     if (isAuthenticated) {
       dispatch(fetchEmployees());
       dispatch(fetchDepartments());
-      dispatch(fetchPayslips({ month: selectedMonth, page: currentPage, limit: itemsPerPage }));
+      dispatch(
+        fetchPayslips({
+          month: selectedMonth,
+          page: currentPage,
+          limit: itemsPerPage,
+        })
+      );
       dispatch(clearError());
     }
   }, [dispatch, isAuthenticated, selectedMonth, currentPage]);
@@ -48,7 +71,8 @@ const Payslip = () => {
   const filteredPayslips = useMemo(() => {
     return (Array.isArray(payslips) ? payslips : [])
       .filter((slip) => {
-        if (role === "employee" && slip.employee_id !== user?.employee_id) return false;
+        if (role === "employee" && slip.employee_id !== user?.employee_id)
+          return false;
         return (
           (!selectedEmployeeId || slip.employee_id === selectedEmployeeId) &&
           (!selectedDepartment || slip.department === selectedDepartment) &&
@@ -69,7 +93,14 @@ const Payslip = () => {
           parseFloat(slip.professional_tax || 0),
         netPay: parseFloat(slip.net_salary || 0),
       }));
-  }, [payslips, selectedMonth, selectedEmployeeId, selectedDepartment, role, user?.employee_id]);
+  }, [
+    payslips,
+    selectedMonth,
+    selectedEmployeeId,
+    selectedDepartment,
+    role,
+    user?.employee_id,
+  ]);
 
   const totalPages = Math.ceil(totalRecords / itemsPerPage);
 
@@ -79,13 +110,23 @@ const Payslip = () => {
       return;
     }
     const action = selectedEmployeeId
-      ? generatePayrollForEmployee({ employeeId: selectedEmployeeId, month: selectedMonth, paymentDate })
+      ? generatePayrollForEmployee({
+          employeeId: selectedEmployeeId,
+          month: selectedMonth,
+          paymentDate,
+        })
       : generatePayroll({ month: selectedMonth, paymentDate });
 
     try {
       await dispatch(action).unwrap();
-      dispatch(fetchPayslips({ month: selectedMonth, page: 1, limit: itemsPerPage }));
-      toast.success(`Payroll generated successfully for ${selectedEmployeeId || "all employees"}`);
+      dispatch(
+        fetchPayslips({ month: selectedMonth, page: 1, limit: itemsPerPage })
+      );
+      toast.success(
+        `Payroll generated successfully for ${
+          selectedEmployeeId || "all employees"
+        }`
+      );
       setCurrentPage(1);
     } catch (err) {
       toast.error(err?.error || "Failed to generate payroll");
@@ -98,7 +139,9 @@ const Payslip = () => {
       return;
     }
     try {
-      await dispatch(downloadPayslip({ employeeId, month: selectedMonth, paymentDate })).unwrap();
+      await dispatch(
+        downloadPayslip({ employeeId, month: selectedMonth, paymentDate })
+      ).unwrap();
       toast.success("Payslip downloaded successfully");
     } catch (err) {
       const errorMessage =
@@ -117,29 +160,34 @@ const Payslip = () => {
     return (
       <div className="min-h-screen bg-gray-100 p-6">
         <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-md p-6">
-          <p className="text-red-600 font-semibold">Please log in to view payslips.</p>
+          <p className="text-red-600 font-semibold">
+            Please log in to view payslips.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-78/100 bg-gray-100 p-6">
-      <div className="">
-        <PageMeta
-          title="Payslip Management"
-          description="View, generate, and download employee payslips."
-        />
-        <PageBreadcrumb
-          items={[
-            { label: "Home", link: "/" },
-            { label: "Payslip Management", link: "/admin/payslip" },
-          ]}
-        />
-
+    <div className="w-full lg:w-[78%]">
+      <div className="flex justify-end items-center">
+          <PageMeta
+            title="Payslip Management"
+            description="View, generate, and download employee payslips."
+          />
+          <PageBreadcrumb
+            items={[
+              { label: "Home", link: "/" },
+              { label: "Payslip Management", link: "/admin/payslip" },
+            ]}
+          />
+        </div>
+      <div className="bg-white rounded-xl shadow-md p-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Payslip Management</h1>
+        <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 p-6 mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">
+            Payslip Management
+          </h1>
           <p className="text-gray-600 mt-2">
             View, generate, and download payslips for employees.
           </p>
@@ -153,12 +201,14 @@ const Payslip = () => {
         )}
 
         {/* Filters Section */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Filters</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {role !== "employee" && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">Select Employee</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Select Employee
+                </label>
                 <select
                   value={selectedEmployeeId}
                   onChange={(e) => setSelectedEmployeeId(e.target.value)}
@@ -167,7 +217,10 @@ const Payslip = () => {
                 >
                   <option value="">All Employees</option>
                   {employees.map((employee) => (
-                    <option key={employee.employee_id} value={employee.employee_id}>
+                    <option
+                      key={employee.employee_id}
+                      value={employee.employee_id}
+                    >
                       {employee.full_name} ({employee.employee_id})
                     </option>
                   ))}
@@ -175,7 +228,9 @@ const Payslip = () => {
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Select Pay Period</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Select Pay Period
+              </label>
               <input
                 type="month"
                 value={selectedMonth}
@@ -185,7 +240,9 @@ const Payslip = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Payment Date</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Payment Date
+              </label>
               <input
                 type="date"
                 value={paymentDate}
@@ -195,7 +252,9 @@ const Payslip = () => {
             </div>
             {role !== "employee" && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">Select Department</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Select Department
+                </label>
                 <select
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
@@ -216,15 +275,18 @@ const Payslip = () => {
 
         {/* Actions Section */}
         {["hr", "super_admin"].includes(role) && (
-          <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Actions</h2>
+          <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Actions
+            </h2>
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={handleGeneratePayroll}
                 disabled={loading || payrollLoading || employeesLoading}
                 className="flex-1 py-2 px-4 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
-                Generate Payroll {selectedEmployeeId ? "for Employee" : "for All"}
+                Generate Payroll{" "}
+                {selectedEmployeeId ? "for Employee" : "for All"}
               </button>
               <button
                 onClick={() => handleDownloadPayslip(selectedEmployeeId)}
@@ -238,13 +300,16 @@ const Payslip = () => {
         )}
 
         {/* Payslip Records */}
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Payslip Records</h2>
+        <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            Payslip Records
+          </h2>
           {loading && <p className="text-gray-500">Loading payslips...</p>}
           {!loading && filteredPayslips.length === 0 && (
             <p className="text-gray-500">
               No payslips found for {selectedMonth}.{" "}
-              {["hr", "super_admin"].includes(role) && "Try generating payroll."}
+              {["hr", "super_admin"].includes(role) &&
+                "Try generating payroll."}
             </p>
           )}
           {!loading && filteredPayslips.length > 0 && (
@@ -263,7 +328,10 @@ const Payslip = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {filteredPayslips.map((slip) => (
-                      <tr key={`${slip.employee_id}-${slip.month}`} className="hover:bg-gray-50">
+                      <tr
+                        key={`${slip.employee_id}-${slip.month}`}
+                        className="hover:bg-gray-50"
+                      >
                         <td className="px-6 py-4">
                           {slip.employee_name} ({slip.employee_id})
                         </td>
@@ -286,7 +354,9 @@ const Payslip = () => {
                           </button>
                           {["hr", "super_admin"].includes(role) && (
                             <button
-                              onClick={() => handleDownloadPayslip(slip.employee_id)}
+                              onClick={() =>
+                                handleDownloadPayslip(slip.employee_id)
+                              }
                               className="text-teal-600 hover:text-teal-800 flex items-center"
                             >
                               Download
@@ -333,7 +403,9 @@ const Payslip = () => {
               >
                 <X size={24} />
               </button>
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Payslip Preview</h2>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Payslip Preview
+              </h2>
               <PayslipGenerator
                 employee={showPreview}
                 selectedMonth={selectedMonth}

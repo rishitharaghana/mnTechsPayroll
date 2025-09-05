@@ -178,7 +178,7 @@ const Employee = () => {
   };
 
   return (
-    <div className="w-78/100">
+    <div className="w-full lg:w-[78%]">
       <div className="flex justify-end">
         <PageBreadcrumb
           items={[

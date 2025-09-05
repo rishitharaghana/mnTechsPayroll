@@ -112,40 +112,40 @@ const AddEmployeeReview = () => {
         ...prev,
         goals: Array.isArray(performance.goals)
           ? performance.goals.map((goal) => ({
-              id: goal.id || Date.now() + Math.random(),
-              title: goal.title || "",
-              description: goal.description || "",
-              due_date: goal.due_date || "",
-              tasks: Array.isArray(performance.tasks)
-                ? performance.tasks
-                    .filter((task) => task.goal_id === goal.id)
-                    .map((task) => ({
-                      id: task.id || Date.now() + Math.random(),
-                      title: task.title || "",
-                      description: task.description || "",
-                      due_date: task.due_date || "",
-                      priority: task.priority || "Medium",
-                    }))
-                : [],
-            }))
+            id: goal.id || Date.now() + Math.random(),
+            title: goal.title || "",
+            description: goal.description || "",
+            due_date: goal.due_date || "",
+            tasks: Array.isArray(performance.tasks)
+              ? performance.tasks
+                .filter((task) => task.goal_id === goal.id)
+                .map((task) => ({
+                  id: task.id || Date.now() + Math.random(),
+                  title: task.title || "",
+                  description: task.description || "",
+                  due_date: task.due_date || "",
+                  priority: task.priority || "Medium",
+                }))
+              : [],
+          }))
           : prev.goals,
         competencies: Array.isArray(performance.competencies)
           ? performance.competencies.map((comp) => ({
-              id: Date.now() + Math.random(),
-              skill: comp.skill || "",
-              manager_rating: comp.manager_rating || "",
-              feedback: comp.feedback || "",
-            }))
+            id: Date.now() + Math.random(),
+            skill: comp.skill || "",
+            manager_rating: comp.manager_rating || "",
+            feedback: comp.feedback || "",
+          }))
           : prev.competencies,
         appraisal: {
           ...prev.appraisal,
           achievements: Array.isArray(performance.achievements)
             ? performance.achievements.map((ach) => ({
-                id: Date.now() + Math.random(),
-                title: ach.title || "",
-                date: ach.date || "",
-                type: ach.type || "Achievement",
-              }))
+              id: Date.now() + Math.random(),
+              title: ach.title || "",
+              date: ach.date || "",
+              type: ach.type || "Achievement",
+            }))
             : prev.appraisal.achievements,
         },
       }));
@@ -269,18 +269,18 @@ const AddEmployeeReview = () => {
       newSection.push(
         section === "goals"
           ? {
-              id: Date.now() + Math.random(),
-              title: "",
-              description: "",
-              due_date: "",
-              tasks: [],
-            }
+            id: Date.now() + Math.random(),
+            title: "",
+            description: "",
+            due_date: "",
+            tasks: [],
+          }
           : {
-              id: Date.now() + Math.random(),
-              skill: "",
-              manager_rating: "",
-              feedback: "",
-            }
+            id: Date.now() + Math.random(),
+            skill: "",
+            manager_rating: "",
+            feedback: "",
+          }
       );
       return { ...prev, [section]: newSection };
     });
@@ -293,24 +293,24 @@ const AddEmployeeReview = () => {
         ...updatedGoals[goalIndex],
         tasks: Array.isArray(updatedGoals[goalIndex].tasks)
           ? [
-              ...updatedGoals[goalIndex].tasks,
-              {
-                id: Date.now() + Math.random(),
-                title: "",
-                description: "",
-                due_date: "",
-                priority: "Medium",
-              },
-            ]
+            ...updatedGoals[goalIndex].tasks,
+            {
+              id: Date.now() + Math.random(),
+              title: "",
+              description: "",
+              due_date: "",
+              priority: "Medium",
+            },
+          ]
           : [
-              {
-                id: Date.now() + Math.random(),
-                title: "",
-                description: "",
-                due_date: "",
-                priority: "Medium",
-              },
-            ],
+            {
+              id: Date.now() + Math.random(),
+              title: "",
+              description: "",
+              due_date: "",
+              priority: "Medium",
+            },
+          ],
       };
       return { ...prev, goals: updatedGoals };
     });
@@ -466,8 +466,8 @@ const AddEmployeeReview = () => {
   };
 
   return (
-    <div className="min-h-screen w-78/100 bg-gray-100 p-4 md:p-8">
-      <div className="">
+    <div className="w-full lg:w-[78%] ">
+      <div className="flex justify-end items-center">
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/admin/dashboard" },
@@ -475,13 +475,15 @@ const AddEmployeeReview = () => {
           ]}
         />
         <PageMeta title="Add Employee Review" description="Add a performance review for an employee" />
-        <div className="bg-gradient-to-r from-slate-700 to-teal-600 rounded-xl shadow-xl p-6 mb-6">
+      </div>
+      <div className=" bg-white rounded-xl p-4 md:p-8">
+        <div className="bg-gradient-to-r from-slate-700 to-teal-600 border-1 border-gray-300 rounded-xl shadow-xl p-6 mb-6">
           <h2 className="text-3xl font-bold text-white text-center">
             Add Employee Review (3-Month Cycle)
           </h2>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-white rounded-xl border-1 border-gray-300 shadow-lg p-6">
           {(empError || perfError || formErrors.form) && (
             <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
               {formErrors.form || empError || perfError}
@@ -499,11 +501,10 @@ const AddEmployeeReview = () => {
               {steps.map((step, index) => (
                 <div key={index} className="flex-1 text-center">
                   <div
-                    className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center text-white font-semibold transition-all duration-300 ${
-                      currentStep >= index
+                    className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center text-white font-semibold transition-all duration-300 ${currentStep >= index
                         ? "bg-gradient-to-r from-slate-700 to-teal-600"
                         : "bg-gray-300"
-                    }`}
+                      }`}
                   >
                     {index + 1}
                   </div>
