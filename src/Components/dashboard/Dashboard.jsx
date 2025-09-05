@@ -110,7 +110,7 @@ const AdminDashboard = () => {
 
  
   return (
-    <div className="w-78/100 space-y-8 bg-white rounded-2xl min-h-screen p-6">
+    <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6">
       <div className="bg-gradient-to-r from-slate-700 to-teal-600 rounded-lg border border-slate-200/50 p-8 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
