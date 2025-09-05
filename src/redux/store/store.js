@@ -9,6 +9,7 @@ import attendanceReducer from '../slices/attendanceSlice';
 import travelExpensesReducer from '../slices/travelExpensesSlice';
 import performanceReducer from '../slices/performanceSlice';
 import siteVisitReducer from '../slices/siteVisitSlice';
+import companyReducer from '../slices/companySlice';
 
 const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ const store = configureStore({
     travelExpenses: travelExpensesReducer,
     performance: performanceReducer,
     siteVisit : siteVisitReducer,
+    company : companyReducer,
   },
 });
 export default store;

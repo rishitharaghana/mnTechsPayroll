@@ -1,28 +1,43 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { format, startOfMonth } from "date-fns";
-import MonthYearPicker from "../../Components/ui/date/MontlyDatePicker";
+import DatePicker from "../../Components/ui/date/DatePicker";
 import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
-import { generatePayroll, fetchPayroll, clearState, downloadPayrollPDF, generatePayrollForEmployee } from "../../redux/slices/payrollSlice";
-import { fetchEmployees } from "../../redux/slices/employeeSlice";
+import {
+  generatePayroll,
+  fetchPayroll,
+  clearState,
+  downloadPayrollPDF,
+  generatePayrollForEmployee,
+} from "../../redux/slices/payrollSlice";
+import { fetchEmployees, fetchDepartments } from "../../redux/slices/employeeSlice";
 import { downloadPayslip } from "../../redux/slices/payslipSlice";
-import PayslipGenerator from "../PayslipManagement/PaySlipGenerator";
+import PayslipGenerator from "../PayslipManagement/PayslipGenerator";
 import { toast } from "react-toastify";
 
 const GeneratePayroll = () => {
   const dispatch = useDispatch();
-  const { payrollList, loading, error, successMessage } = useSelector((state) => state.payroll);
-  const { employees, loading: employeesLoading, error: employeesError } = useSelector((state) => state.employee);
-  const { user, role, isAuthenticated } = useSelector((state) => state.auth);
+  const { payrollList = [], totalRecords = 0, loading, error, successMessage } = useSelector(
+    (state) => state.payroll
+  );
+  const { employees, departments, loading: employeesLoading, error: employeesError } = useSelector(
+    (state) => state.employee
+  );
+  const { role, isAuthenticated } = useSelector((state) => state.auth);
   const [selectedMonth, setSelectedMonth] = useState(startOfMonth(new Date()));
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [selectedPayroll, setSelectedPayroll] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
-    console.log("Employees in state:", employees);
-    console.log("PayrollList in state:", payrollList);
-  }, [employees, payrollList]);
+    dispatch(fetchEmployees());
+    dispatch(fetchDepartments());
+    const formattedMonth = format(selectedMonth, "yyyy-MM");
+    dispatch(fetchPayroll({ month: formattedMonth, page: currentPage, limit: itemsPerPage }));
+    return () => dispatch(clearState());
+  }, [dispatch, selectedMonth, currentPage]);
 
   if (!isAuthenticated || !["hr", "super_admin"].includes(role)) {
     return (
@@ -32,27 +47,19 @@ const GeneratePayroll = () => {
     );
   }
 
-  useEffect(() => {
-    dispatch(fetchEmployees());
-    const formattedMonth = format(selectedMonth, "yyyy-MM");
-    dispatch(fetchPayroll({ month: formattedMonth }));
-    return () => dispatch(clearState());
-  }, [dispatch, selectedMonth]);
-
   const handleGeneratePayroll = () => {
     if (!selectedMonth) {
       toast.error("Please select a month.");
       return;
     }
     const formattedMonth = format(selectedMonth, "yyyy-MM");
-    console.log("Generating payroll for month:", formattedMonth);
-    dispatch(clearState());
     dispatch(generatePayroll({ month: formattedMonth })).then((result) => {
       if (generatePayroll.fulfilled.match(result)) {
-        dispatch(fetchPayroll({ month: formattedMonth }));
+        dispatch(fetchPayroll({ month: formattedMonth, page: 1, limit: itemsPerPage }));
         toast.success(result.payload.message || "Payroll generated successfully");
+        setCurrentPage(1);
       } else {
-        toast.error(result.payload || "Failed to generate payroll");
+        toast.error(result.payload?.error || "Failed to generate payroll");
       }
     });
   };
@@ -68,15 +75,13 @@ const GeneratePayroll = () => {
       return;
     }
     const formattedMonth = format(selectedMonth, "yyyy-MM");
-    console.log("Generating payroll for employee:", employeeId, "month:", formattedMonth);
-    dispatch(clearState());
     dispatch(generatePayrollForEmployee({ employeeId, month: formattedMonth })).then((result) => {
       if (generatePayrollForEmployee.fulfilled.match(result)) {
-        dispatch(fetchPayroll({ month: formattedMonth }));
+        dispatch(fetchPayroll({ month: formattedMonth, page: currentPage, limit: itemsPerPage }));
         setSelectedPayroll(result.payload.data);
         toast.success(result.payload.message || "Payroll generated successfully");
       } else {
-        toast.error(result.payload || "Failed to generate payroll");
+        toast.error(result.payload?.error || "Failed to generate payroll");
       }
     });
   };
@@ -87,20 +92,11 @@ const GeneratePayroll = () => {
       return;
     }
     const formattedMonth = format(selectedMonth, "yyyy-MM");
-    console.log("Downloading payroll PDF for month:", formattedMonth);
-    dispatch(clearState());
-    dispatch(generatePayroll({ month: formattedMonth })).then((result) => {
-      if (generatePayroll.fulfilled.match(result)) {
-        dispatch(fetchPayroll({ month: formattedMonth }));
-        dispatch(downloadPayrollPDF({ month: formattedMonth })).then((downloadResult) => {
-          if (downloadPayrollPDF.fulfilled.match(downloadResult)) {
-            toast.success(downloadResult.payload.message);
-          } else {
-            toast.error(downloadResult.payload);
-          }
-        });
+    dispatch(downloadPayrollPDF({ month: formattedMonth })).then((result) => {
+      if (downloadPayrollPDF.fulfilled.match(result)) {
+        toast.success(result.payload?.message || "Payroll PDF downloaded successfully");
       } else {
-        toast.error(result.payload || "Failed to generate payroll");
+        toast.error(result.payload?.error || "Failed to download payroll PDF");
       }
     });
   };
@@ -111,47 +107,21 @@ const GeneratePayroll = () => {
       return;
     }
     const formattedMonth = format(selectedMonth, "yyyy-MM");
-    console.log("Downloading payslip for employee:", employeeId, "month:", formattedMonth);
-    const payrollExists = payrollList.find(
-      (p) => p.employee_id === employeeId && p.month === formattedMonth
-    );
-    if (!payrollExists) {
-      dispatch(generatePayrollForEmployee({ employeeId, month: formattedMonth })).then((result) => {
-        if (generatePayrollForEmployee.fulfilled.match(result)) {
-          dispatch(fetchPayroll({ month: formattedMonth }));
-          dispatch(downloadPayslip({ employeeId, month: formattedMonth })).then((downloadResult) => {
-            if (downloadPayslip.fulfilled.match(downloadResult)) {
-              toast.success("Payslip downloaded successfully");
-            } else {
-              toast.error(downloadResult.payload || "Failed to download payslip");
-            }
-          });
-        } else {
-          toast.error(result.payload || "Failed to generate payroll");
-        }
-      });
-    } else {
-      dispatch(downloadPayslip({ employeeId, month: formattedMonth })).then((downloadResult) => {
-        if (downloadPayslip.fulfilled.match(downloadResult)) {
-          toast.success("Payslip downloaded successfully");
-        } else {
-          toast.error(downloadResult.payload || "Failed to download payslip");
-        }
-      });
-    }
+    dispatch(downloadPayslip({ employeeId, month: formattedMonth })).then((result) => {
+      if (downloadPayslip.fulfilled.match(result)) {
+        toast.success("Payslip downloaded successfully");
+      } else {
+        toast.error(result.payload?.error || "Failed to download payslip");
+      }
+    });
   };
 
-  const handleViewPayslip = (emp) => {
+  const handleViewPayslip = (record) => {
     const formattedMonth = format(selectedMonth, "yyyy-MM");
-    const payrollExists = payrollList.find(
-      (p) => p.employee_id === emp.employee_id && p.month === formattedMonth
-    );
-    if (!payrollExists) {
-      handleGeneratePayrollForEmployee(emp.employee_id);
-    } else {
-      setSelectedPayroll(emp);
-    }
+    setSelectedPayroll(record); 
   };
+
+  const totalPages = Math.ceil(totalRecords / itemsPerPage);
 
   return (
     <div className="w-78/100">
@@ -188,11 +158,12 @@ const GeneratePayroll = () => {
         <div className="bg-white rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <MonthYearPicker
-                name="monthPicker"
+              <DatePicker
+                title="Select Month"
                 value={selectedMonth}
                 onChange={(date) => setSelectedMonth(startOfMonth(date))}
                 maxDate={new Date()}
+                showOnlyMonthYear
                 titleClassName="text-slate-500 text-sm font-medium"
               />
             </div>
@@ -286,7 +257,7 @@ const GeneratePayroll = () => {
                         {record.employee_name} ({record.employee_id})
                       </td>
                       <td className="px-6 py-4">
-                        {record.department || "N/A"}
+                        {record.department || "HR"}
                       </td>
                       <td className="px-6 py-4">
                         ₹{(parseFloat(record.gross_salary) || 0).toLocaleString("en-IN")}
@@ -297,7 +268,7 @@ const GeneratePayroll = () => {
                       <td className="px-6 py-4">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            record.status === "Processed" || record.status === "Approved"
+                            record.status === "Processed" || record.status === "Paid"
                               ? "bg-green-100 text-green-800"
                               : record.status === "Pending"
                               ? "bg-yellow-100 text-yellow-800"
@@ -314,12 +285,12 @@ const GeneratePayroll = () => {
                         >
                           View Payslip
                         </button>
-                        <button
+                        {/* <button
                           onClick={() => handleGeneratePayrollForEmployee(record.employee_id)}
                           className="text-teal-600 hover:text-teal-800"
                         >
-                          Generate Payroll
-                        </button>
+                          Regenerate Payroll
+                        </button> */}
                         <button
                           onClick={() => handleDownloadEmployeePayslip(record.employee_id)}
                           className="text-teal-600 hover:text-teal-800"
@@ -331,6 +302,25 @@ const GeneratePayroll = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="flex justify-between items-center p-4">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+                className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="text-slate-500">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}
+                className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
             </div>
           </div>
         )}

@@ -10,8 +10,10 @@ export const login = createAsyncThunk(
         password,
         role,
       });
+      console.log("Login response:", response.data); 
       return response.data;
     } catch (error) {
+      console.error("Login error:", error.response?.data || error.message);
       return rejectWithValue(error.response?.data?.error || "Login failed");
     }
   }
@@ -37,8 +39,10 @@ export const changePassword = createAsyncThunk(
           },
         }
       );
+      console.log("Change password response:", response.data);
       return response.data;
     } catch (error) {
+      console.error("Change password error:", error.response?.data || error.message);
       return rejectWithValue(
         error.response?.data?.error || "Password change failed"
       );
@@ -52,7 +56,12 @@ const authSlice = createSlice({
   name: "auth",
   initialState: {
     user: storedUser
-      ? { role: storedUser.role, email: storedUser.email }
+      ? {
+          role: storedUser.role,
+          email: storedUser.email,
+          id: storedUser.id,
+          employee_id: storedUser.employee_id, 
+        }
       : null,
     token: storedUser?.token || null,
     role: storedUser?.role || null,
@@ -80,6 +89,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = {
           id: action.payload.id,
+          employee_id: action.payload.employee_id, 
           name: action.payload.full_name || "",
           mobile: action.payload.mobile,
           role: action.payload.role,
@@ -89,13 +99,14 @@ const authSlice = createSlice({
         };
         state.token = action.payload.token;
         state.role = action.payload.role;
-        localStorage.setItem( 
+        localStorage.setItem(
           "userToken",
           JSON.stringify({
             token: action.payload.token,
             role: action.payload.role,
             email: action.payload.email || null,
             id: action.payload.id,
+            employee_id: action.payload.employee_id, // Add employee_id
             isTemporaryPassword: action.payload.isTemporaryPassword || false,
           })
         );

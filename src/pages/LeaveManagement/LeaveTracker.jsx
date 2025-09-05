@@ -114,7 +114,6 @@ const LeaveTracker = () => {
         const reqEndDate = new Date(req.end_date);
         if (isNaN(reqStartDate) || isNaN(reqEndDate)) return false;
 
-        // If no selectDate, show all leaves based on status filter
         if (!selectDate) {
           return filterStatus === "all" || req.status?.toLowerCase() === filterStatus;
         }

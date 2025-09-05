@@ -1,56 +1,58 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Eye, X, CheckCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { format, parse, startOfMonth } from "date-fns";
+import { format } from "date-fns";
+import { Eye, X } from "lucide-react";
 import {
   downloadPayslip,
   fetchPayslips,
   clearError,
 } from "../../redux/slices/payslipSlice";
-import { fetchEmployees } from "../../redux/slices/employeeSlice";
+import { fetchEmployees, fetchDepartments } from "../../redux/slices/employeeSlice";
 import {
   generatePayroll,
   generatePayrollForEmployee,
 } from "../../redux/slices/payrollSlice";
-import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
+import { toast } from "react-toastify";
 import PageMeta from "../../Components/common/PageMeta";
-import PayslipGenerator from "./PaySlipGenerator";
-import DatePicker from "../../Components/ui/date/DatePicker";
+import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
+import PayslipGenerator from "./PayslipGenerator";
 
 const Payslip = () => {
   const dispatch = useDispatch();
-
   const { user, role, isAuthenticated } = useSelector((state) => state.auth);
-  const { loading, error, payslips } = useSelector((state) => state.payslip);
-  const { employees } = useSelector((state) => state.employee);
+  const { payslips = [], totalRecords = 0, loading, error } = useSelector((state) => state.payslip);
+  const { employees, departments, loading: employeesLoading, error: employeesError } = useSelector(
+    (state) => state.employee
+  );
   const { loading: payrollLoading, error: payrollError } = useSelector((state) => state.payroll);
 
-  const [selectedMonth, setSelectedMonth] = useState(startOfMonth(new Date()));
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
+  const [paymentDate, setPaymentDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(
     role === "employee" && user?.employee_id ? user.employee_id : ""
   );
-  const [showPreview, setShowPreview] = useState(false);
-  const [downloadError, setDownloadError] = useState(null);
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [showPreview, setShowPreview] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-  // Fetch employees + payslips on load
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(fetchEmployees());
-      dispatch(fetchPayslips());
+      dispatch(fetchDepartments());
+      dispatch(fetchPayslips({ month: selectedMonth, page: currentPage, limit: itemsPerPage }));
       dispatch(clearError());
     }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, selectedMonth, currentPage]);
 
-  // Filter payslips based on role, employee, and month
   const filteredPayslips = useMemo(() => {
-    const formattedMonth = format(selectedMonth, "yyyy-MM");
     return (Array.isArray(payslips) ? payslips : [])
       .filter((slip) => {
-        if (role === "employee" && slip.employee_id !== user?.employee_id)
-          return false;
+        if (role === "employee" && slip.employee_id !== user?.employee_id) return false;
         return (
           (!selectedEmployeeId || slip.employee_id === selectedEmployeeId) &&
-          slip.month === formattedMonth
+          (!selectedDepartment || slip.department === selectedDepartment) &&
+          slip.month === selectedMonth
         );
       })
       .map((slip) => ({
@@ -67,238 +69,276 @@ const Payslip = () => {
           parseFloat(slip.professional_tax || 0),
         netPay: parseFloat(slip.net_salary || 0),
       }));
-  }, [payslips, selectedMonth, selectedEmployeeId, role, user?.employee_id]);
+  }, [payslips, selectedMonth, selectedEmployeeId, selectedDepartment, role, user?.employee_id]);
 
-  const openPreview = () => setShowPreview(true);
-  const closePreview = () => setShowPreview(false);
+  const totalPages = Math.ceil(totalRecords / itemsPerPage);
 
-  const handleDownload = () => {
-    setDownloadError(null);
-    if (!selectedEmployeeId || !selectedMonth) {
-      setDownloadError("Please select both an employee and a month");
+  const handleGeneratePayroll = async () => {
+    if (!selectedMonth || !paymentDate) {
+      toast.error("Please select both a month and payment date.");
       return;
     }
-    const formattedMonth = format(selectedMonth, "yyyy-MM");
-    console.log("Downloading payslip for:", { employeeId: selectedEmployeeId, month: formattedMonth });
-    dispatch(
-      downloadPayslip({ employeeId: selectedEmployeeId, month: formattedMonth })
-    )
-      .unwrap()
-      .then(() => {
-        console.log("Payslip downloaded successfully for:", selectedEmployeeId);
-      })
-      .catch((err) => setDownloadError(err || "Failed to download payslip"));
+    const action = selectedEmployeeId
+      ? generatePayrollForEmployee({ employeeId: selectedEmployeeId, month: selectedMonth, paymentDate })
+      : generatePayroll({ month: selectedMonth, paymentDate });
+
+    try {
+      await dispatch(action).unwrap();
+      dispatch(fetchPayslips({ month: selectedMonth, page: 1, limit: itemsPerPage }));
+      toast.success(`Payroll generated successfully for ${selectedEmployeeId || "all employees"}`);
+      setCurrentPage(1);
+    } catch (err) {
+      toast.error(err?.error || "Failed to generate payroll");
+    }
   };
 
-  const handleGeneratePayroll = () => {
-    setDownloadError(null);
-    if (!selectedMonth) {
-      setDownloadError("Please select a month");
+  const handleDownloadPayslip = async (employeeId) => {
+    if (!selectedMonth || !employeeId) {
+      toast.error("Please select a month and an employee.");
       return;
     }
-    const formattedMonth = format(selectedMonth, "yyyy-MM");
-    console.log("Generating payroll for:", { employeeId: selectedEmployeeId, month: formattedMonth });
-    if (selectedEmployeeId) {
-      dispatch(generatePayrollForEmployee({ employeeId: selectedEmployeeId, month: formattedMonth }))
-        .unwrap()
-        .then(() => dispatch(fetchPayslips()))
-        .catch((err) => setDownloadError(err || "Failed to generate payroll"));
-    } else {
-      dispatch(generatePayroll({ month: formattedMonth }))
-        .unwrap()
-        .then(() => dispatch(fetchPayslips()))
-        .catch((err) => setDownloadError(err || "Failed to generate payroll"));
+    try {
+      await dispatch(downloadPayslip({ employeeId, month: selectedMonth, paymentDate })).unwrap();
+      toast.success("Payslip downloaded successfully");
+    } catch (err) {
+      const errorMessage =
+        err?.error === "No payroll record found"
+          ? "No payroll record found. Please generate payroll first."
+          : err?.error || "Failed to download payslip";
+      toast.error(errorMessage);
     }
+  };
+
+  const handleViewPayslip = (slip) => {
+    setShowPreview(slip);
   };
 
   if (!isAuthenticated) {
     return (
-      <div className="space-y-8 bg-slate-50 min-h-screen p-6">
-        <p className="text-red-500">Please log in to view payslips.</p>
+      <div className="min-h-screen bg-gray-100 p-6">
+        <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-md p-6">
+          <p className="text-red-600 font-semibold">Please log in to view payslips.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-78/100 mx-auto">
-      <div className="flex justify-between items-center mb-6">
+    <div className="w-78/100 bg-gray-100 p-6">
+      <div className="">
         <PageMeta
           title="Payslip Management"
-          description="Manage, generate, and download employee payslips"
+          description="View, generate, and download employee payslips."
         />
         <PageBreadcrumb
           items={[
-            { label: "Home", link: "/admin/dashboard" },
-            { label: "Payslip", link: "/admin/payslip" },
+            { label: "Home", link: "/" },
+            { label: "Payslip Management", link: "/admin/payslip" },
           ]}
         />
-      </div>
 
-      <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6 shadow-md">
-        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-800">Payslips</h1>
-              <p className="text-slate-500 text-lg mt-1">
-                View, generate, and download payslips
-              </p>
-            </div>
-            <div className="flex gap-4">
-              {["super_admin", "hr"].includes(role) && (
-                <button
-                  onClick={handleGeneratePayroll}
-                  disabled={payrollLoading}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg transition-transform duration-300 transform hover:scale-105 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center"
-                >
-                  {payrollLoading ? (
-                    <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    </svg>
-                  ) : (
-                    <CheckCircle size={18} className="mr-2" />
-                  )}
-                  {payrollLoading ? "Generating..." : "Generate Payroll"}
-                </button>
-              )}
-              <button
-                onClick={handleDownload}
-                disabled={loading || !selectedEmployeeId || !selectedMonth}
-                className="px-6 py-3 bg-slate-700 text-white rounded-lg transition-transform duration-300 transform hover:scale-105 disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center"
-                aria-label="Download payslip PDF"
-              >
-                {loading ? (
-                  <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  </svg>
-                ) : (
-                  <Eye size={18} className="mr-2" />
-                )}
-                {loading ? "Downloading..." : "Download PDF"}
-              </button>
-            </div>
-          </div>
-          {(error || downloadError || payrollError) && (
-            <p className="text-red-500 text-sm mt-2">
-              {error || downloadError || payrollError}
-            </p>
-          )}
+        {/* Header */}
+        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">Payslip Management</h1>
+          <p className="text-gray-600 mt-2">
+            View, generate, and download payslips for employees.
+          </p>
         </div>
 
-        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Notifications */}
+        {(error || payrollError || employeesError) && (
+          <div className="p-4 rounded-lg mb-6 bg-red-50 text-red-700">
+            {error || payrollError || employeesError}
+          </div>
+        )}
+
+        {/* Filters Section */}
+        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Filters</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {role !== "employee" && (
               <div>
-                <label className="block text-slate-500 text-sm font-medium mb-1">
-                  Select Employee
-                </label>
+                <label className="block text-sm font-medium text-gray-700">Select Employee</label>
                 <select
                   value={selectedEmployeeId}
                   onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 text-slate-900"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                  disabled={employeesLoading || employees.length === 0}
                 >
-                  <option value="">Select Employee</option>
-                  {employees.map((emp, index) => (
-                    <option key={`${emp.employee_id}-${index}`} value={emp.employee_id}>
-                      {emp.full_name} ({emp.employee_id})
+                  <option value="">All Employees</option>
+                  {employees.map((employee) => (
+                    <option key={employee.employee_id} value={employee.employee_id}>
+                      {employee.full_name} ({employee.employee_id})
                     </option>
                   ))}
                 </select>
               </div>
             )}
             <div>
-              <label className="block text-slate-500 text-sm font-medium mb-1">
-                Select Pay Period
-              </label>
-              <DatePicker
-                name="monthPicker"
+              <label className="block text-sm font-medium text-gray-700">Select Pay Period</label>
+              <input
+                type="month"
                 value={selectedMonth}
-                onChange={(date) => setSelectedMonth(startOfMonth(date))}
-                maxDate={new Date()}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                max={format(new Date(), "yyyy-MM")}
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Payment Date</label>
+              <input
+                type="date"
+                value={paymentDate}
+                onChange={(e) => setPaymentDate(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+              />
+            </div>
+            {role !== "employee" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Select Department</label>
+                <select
+                  value={selectedDepartment}
+                  onChange={(e) => setSelectedDepartment(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                  disabled={employeesLoading || departments.length === 0}
+                >
+                  <option value="">All Departments</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.name}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         </div>
 
-        {loading && (
-          <div className="bg-white rounded-lg border border-slate-200 p-6 text-center">
-            <p className="text-slate-500">Loading payslips...</p>
-          </div>
-        )}
-        {!loading && filteredPayslips.length === 0 && (
-          <div className="bg-white rounded-lg border border-slate-200 p-6 text-center">
-            <p className="text-slate-500">
-              No payslips found for {format(selectedMonth, "yyyy-MM")}.
-            </p>
-          </div>
-        )}
-        {!loading && filteredPayslips.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredPayslips.map((slip, index) => (
-              <div
-                key={`${slip.employee_id}-${slip.month}-${index}`}
-                className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow"
+        {/* Actions Section */}
+        {["hr", "super_admin"].includes(role) && (
+          <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Actions</h2>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={handleGeneratePayroll}
+                disabled={loading || payrollLoading || employeesLoading}
+                className="flex-1 py-2 px-4 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
-                <h2 className="text-xl font-semibold text-slate-900 mb-2">
-                  {slip.employee}
-                </h2>
-                <p className="text-slate-500 text-sm">
-                  <strong>Month:</strong> {slip.month}
-                </p>
-                <p className="text-slate-500 text-sm">
-                  <strong>Department:</strong> {slip.department}
-                </p>
-                <p className="text-slate-500 text-sm">
-                  <strong>Position:</strong> {slip.position}
-                </p>
-                <p className="text-teal-600 font-bold text-lg mt-2">
-                  ₹{(slip.net_salary || 0).toLocaleString("en-IN")}
-                </p>
-                <div className="flex gap-4 mt-4">
-                  <button
-                    onClick={() => {
-                      setSelectedEmployeeId(slip.employee_id);
-                      setSelectedMonth(parse(slip.month, "yyyy-MM", new Date()));
-                      openPreview();
-                    }}
-                    className="flex-1 bg-teal-600 text-white py-2 rounded-lg hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
-                  >
-                    <Eye size={18} className="inline mr-2" />
-                    View Payslip
-                  </button>
-                </div>
-              </div>
-            ))}
+                Generate Payroll {selectedEmployeeId ? "for Employee" : "for All"}
+              </button>
+              <button
+                onClick={() => handleDownloadPayslip(selectedEmployeeId)}
+                disabled={loading || payrollLoading || !selectedEmployeeId}
+                className="flex-1 py-2 px-4 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                Download Payslip
+              </button>
+            </div>
           </div>
         )}
 
+        {/* Payslip Records */}
+        <div className="bg-white rounded-xl shadow-md p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Payslip Records</h2>
+          {loading && <p className="text-gray-500">Loading payslips...</p>}
+          {!loading && filteredPayslips.length === 0 && (
+            <p className="text-gray-500">
+              No payslips found for {selectedMonth}.{" "}
+              {["hr", "super_admin"].includes(role) && "Try generating payroll."}
+            </p>
+          )}
+          {!loading && filteredPayslips.length > 0 && (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left text-gray-700">
+                  <thead className="bg-teal-600 text-white">
+                    <tr>
+                      <th className="px-6 py-3">Employee</th>
+                      <th className="px-6 py-3">Department</th>
+                      <th className="px-6 py-3">Total Earnings</th>
+                      <th className="px-6 py-3">Total Deductions</th>
+                      <th className="px-6 py-3">Net Pay</th>
+                      <th className="px-6 py-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {filteredPayslips.map((slip) => (
+                      <tr key={`${slip.employee_id}-${slip.month}`} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          {slip.employee_name} ({slip.employee_id})
+                        </td>
+                        <td className="px-6 py-4">{slip.department || "HR"}</td>
+                        <td className="px-6 py-4">
+                          ₹{(slip.totalEarnings || 0).toLocaleString("en-IN")}
+                        </td>
+                        <td className="px-6 py-4">
+                          ₹{(slip.totalDeductions || 0).toLocaleString("en-IN")}
+                        </td>
+                        <td className="px-6 py-4">
+                          ₹{(slip.netPay || 0).toLocaleString("en-IN")}
+                        </td>
+                        <td className="px-6 py-4 flex gap-2">
+                          <button
+                            onClick={() => handleViewPayslip(slip)}
+                            className="text-teal-600 hover:text-teal-800 flex items-center"
+                          >
+                            <Eye size={18} className="mr-1" /> View
+                          </button>
+                          {["hr", "super_admin"].includes(role) && (
+                            <button
+                              onClick={() => handleDownloadPayslip(slip.employee_id)}
+                              className="text-teal-600 hover:text-teal-800 flex items-center"
+                            >
+                              Download
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center mt-4">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    className="py-2 px-4 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    className="py-2 px-4 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Payslip Preview */}
         {showPreview && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg border border-slate-200 p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto relative shadow-lg">
+            <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto relative">
               <button
-                onClick={closePreview}
-                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+                onClick={() => setShowPreview(null)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
               >
                 <X size={24} />
               </button>
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">
-                Payslip Preview
-              </h2>
-              {filteredPayslips.length > 0 ? (
-                <PayslipGenerator
-                  key={`${filteredPayslips[0].employee_id}-${filteredPayslips[0].month}`}
-                  employee={filteredPayslips[0]}
-                  selectedMonth={filteredPayslips[0].month}
-                  onClose={closePreview}
-                />
-              ) : (
-                <p className="text-red-500">No payslip found for the selected employee and month.</p>
-              )}
-              <button
-                onClick={closePreview}
-                className="mt-4 w-full bg-slate-700 text-white py-2 rounded-lg hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 transition"
-              >
-                Close
-              </button>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">Payslip Preview</h2>
+              <PayslipGenerator
+                employee={showPreview}
+                selectedMonth={selectedMonth}
+                onClose={() => setShowPreview(null)}
+              />
             </div>
           </div>
         )}

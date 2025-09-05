@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify"; // Added for user feedback
 import {
   DollarSign,
   Calendar,
@@ -29,83 +30,35 @@ const Payroll = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const dispatch = useDispatch();
-  const { payrollList = [], loading, error, successMessage } = useSelector((state) => state.payroll);
+  const { payrollList = [], loading, error, successMessage, totalRecords } = useSelector((state) => state.payroll);
   const { user, role } = useSelector((state) => state.auth);
 
-  const [selectedMonth, setSelectedMonth] = useState(startOfMonth(new Date()));
+  // Default to September 2025 for testing
+  const [selectedMonth, setSelectedMonth] = useState(startOfMonth(parse("2025-09", "yyyy-MM", new Date())));
+
+  const itemsPerPage = 25; // Show all 14 records for September 2025
 
   useEffect(() => {
     const formattedMonth = format(selectedMonth, "yyyy-MM");
-    console.log("Fetching payroll for month:", formattedMonth);
-    dispatch(fetchPayroll({ month: formattedMonth }));
-  }, [dispatch, selectedMonth]);
+    console.log("Fetching payroll for month:", formattedMonth, "Page:", currentPage, "Limit:", itemsPerPage);
+    dispatch(fetchPayroll({ month: formattedMonth, page: currentPage, limit: itemsPerPage }));
+  }, [dispatch, selectedMonth, currentPage]);
 
   useEffect(() => {
-    console.log("payrollList updated:", payrollList);
-  }, [payrollList]);
+    console.log("Payroll list:", payrollList);
+    console.log("Total records:", totalRecords);
+    console.log("Filtered data:", filteredData);
+    console.log("Paginated data:", paginatedData);
+    console.log("Current filters:", filters);
+  }, [payrollList, totalRecords, filters]);
 
-  const itemsPerPage = 5;
-
-  const summaryStats = [
-    {
-      title: "Total Payroll",
-      value: `₹${payrollList
-        .reduce((sum, emp) => sum + (parseFloat(emp.gross_salary) || 0), 0)
-        .toLocaleString("en-IN")}`,
-      change: "+5.2%",
-      icon: DollarSign,
-    },
-    {
-      title: "Employees Paid",
-      value: payrollList.length,
-      change: "+2",
-      icon: Users,
-    },
-    {
-      title: "Avg. Gross Salary",
-      value: `₹${
-        payrollList.length
-          ? (
-              payrollList.reduce(
-                (sum, emp) => sum + (parseFloat(emp.gross_salary) || 0),
-                0
-              ) / payrollList.length
-            ).toLocaleString("en-IN", { maximumFractionDigits: 2 })
-          : "0.00"
-      }`,
-      change: "+3.1%",
-      icon: TrendingUp,
-    },
-    {
-      title: "Total PF Deductions",
-      value: `₹${payrollList
-        .reduce((sum, emp) => sum + (parseFloat(emp.pf_deduction) || 0), 0)
-        .toLocaleString("en-IN")}`,
-      change: "-1.2%",
-      icon: Calculator,
-    },
-  ];
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Processed":
-      case "Approved":
-        return "bg-green-100 text-green-800";
-      case "Pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "Failed":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-slate-100 text-slate-800";
-    }
-  };
+  // Dynamically get unique departments from payrollList
+  const departments = [...new Set(payrollList.map(emp => emp.department))].sort();
 
   const filteredData = payrollList
     .filter(
       (emp) =>
-        emp.employee_name
-          ?.toLowerCase()
-          .includes(filters.search.toLowerCase()) &&
+        emp.employee_name?.toLowerCase().includes(filters.search.toLowerCase()) &&
         (!filters.department || emp.department === filters.department) &&
         (!filters.status || emp.status === filters.status) &&
         (role !== "employee" || emp.employee_id === user.id)
@@ -153,6 +106,26 @@ const Payroll = () => {
     setCurrentPage(1);
   };
 
+  const handleProcessPayroll = () => {
+    const formattedMonth = format(selectedMonth, "yyyy-MM");
+    dispatch(generatePayroll({ month: formattedMonth })).then((result) => {
+      setCurrentPage(1); // Reset to first page
+      setFilters({ search: "", department: "", status: "" }); // Reset filters
+      setTimeout(() => {
+        dispatch(fetchPayroll({ month: formattedMonth, page: 1, limit: itemsPerPage }));
+      }, 500); // Delay to ensure backend sync
+      if (generatePayroll.fulfilled.match(result)) {
+        toast.success("Payroll generated successfully");
+      } else {
+        if (result.payload?.includes("Payroll already exists")) {
+          toast.info("Payroll already exists. Displaying existing records.");
+        } else {
+          toast.error(result.payload || "Failed to generate payroll");
+        }
+      }
+    });
+  };
+
   const exportToCSV = () => {
     const headers = [
       "ID,Name,Department,Gross Salary,PF Deduction,Net Salary,Status",
@@ -174,14 +147,61 @@ const Payroll = () => {
     URL.revokeObjectURL(link.href);
   };
 
-  const handleProcessPayroll = () => {
-    const formattedMonth = format(selectedMonth, "yyyy-MM");
-    dispatch(generatePayroll({ month: formattedMonth })).then((result) => {
-      if (generatePayroll.fulfilled.match(result)) {
-        dispatch(fetchPayroll({ month: formattedMonth }));
-      }
-    });
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Processed":
+      case "Approved":
+        return "bg-green-100 text-green-800";
+      case "Pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "Paid":
+        return "bg-blue-100 text-blue-800"; // Added for Paid status
+      case "Failed":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-slate-100 text-slate-800";
+    }
   };
+
+  const summaryStats = [
+    {
+      title: "Total Payroll",
+      value: `₹${payrollList
+        .reduce((sum, emp) => sum + (parseFloat(emp.gross_salary) || 0), 0)
+        .toLocaleString("en-IN")}`,
+      change: "+5.2%",
+      icon: DollarSign,
+    },
+    {
+      title: "Employees Paid",
+      value: payrollList.length,
+      change: "+2",
+      icon: Users,
+    },
+    {
+      title: "Avg. Gross Salary",
+      value: `₹${
+        payrollList.length
+          ? (
+              payrollList.reduce(
+                (sum, emp) => sum + (parseFloat(emp.gross_salary) || 0),
+                0
+              ) / payrollList.length
+            ).toLocaleString("en-IN", { maximumFractionDigits: 2 })
+          : "0.00"
+      }`,
+      change: "+3.1%",
+      icon: TrendingUp,
+    },
+    {
+      title: "Total PF Deductions",
+      value: `₹${payrollList
+        .reduce((sum, emp) => sum + (parseFloat(emp.pf_deduction) || 0), 0)
+        .toLocaleString("en-IN")}`,
+      change: "-1.2%",
+      icon: Calculator,
+    },
+  ];
 
   return (
     <div className="w-78/100">
@@ -221,12 +241,25 @@ const Payroll = () => {
                 />
               </div>
               {["hr", "super_admin"].includes(role) && (
-                <button
-                  onClick={handleProcessPayroll}
-                  className="px-3 flex items-baseline py-2 bg-white text-teal-600 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105"
-                >
-                  Process
-                </button>
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleProcessPayroll}
+                    className="px-3 flex items-baseline py-2 bg-white text-teal-600 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105"
+                  >
+                    Process
+                  </button>
+                  <button
+                    onClick={() => {
+                      const formattedMonth = format(selectedMonth, "yyyy-MM");
+                      setCurrentPage(1);
+                      setFilters({ search: "", department: "", status: "" });
+                      dispatch(fetchPayroll({ month: formattedMonth, page: 1, limit: itemsPerPage }));
+                    }}
+                    className="px-3 flex items-baseline py-2 bg-white text-teal-600 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105"
+                  >
+                    Refresh
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -287,10 +320,11 @@ const Payroll = () => {
               className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
             >
               <option value="">All Departments</option>
-              <option value="IT">IT</option>
-              <option value="HR">HR</option>
-              <option value="Marketing">Marketing</option>
-              <option value="Design">Design</option>
+              {departments.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
             </select>
             <select
               name="status"
@@ -302,6 +336,7 @@ const Payroll = () => {
               <option value="Processed">Processed</option>
               <option value="Approved">Approved</option>
               <option value="Pending">Pending</option>
+              <option value="Paid">Paid</option>
               <option value="Failed">Failed</option>
             </select>
           </div>
@@ -370,7 +405,7 @@ const Payroll = () => {
                 <tbody className="divide-y divide-slate-200">
                   {paginatedData.map((emp) => (
                     <tr
-                      key={emp.employee_id}
+                      key={`${emp.employee_id}-${emp.month}`}
                       className="hover:bg-slate-50 transition-colors duration-200"
                     >
                       <td className="px-6 py-4">

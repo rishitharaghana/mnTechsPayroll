@@ -3,21 +3,26 @@ import axios from "axios";
 
 export const fetchPayroll = createAsyncThunk(
   "payroll/fetchPayroll",
-  async ({ month }, { rejectWithValue }) => {
+  async ({ month, page = 1, limit = 10 }, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
       if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
-      const { token } = JSON.parse(userToken);
+      let token;
+      try {
+        token = JSON.parse(userToken).token;
+      } catch (e) {
+        return rejectWithValue("Invalid token format");
+      }
 
-      const response = await axios.get(
-        `http://localhost:3007/api/payroll${month ? `?month=${month}` : ""}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const query = new URLSearchParams({ page, limit });
+      if (month) query.append("month", month);
+      const response = await axios.get(`http://localhost:3007/api/payroll?${query}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      console.log("fetchPayroll response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("fetchPayroll error:", error.response?.data || error.message);
+      console.error("fetchPayroll error:", error);
       return rejectWithValue(error.response?.data?.error || "Failed to fetch payroll");
     }
   }
@@ -29,31 +34,42 @@ export const createPayroll = createAsyncThunk(
     try {
       const userToken = localStorage.getItem("userToken");
       if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
-      const { token } = JSON.parse(userToken);
+      let token;
+      try {
+        token = JSON.parse(userToken).token;
+      } catch (e) {
+        return rejectWithValue("Invalid token format");
+      }
+
+      if (!payrollData.employeeId || !payrollData.month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(payrollData.month)) {
+        return rejectWithValue("Invalid employee ID or month format");
+      }
 
       const response = await axios.post(
-        "http://localhost:3007/api/payroll",
+        `http://localhost:3007/api/payroll`,
         {
-          name: payrollData.name,
-          id: payrollData.employeeId,
-          department: payrollData.department,
-          grossSalary: payrollData.grossSalary,
-          pfDeduction: payrollData.pfDeduction || 0,
-          esicDeduction: payrollData.esicDeduction || 0,
-          taxDeduction: payrollData.taxDeduction || 0,
-          netSalary: payrollData.netSalary,
-          status: payrollData.status,
-          paymentMethod: payrollData.paymentMethod,
+          employee_id: payrollData.employeeId,
           month: payrollData.month,
-          paymentDate: payrollData.paymentDate,
+          basic_salary: payrollData.basicSalary,
+          hra: payrollData.hra,
+          da: payrollData.da,
+          other_allowances: payrollData.otherAllowances,
+          gross_salary: payrollData.grossSalary,
+          pf_deduction: payrollData.pfDeduction || 0,
+          esic_deduction: payrollData.esicDeduction || 0,
+          professional_tax: payrollData.professionalTax || 0,
+          tax_deduction: payrollData.taxDeduction || 0,
+          net_salary: payrollData.netSalary,
+          status: payrollData.status || "Pending",
+          payment_method: payrollData.paymentMethod || "Bank Transfer",
+          payment_date: payrollData.paymentDate || `${payrollData.month}-01`,
         },
         { headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } }
       );
 
-      console.log("createPayroll response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("createPayroll error:", error.response?.data || error.message);
+      console.error("createPayroll error:", error);
       return rejectWithValue(error.response?.data?.error || "Failed to create payroll");
     }
   }
@@ -65,18 +81,35 @@ export const generatePayroll = createAsyncThunk(
     try {
       const userToken = localStorage.getItem("userToken");
       if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
-      const { token } = JSON.parse(userToken);
+      let token;
+      try {
+        token = JSON.parse(userToken).token;
+      } catch (e) {
+        return rejectWithValue("Invalid token format");
+      }
+
+      if (!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+        return rejectWithValue("Invalid month format. Use YYYY-MM");
+      }
 
       const response = await axios.post(
-        "http://localhost:3007/api/payroll/generate",
+        `http://localhost:3007/api/payroll/generate`,
         { month },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("generatePayroll response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("generatePayroll error:", error.response?.data || error.message);
+      console.error("generatePayroll error:", error);
+      if (error.response?.data instanceof Blob) {
+        const text = await error.response.data.text();
+        try {
+          const json = JSON.parse(text);
+          return rejectWithValue(json.error || "Failed to generate payroll");
+        } catch (e) {
+          return rejectWithValue(text || "Failed to generate payroll");
+        }
+      }
       return rejectWithValue(error.response?.data?.error || "Failed to generate payroll");
     }
   }
@@ -88,7 +121,16 @@ export const downloadPayrollPDF = createAsyncThunk(
     try {
       const userToken = localStorage.getItem("userToken");
       if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
-      const { token } = JSON.parse(userToken);
+      let token;
+      try {
+        token = JSON.parse(userToken).token;
+      } catch (e) {
+        return rejectWithValue("Invalid token format");
+      }
+
+      if (!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+        return rejectWithValue("Invalid month format. Use YYYY-MM");
+      }
 
       const url = employeeId
         ? `http://localhost:3007/api/payroll/download-pdf?month=${month}&employee_id=${employeeId}`
@@ -99,7 +141,6 @@ export const downloadPayrollPDF = createAsyncThunk(
         responseType: "blob",
       });
 
-      // Check if response is JSON (indicating an error)
       if (response.headers["content-type"].includes("application/json")) {
         const text = await response.data.text();
         const json = JSON.parse(text);
@@ -120,11 +161,15 @@ export const downloadPayrollPDF = createAsyncThunk(
 
       return { message: "Payroll PDF downloaded successfully" };
     } catch (error) {
-      console.error("downloadPayrollPDF error:", error.response?.data || error.message);
+      console.error("downloadPayrollPDF error:", error);
       if (error.response?.data instanceof Blob) {
         const text = await error.response.data.text();
-        const json = JSON.parse(text);
-        return rejectWithValue(json.error || "Failed to download payroll PDF");
+        try {
+          const json = JSON.parse(text);
+          return rejectWithValue(json.error || "Failed to download payroll PDF");
+        } catch (e) {
+          return rejectWithValue(text || "Failed to download payroll PDF");
+        }
       }
       return rejectWithValue(error.response?.data?.error || "Failed to download payroll PDF");
     }
@@ -166,6 +211,7 @@ const payrollSlice = createSlice({
   name: "payroll",
   initialState: {
     payrollList: [],
+    totalRecords: 0,
     loading: false,
     error: null,
     successMessage: null,
@@ -187,8 +233,8 @@ const payrollSlice = createSlice({
       .addCase(fetchPayroll.fulfilled, (state, action) => {
         state.loading = false;
         state.payrollList = action.payload.data || [];
+        state.totalRecords = action.payload.totalRecords || action.payload.data.length;
         state.successMessage = action.payload.message || "Payroll fetched successfully";
-        console.log("fetchPayroll fulfilled, payrollList:", state.payrollList);
       })
       .addCase(fetchPayroll.rejected, (state, action) => {
         state.loading = false;
@@ -202,8 +248,8 @@ const payrollSlice = createSlice({
       .addCase(createPayroll.fulfilled, (state, action) => {
         state.loading = false;
         state.payrollList = [...state.payrollList, action.payload.data];
+        state.totalRecords += 1;
         state.successMessage = action.payload.message || "Payroll created successfully";
-        console.log("createPayroll fulfilled, payrollList:", state.payrollList);
       })
       .addCase(createPayroll.rejected, (state, action) => {
         state.loading = false;
@@ -217,10 +263,30 @@ const payrollSlice = createSlice({
       .addCase(generatePayroll.fulfilled, (state, action) => {
         state.loading = false;
         state.payrollList = action.payload.data || state.payrollList;
+        state.totalRecords = action.payload.data?.length || state.totalRecords;
         state.successMessage = action.payload.message || "Payroll generated successfully";
-        console.log("generatePayroll fulfilled, payrollList:", state.payrollList);
       })
       .addCase(generatePayroll.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(generatePayrollForEmployee.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(generatePayrollForEmployee.fulfilled, (state, action) => {
+        state.loading = false;
+        state.payrollList = [
+          ...state.payrollList.filter(
+            (p) => p.employee_id !== action.payload.data.employee_id || p.month !== action.payload.data.month
+          ),
+          action.payload.data,
+        ];
+        state.totalRecords = state.payrollList.length;
+        state.successMessage = action.payload.message || "Payroll generated successfully";
+      })
+      .addCase(generatePayrollForEmployee.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
@@ -234,26 +300,6 @@ const payrollSlice = createSlice({
         state.successMessage = action.payload.message || "Payroll PDF downloaded successfully";
       })
       .addCase(downloadPayrollPDF.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(generatePayrollForEmployee.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.successMessage = null;
-      })
-      .addCase(generatePayrollForEmployee.fulfilled, (state, action) => {
-        state.loading = false;
-        state.successMessage = action.payload.message;
-        // Append or update payrollList
-        state.payrollList = [
-          ...state.payrollList.filter(
-            (p) => p.employee_id !== action.payload.data.employee_id || p.month !== action.payload.data.month
-          ),
-          action.payload.data,
-        ];
-      })
-      .addCase(generatePayrollForEmployee.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

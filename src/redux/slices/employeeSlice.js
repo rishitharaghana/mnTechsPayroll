@@ -551,6 +551,7 @@ const employeeSlice = createSlice({
     departments: [],
     designations: [], 
      roles: [],
+
     currentEmployee: null,
     personalDetails: null,
     educationDetails:null,

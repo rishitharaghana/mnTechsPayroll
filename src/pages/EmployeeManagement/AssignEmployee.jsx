@@ -106,6 +106,41 @@ const AssignEmployee = () => {
     }
   }, [employee.mobile, employee.emergencyPhone]);
 
+  useEffect(() => {
+    if (successMessage) {
+      toast.success(successMessage);
+      setEmployee({
+        name: "",
+        email: "",
+        mobile: "",
+        emergencyPhone: "",
+        address: "",
+        basicSalary: "",
+        allowances: "",
+        bonuses: "",
+        joinDate: "",
+        roleType: "",
+        department: "",
+        position: "",
+        employmentType: "Full-time",
+        password: "",
+        bloodGroup: "",
+        photo: null,
+        dateOfBirth: "",
+        gender: "",
+      });
+      setStep(1);
+      setErrors({});
+      dispatch(clearState());
+      navigate("/admin/assign-employee");
+    }
+    if (error) {
+      toast.error(error);
+      setErrors({ submit: error });
+      dispatch(clearState());
+    }
+  }, [successMessage, error, dispatch, navigate]);
+
   // Filter departments based on role
   const getFilteredDepartments = () => {
     if (!departments) return [];
@@ -270,14 +305,13 @@ const AssignEmployee = () => {
       } else {
         const today = new Date();
         const dob = new Date(employee.dateOfBirth);
-        // Calculate age, accounting for month and day differences
         let age = today.getFullYear() - dob.getFullYear();
         const monthDiff = today.getMonth() - dob.getMonth();
         if (
           monthDiff < 0 ||
           (monthDiff === 0 && today.getDate() < dob.getDate())
         ) {
-          age--; // Adjust age if birthday hasn't occurred this year
+          age--;
         }
         if (age < 18) {
           newErrors.dateOfBirth = "Employee must be at least 18 years old";
@@ -363,6 +397,8 @@ const AssignEmployee = () => {
         return;
       }
 
+      console.log("Submitting dateOfBirth:", employee.dateOfBirth); // Debug DOB
+
       const roleMap = {
         HR: "hr",
         "Department Head": "dept_head",
@@ -378,20 +414,16 @@ const AssignEmployee = () => {
       formData.append("emergency_phone", employee.emergencyPhone.trim() || "");
       formData.append("address", employee.address.trim() || "");
       formData.append("password", employee.password || "");
-      formData.append(
-        "basic_salary",
-        parseFloat(employee.basicSalary) || 0
-      );
+      formData.append("basic_salary", parseFloat(employee.basicSalary) || 0);
       formData.append("allowances", parseFloat(employee.allowances) || 0);
       formData.append("bonuses", parseFloat(employee.bonuses) || 0);
       formData.append("join_date", employee.joinDate || "");
       formData.append("blood_group", employee.bloodGroup || "");
-      formData.append("date_of_birth", employee.dateOfBirth || "");
+      formData.append("dob", employee.dateOfBirth || ""); // Changed to 'dob'
       formData.append("gender", employee.gender || "");
       if (employee.photo) {
         formData.append("photo", employee.photo);
       }
-
       if (
         ["Department Head", "Manager", "Employee"].includes(employee.roleType)
       ) {
@@ -410,6 +442,7 @@ const AssignEmployee = () => {
       const resultAction = await dispatch(createEmployee(formData));
 
       if (createEmployee.fulfilled.match(resultAction)) {
+        console.log("Create employee response:", resultAction.payload); // Debug response
         toast.success("Employee created successfully");
         setEmployee({
           name: "",
@@ -436,6 +469,7 @@ const AssignEmployee = () => {
         dispatch(clearState());
         navigate("/admin/assign-employee");
       } else {
+        console.error("Submission error:", resultAction.payload);
         toast.error(resultAction.payload || "Failed to create employee");
         setErrors({
           submit: resultAction.payload || "Failed to create employee",
