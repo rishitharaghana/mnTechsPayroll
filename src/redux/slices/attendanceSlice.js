@@ -65,10 +65,81 @@ export const fetchAllAttendance = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log('fetchAllAttendance response:', response.data); // Debug: Log API response
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.error || 'Failed to fetch all attendance records');
+    }
+  }
+);
+
+export const fetchEmployeeAverageHours = createAsyncThunk(
+  'attendance/fetchEmployeeAverageHours',
+  async ({ employee_id, start_date, end_date }, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem('userToken');
+      if (!userToken) {
+        return rejectWithValue('No authentication token found. Please log in.');
+      }
+
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get(`http://localhost:3007/api/attendance/avg-hours/${employee_id}`, {
+        params: { start_date, end_date },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('API error:', error.response?.data);
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch average working hours');
+    }
+  }
+);
+
+export const fetchAllEmployeesTotalHours = createAsyncThunk(
+  'attendance/fetchAllEmployeesTotalHours',
+  async ({ start_date, end_date }, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem('userToken');
+      if (!userToken) {
+        return rejectWithValue('No authentication token found. Please log in.');
+      }
+
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get('http://localhost:3007/api/attendance/All/avg-hours', {
+        params: { start_date, end_date },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('API error:', error.response?.data);
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch total working hours');
+    }
+  }
+);
+
+export const fetchTotalAverageWorkingHours = createAsyncThunk(
+  'attendance/fetchTotalAverageWorkingHours',
+  async ({ start_date, end_date }, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem('userToken');
+      if (!userToken) {
+        return rejectWithValue('No authentication token found. Please log in.');
+      }
+
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get('http://localhost:3007/api/attendance/employee/avg-hours', {
+        params: { start_date, end_date },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('API error:', error.response?.data);
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch total average working hours');
     }
   }
 );
@@ -104,6 +175,10 @@ const attendanceSlice = createSlice({
   name: 'attendance',
   initialState: {
     submissions: [],
+    totalWorkingHours: 0,
+    averageHours: null,
+    totalEmployeesHours: [],
+    totalAverageHours: null,
     loading: false,
     error: null,
     successMessage: null,
@@ -150,8 +225,52 @@ const attendanceSlice = createSlice({
       .addCase(fetchAllAttendance.fulfilled, (state, action) => {
         state.loading = false;
         state.submissions = action.payload.data || [];
+        state.totalWorkingHours = action.payload.data
+          .filter((s) => s.login_time && s.logout_time && s.status === 'Approved')
+          .reduce((total, s) => {
+            const login = new Date(`1970-01-01T${s.login_time}:00`);
+            const logout = new Date(`1970-01-01T${s.logout_time}:00`);
+            return total + (logout - login) / (1000 * 60 * 60);
+          }, 0)
+          .toFixed(2);
       })
       .addCase(fetchAllAttendance.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchEmployeeAverageHours.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchEmployeeAverageHours.fulfilled, (state, action) => {
+        state.loading = false;
+        state.averageHours = action.payload.data || null;
+      })
+      .addCase(fetchEmployeeAverageHours.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchAllEmployeesTotalHours.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllEmployeesTotalHours.fulfilled, (state, action) => {
+        state.loading = false;
+        state.totalEmployeesHours = action.payload.data || [];
+      })
+      .addCase(fetchAllEmployeesTotalHours.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchTotalAverageWorkingHours.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTotalAverageWorkingHours.fulfilled, (state, action) => {
+        state.loading = false;
+        state.totalAverageHours = action.payload.data || null;
+      })
+      .addCase(fetchTotalAverageWorkingHours.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

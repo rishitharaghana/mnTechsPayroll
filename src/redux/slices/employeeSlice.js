@@ -112,7 +112,7 @@ export const createDocuments = createAsyncThunk(
       const formData = new FormData();
       formData.append("employeeId", employeeId);
       formData.append("documentType", documentType);
-      formData.append("document", file); // Match backend field name
+      formData.append("document", file);
 
       const response = await axios.post(
         "http://localhost:3007/api/employees/documents",

@@ -183,7 +183,7 @@ const LeaveDashboard = () => {
   );
 
   const totalUsed = paidUsed + unpaidUsed;
-  const deductionAmount = unpaidUsed * 500; // Assuming ₹500 per unpaid leave day
+  const deductionAmount = unpaidUsed * 500;
 
   const sortData = (data, key, direction) => {
     return [...data].sort((a, b) => {

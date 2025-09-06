@@ -47,6 +47,7 @@ import EmployeePreviewPage from "./pages/EmployeeManagement/EmployeePreviewPage"
 import EmployeeIdCards from "./pages/Cards/EmployeeIdCards";
 import EmployeeVisitingCard from "./pages/Cards/EmployeeVisitingCard";
 import AnnualCalendar from "./pages/HolidayCalendar/AnnualCalendar";
+import EmployeeAvgHours from "./pages/AttendanceManagement/EmployeeAvgHours";
 
 const App = () => {
   return (
@@ -86,6 +87,7 @@ const App = () => {
                   path="/admin/view-employees"
                   element={<ViewEmployeeDetails />}
                 />
+      <Route path="/admin/working-hours" element={<EmployeeAvgHours />} />
 
                 <Route path="/admin/dashboard" element={<Dashboard />} />
                 <Route path="/admin/employees" element={<Employee />} />

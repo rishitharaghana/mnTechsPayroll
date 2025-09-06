@@ -10,7 +10,6 @@ const EmployeeIdCards = () => {
   const [card, setCard] = useState(null);
   console.log("card", card);
 
-  // Fetch the logged-in employee's profile
   useEffect(() => {
     dispatch(getCurrentUserProfile()).then((res) => {
       if (res.payload?.data) {
@@ -19,7 +18,6 @@ const EmployeeIdCards = () => {
     });
   }, [dispatch]);
 
-  // Function to get first two letters of the employee's name
   const getInitials = (name) => {
     if (!name) return "NA";
     const initials = name
@@ -51,14 +49,12 @@ const EmployeeIdCards = () => {
           My ID Card
         </h2>
 
-        {/* Error message */}
         {error && (
           <p className="mb-4 text-red-600 font-medium bg-red-100 p-2 rounded">
             {error}
           </p>
         )}
 
-        {/* Show card */}
         {card ? (
           <div className="flex flex-col items-center">
             <div
@@ -66,7 +62,6 @@ const EmployeeIdCards = () => {
               className="w-96 h-[600px] rounded-sm shadow-2xl overflow-hidden relative border border-gray-200 bg-cover bg-center"
               style={{ backgroundImage: "url(/assets/IDCardTemplate.png)" }}
             >
-              {/* Employee Photo with Initials Fallback */}
               <div className="absolute top-[130px] left-1/2 transform -translate-x-1/2 z-30">
                 <div className="w-36 h-36 rounded-full overflow-hidden relative flex items-center justify-center">
                   {card.photo_url ? (
@@ -75,8 +70,8 @@ const EmployeeIdCards = () => {
                       alt={`${card.full_name || "Employee"}'s profile`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.style.display = "none"; // Hide image on error
-                        e.target.nextSibling.style.display = "flex"; // Show initials
+                        e.target.style.display = "none"; 
+                        e.target.nextSibling.style.display = "flex"; 
                       }}
                     />
                   ) : null}
@@ -89,7 +84,6 @@ const EmployeeIdCards = () => {
                 </div>
               </div>
 
-              {/* Employee Details */}
               <div className="absolute top-74 left-0 right-0 z-20 px-8">
                 <div className="text-center mb-7">
                   <h2 className="text-xl font-bold text-blue-900 mb-1 tracking-wider">
@@ -127,7 +121,6 @@ const EmployeeIdCards = () => {
                   </div>
                 </div>
 
-                {/* Barcode */}
                 <div className="mt-5 flex justify-center">
                   <div className="bg-white p-2 rounded">
                     <img

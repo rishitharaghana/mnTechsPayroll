@@ -86,7 +86,6 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "attendance",
       label: "Attendance",
       icon: Clock,
-      path: "/admin/attendance",
       allowedRoles: ["super_admin", "hr", "dept_head", "employee", "manager"],
       children: [
         {
@@ -95,6 +94,20 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/employee/employee-attendance",
           allowedRoles: ["employee", "dept_head", "manager"],
         },
+         {
+          id: "admin-attendance",
+          label: " Attendance",
+          path: "/admin/attendance",
+          allowedRoles: ["super_admin", "hr","dept_head", "manager"],
+        },
+         {
+          id: "working hours",
+          label: "Employee Avg Hours",
+          path: "/admin/working-hours",
+          allowedRoles: ["super_admin", "hr","dept_head", "manager"],
+        },
+       
+        
       ],
     },
     {
