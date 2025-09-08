@@ -34,8 +34,8 @@ const EmployeeDetails = () => {
     phone: "",
     email: "",
     gender: "",
-    panCard: "", // Added for PAN card number
-    aadharCard: "", // Added for Aadhar card number
+    panCard: "", 
+    aadharCard: "", 
     image: null,
     presentAddress: "",
     previousAddress: "",
@@ -61,7 +61,7 @@ const EmployeeDetails = () => {
     panDoc: null,
     ifscNumber: "",
     bankACnumber: "",
-    dateOfBirth: "",
+    dob: "",
     bloodGroup: "",
     basicSalary: "",
     allowances: "",
@@ -98,7 +98,7 @@ const EmployeeDetails = () => {
           gender: employee.gender || "",
           panCard: employee.pan_card || "", // Added
           aadharCard: employee.aadhar_card || "", // Added
-          dateOfBirth: employee.date_of_birth || "",
+          dob: employee.dob || "",
           bloodGroup: employee.blood_group || "",
           joiningDate: employee.join_date || "",
           employmentType: employee.employment_type || "",
@@ -312,7 +312,7 @@ const EmployeeDetails = () => {
             employmentType: formData.employmentType,
             joiningDate: formData.joiningDate,
             contractEndDate: formData.contractEndDate,
-            dateOfBirth: formData.dateOfBirth,
+            dob: formData.dob,
             bloodGroup: formData.bloodGroup,
           };
           await dispatch(createEmployeePersonalDetails(personalData)).unwrap();
@@ -417,7 +417,7 @@ const EmployeeDetails = () => {
           panDoc: null,
           ifscNumber: "",
           bankACnumber: "",
-          dateOfBirth: "",
+          dob: "",
           bloodGroup: "",
           basicSalary: "",
           allowances: "",

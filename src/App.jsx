@@ -87,7 +87,10 @@ const App = () => {
                   path="/admin/view-employees"
                   element={<ViewEmployeeDetails />}
                 />
-      <Route path="/admin/working-hours" element={<EmployeeAvgHours />} />
+                <Route
+                  path="/admin/working-hours"
+                  element={<EmployeeAvgHours />}
+                />
 
                 <Route path="/admin/dashboard" element={<Dashboard />} />
                 <Route path="/admin/employees" element={<Employee />} />
@@ -139,26 +142,20 @@ const App = () => {
 
                 <Route path="/employee-payslip" element={<EmployeePayslip />} />
                 <Route path="/employee/viewgoals" element={<ViewGoals />} />
-                <Route
-                  path="/employee/leave-application"
-                  element={<LeaveApplication />}
-                />
+
                 <Route
                   path="/employee/leave-dashboard"
                   element={<LeaveDashboard />}
                 />
-                <Route
-                  path="/employee/employee-idcards"
-                  element={<EmployeeIdCards />}
-                />
+
                 <Route
                   path="/employee/employee-visitingcards"
                   element={<EmployeeVisitingCard />}
                 />
-                <Route
+                {/* <Route
                   path="/employee/employee-details"
                   element={<EmployeeDetails />}
-                />
+                /> */}
                 <Route
                   path="/employee/emp-timetracking"
                   element={<EmployeeTimeTracking />}
@@ -172,7 +169,30 @@ const App = () => {
               <Route
                 element={
                   <ProtectedRoute
-                    allowedRoles={["super_admin", "hr", "employee", "manager", "dept_head"]}
+                    allowedRoles={["employee", "dept_head", "manager", "hr"]}
+                  />
+                }
+              >
+                <Route
+                  path="/employee/employee-details"
+                  element={<EmployeeDetails />}
+                />
+                <Route
+                  path="/leave-application"
+                  element={<LeaveApplication />}
+                />
+              </Route>
+
+              <Route
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[
+                      "super_admin",
+                      "hr",
+                      "employee",
+                      "manager",
+                      "dept_head",
+                    ]}
                   />
                 }
               >
@@ -184,7 +204,10 @@ const App = () => {
                   path="/admin/calendar"
                   element={<CalendarIntegration />}
                 />
-                <Route path="/admin/annual-calendar" element={<AnnualCalendar />} />
+                <Route
+                  path="/admin/annual-calendar"
+                  element={<AnnualCalendar />}
+                />
               </Route>
 
               <Route path="/userprofile" element={<UserProfile />} />

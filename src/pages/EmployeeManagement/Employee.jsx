@@ -54,6 +54,7 @@ const selectStyles = {
 const Employee = () => {
   const dispatch = useDispatch();
   const { employees, loading, error } = useSelector((state) => state.employee);
+  const { user } = useSelector((state) => state.auth); 
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -96,6 +97,27 @@ const Employee = () => {
     const matchesDepartment =
       departmentFilter === "all" || emp.department_name === departmentFilter;
     const matchesRole = roleFilter === "all" || emp.role === roleFilter;
+
+    if (!user) return false; 
+    if (user.role === "dept_head") {
+      return (
+        emp.department_name === user.department &&
+        (emp.role === "employee" || emp.role === "manager") &&
+        matchesSearch &&
+        matchesDepartment &&
+        matchesRole
+      );
+    } else if (user.role === "manager") {
+      return (
+        emp.department_name === user.department &&
+        (emp.role === "dept_head" || emp.role === "employee") &&
+        matchesSearch &&
+        matchesDepartment &&
+        matchesRole
+      );
+    } else if (user.role === "employee") {
+      return emp.id === user.id && matchesSearch && matchesDepartment && matchesRole;
+    }
     return matchesSearch && matchesDepartment && matchesRole;
   }) || [];
 
@@ -148,6 +170,7 @@ const Employee = () => {
       .join("")
       .toUpperCase();
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(
       initials
     )}&background=${bgColors[emp.role] || "6B7280"}&color=fff`;
   };
@@ -172,6 +195,15 @@ const Employee = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Employees</h1>
             <p className="text-gray-500 text-sm sm:text-base">Manage your team members</p>
           </div>
+          {(user?.role === "hr" || user?.role === "super_admin") && (
+            <Link
+              to="/admin/assign-employee"
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            >
+              <UserPlus size={16} />
+              Add Employee
+            </Link>
+          )}
         </div>
 
         <div className="mb-6 bg-white shadow-md p-4 border border-gray-200 rounded-xl flex flex-col sm:flex-row gap-4">
@@ -190,8 +222,8 @@ const Employee = () => {
           </div>
           <div className="flex flex-col sm:flex-row justify-end gap-3 items-start sm:items-center">
             <Select
-              options={departmentOptions}
-              value={departmentOptions.find(
+              options={availableDepartmentOptions()}
+              value={availableDepartmentOptions().find(
                 (option) => option.value === departmentFilter
               )}
               onChange={(selected) => setDepartmentFilter(selected.value)}
@@ -200,8 +232,10 @@ const Employee = () => {
               placeholder="Select Department"
             />
             <Select
-              options={roleOptions}
-              value={roleOptions.find((option) => option.value === roleFilter)}
+              options={availableRoleOptions()}
+              value={availableRoleOptions().find(
+                (option) => option.value === roleFilter
+              )}
               onChange={(selected) => setRoleFilter(selected.value)}
               styles={selectStyles}
               className="w-full sm:w-44"

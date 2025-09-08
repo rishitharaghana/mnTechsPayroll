@@ -59,10 +59,17 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           allowedRoles: ["super_admin", "hr"],
         },
         {
+        {
           id: "view-employee",
           label: "View Employees",
           path: "/admin/view-employees",
           allowedRoles: ["super_admin", "hr"],
+        },
+        {
+          id: "view-employeees",
+          label: "Add Details",
+          path: "/employee/employee-details",
+          allowedRoles: ["hr",],
         },
       ],
     },
@@ -70,13 +77,13 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "employees",
       label: "Employee",
       icon: Users,
-      allowedRoles: ["employee"],
+      allowedRoles: ["employee", ],
       children: [
         {
           id: "view-employees",
           label: "Add Details",
           path: "/employee/employee-details",
-          allowedRoles: ["employee"],
+          allowedRoles: ["employee",],
         },
       ],
     },
@@ -92,6 +99,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/employee/employee-attendance",
           allowedRoles: ["employee", "dept_head", "manager"],
         },
+        {
         {
           id: "admin-attendance",
           label: "Attendance",
@@ -123,7 +131,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           id: "leave-application",
           label: "Apply Leave",
           path: "/employee/leave-application",
-          allowedRoles: ["employee"],
+          allowedRoles: ["employee", "dept_head"],
         },
       ],
     },
@@ -174,10 +182,16 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
       children: [
         {
-          id: "calendar",
+          id: "holiday-calendar",
           label: "Holiday Calendar",
           path: "/admin/calendar",
-          allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
+          allowedRoles: [
+            "super_admin",
+            "hr",
+            "dept_head",
+            "manager",
+            "employee",
+          ],
         },
         {
           id: "calendar",
@@ -197,7 +211,13 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           id: "view-performance",
           label: "View Performance",
           path: "/admin/performance",
-          allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
+          allowedRoles: [
+            "super_admin",
+            "hr",
+            "dept_head",
+            "manager",
+            "employee",
+          ],
         },
         {
           id: "view-performance",
@@ -251,16 +271,25 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "idcard",
       label: "ID Card",
       icon: IdCardIcon,
-      path: "/idcard",
-      allowedRoles: ["super_admin", "hr", "manager", "dept_head"],
+      allowedRoles: ["super_admin", "hr", "manager", "dept_head", "employee"],
+      children: [
+        {
+          id: "idcards",
+          label: "View ID Card",
+          icon: IdCardIcon,
+          path: "/employee/employee-idcards",
+          allowedRoles: ["employee", "hr", "manager", "dept_head"],
+        },
+        {
+          id: "idcard",
+          label: "ID Card",
+          icon: IdCardIcon,
+          path: "/idcard",
+          allowedRoles: ["employee", "hr", "manager", "dept_head"],
+        },
+      ],
     },
-    {
-      id: "idcard",
-      label: "ID Card",
-      icon: IdCardIcon,
-      path: "/employee/employee-idcards",
-      allowedRoles: ["employee"],
-    },
+
     {
       id: "travelexpenses",
       label: "Travel Expenses",

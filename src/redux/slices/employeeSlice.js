@@ -111,7 +111,7 @@ export const createDocuments = createAsyncThunk(
       const { token } = JSON.parse(userToken);
       const formData = new FormData();
       formData.append("employeeId", employeeId);
-      formData.append("documentType", documentType);
+formData.append("documentType", documentType.toLowerCase());
       formData.append("document", file);
 
       const response = await axios.post(
@@ -551,7 +551,6 @@ const employeeSlice = createSlice({
     departments: [],
     designations: [], 
      roles: [],
-
     currentEmployee: null,
     personalDetails: null,
     educationDetails:null,

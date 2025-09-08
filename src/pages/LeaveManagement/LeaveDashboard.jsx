@@ -148,7 +148,6 @@ const LeaveDashboard = () => {
     }));
   }, [leaves]);
 
-  // Update taken leaves in balance
   const updatedLeaveBalance = useMemo(() => {
     return leaveBalance.map((balance) => {
       const taken = leaveHistory
@@ -185,18 +184,22 @@ const LeaveDashboard = () => {
   const totalUsed = paidUsed + unpaidUsed;
   const deductionAmount = unpaidUsed * 500;
 
-  const sortData = (data, key, direction) => {
-    return [...data].sort((a, b) => {
-      if (key === "from" || key === "to") {
-        return direction === "asc"
-          ? new Date(a[key]) - new Date(b[key])
-          : new Date(b[key]) - new Date(a[key]);
-      }
+ const sortData = (data, key, direction) => {
+  return [...data].sort((a, b) => {
+    if (key === "from" || key === "to") {
       return direction === "asc"
-        ? a[key].localeCompare(b[key])
-        : b[key].localeCompare(a[key]);
-    });
-  };
+        ? new Date(a[key] || 0) - new Date(b[key] || 0)
+        : new Date(b[key] || 0) - new Date(a[key] || 0);
+    }
+
+    const valA = (a[key] || "").toString();
+    const valB = (b[key] || "").toString();
+
+    return direction === "asc"
+      ? valA.localeCompare(valB)
+      : valB.localeCompare(valA);
+  });
+};
 
   const handleSort = (key) => {
     setSortConfig({
