@@ -59,7 +59,6 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           allowedRoles: ["super_admin", "hr"],
         },
         {
-        {
           id: "view-employee",
           label: "View Employees",
           path: "/admin/view-employees",
@@ -99,7 +98,6 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/employee/employee-attendance",
           allowedRoles: ["employee", "dept_head", "manager"],
         },
-        {
         {
           id: "admin-attendance",
           label: "Attendance",

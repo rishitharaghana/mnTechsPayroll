@@ -7,6 +7,7 @@ import {
   Calendar,
   Filter,
   Fullscreen,
+  UserPlus,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -54,7 +55,7 @@ const selectStyles = {
 const Employee = () => {
   const dispatch = useDispatch();
   const { employees, loading, error } = useSelector((state) => state.employee);
-  const { user } = useSelector((state) => state.auth); 
+  const { user } = useSelector((state) => state.auth);
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -83,6 +84,10 @@ const Employee = () => {
     })),
   ];
 
+  // Define availableDepartmentOptions and availableRoleOptions
+  const availableDepartmentOptions = () => departmentOptions;
+  const availableRoleOptions = () => roleOptions;
+
   useEffect(() => {
     dispatch(fetchEmployees());
     return () => {
@@ -98,7 +103,7 @@ const Employee = () => {
       departmentFilter === "all" || emp.department_name === departmentFilter;
     const matchesRole = roleFilter === "all" || emp.role === roleFilter;
 
-    if (!user) return false; 
+    if (!user) return false;
     if (user.role === "dept_head") {
       return (
         emp.department_name === user.department &&
@@ -169,7 +174,6 @@ const Employee = () => {
       .map((n) => n[0])
       .join("")
       .toUpperCase();
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(
       initials
     )}&background=${bgColors[emp.role] || "6B7280"}&color=fff`;
