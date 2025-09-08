@@ -13,10 +13,8 @@ import {
   LogOut,
   CalendarClock,
   IdCardIcon,
-  Rocket,
   RouteOff,
   Waypoints,
-  Radio,
 } from "lucide-react";
 
 const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
@@ -60,7 +58,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/admin/assign-employee",
           allowedRoles: ["super_admin", "hr"],
         },
-         {
+        {
           id: "view-employee",
           label: "View Employees",
           path: "/admin/view-employees",
@@ -94,20 +92,18 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/employee/employee-attendance",
           allowedRoles: ["employee", "dept_head", "manager"],
         },
-         {
+        {
           id: "admin-attendance",
-          label: " Attendance",
+          label: "Attendance",
           path: "/admin/attendance",
-          allowedRoles: ["super_admin", "hr","dept_head", "manager"],
+          allowedRoles: ["super_admin", "hr", "dept_head", "manager"],
         },
-         {
-          id: "working hours",
+        {
+          id: "working-hours",
           label: "Employee Avg Hours",
           path: "/admin/working-hours",
-          allowedRoles: ["super_admin", "hr","dept_head", "manager"],
+          allowedRoles: ["super_admin", "hr", "dept_head", "manager"],
         },
-       
-        
       ],
     },
     {
@@ -188,8 +184,8 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           label: "Annual Calendar",
           path: "/admin/annual-calendar",
           allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
-        }
-      ]
+        },
+      ],
     },
     {
       id: "performance",
@@ -317,11 +313,18 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   return (
     <>
       <aside
-        className={`${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed top-13 overflow-scroll inset-y-0 left-0 z-40 w-64 bg-white text-gray-800 border-r border-white/20 transition-transform duration-300 ease-in-out flex flex-col`}
+        className={`
+          fixed top-16 inset-y-0 left-0 z-40 
+          w-64 sm:w-72 md:w-80 lg:w-64 
+          bg-white text-gray-800 border-r border-gray-200 
+          transform transition-transform duration-300 ease-in-out 
+          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"} 
+          lg:translate-x-0 
+          flex flex-col
+          max-h-screen
+        `}
       >
-        <nav className="flex-1 p-4 space-y-2 mt-4">
+        <nav className="flex-1 p-4 space-y-2 mt-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {filteredMenuItems.map((item) => {
             const Icon = item.icon;
 
@@ -335,7 +338,8 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                     setIsMobileMenuOpen(false);
                   }}
                   className={({ isActive }) =>
-                    `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                    `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 
+                    ${
                       isActive || activeTab === item.id
                         ? "bg-teal-600 text-white shadow-md"
                         : "hover:bg-slate-700 hover:text-white"
@@ -360,9 +364,12 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                         setIsMobileMenuOpen(false);
                       }
                     }}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
-                      isActive ? "bg-teal-600 text-white shadow-md" : "hover:bg-slate-700 hover:text-white"
-                    }`}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 
+                      ${
+                        isActive
+                          ? "bg-teal-600 text-white shadow-md"
+                          : "hover:bg-slate-700 hover:text-white"
+                      }`}
                   >
                     <div className="flex items-center space-x-3">
                       <Icon size={20} />
@@ -378,8 +385,11 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                           to={child.path}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={({ isActive }) =>
-                            `block px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                              isActive ? "bg-teal-100 text-teal-800" : "hover:bg-slate-100 text-gray-700"
+                            `block px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 
+                            ${
+                              isActive
+                                ? "bg-teal-100 text-teal-800"
+                                : "hover:bg-slate-100 text-gray-700"
                             }`
                           }
                         >
@@ -401,7 +411,8 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                   setIsMobileMenuOpen(false);
                 }}
                 className={({ isActive }) =>
-                  `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 
+                  ${
                     isActive || activeTab === item.id
                       ? "bg-teal-600 text-white shadow-md"
                       : "hover:bg-slate-700 hover:text-white"
@@ -413,43 +424,42 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
               </NavLink>
             );
           })}
-          <div className="p-4 border-t-2 border-slate-700">
-          {filteredProfileItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.id}
-                to={item.path}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={({ isActive }) =>
-                  `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                    item.id === "logout"
-                      ? isActive
-                        ? "text-red-600 bg-red-50"
-                        : "text-red-600 hover:bg-red-50"
-                      : isActive || activeTab === item.id
-                      ? "bg-teal-600 text-white shadow-md"
-                      : "hover:bg-slate-700 hover:text-white"
-                  }`
-                }
-              >
-                <Icon size={20} />
-                <span className="font-medium">{item.label}</span>
-              </NavLink>
-            );
-          })}
-        </div>
+          <div className="p-4 border-t-2 border-gray-200">
+            {filteredProfileItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.id}
+                  to={item.path}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={({ isActive }) =>
+                    `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 
+                    ${
+                      item.id === "logout"
+                        ? isActive
+                          ? "text-red-600 bg-red-50"
+                          : "text-red-600 hover:bg-red-50"
+                        : isActive || activeTab === item.id
+                        ? "bg-teal-600 text-white shadow-md"
+                        : "hover:bg-slate-700 hover:text-white"
+                    }`
+                  }
+                >
+                  <Icon size={20} />
+                  <span className="font-medium">{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </div>
         </nav>
-
-        
       </aside>
 
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Users, UserCog, Briefcase } from "lucide-react";
+import { User, Users, UserCog, Briefcase, Eye, EyeOff } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createEmployee,
@@ -44,6 +44,8 @@ const AssignEmployee = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState(1);
+  const [showPassword, setShowPassword] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   const roleTypes = [
     {
@@ -99,8 +101,7 @@ const AssignEmployee = () => {
     ) {
       setErrors((prev) => ({
         ...prev,
-        emergencyPhone:
-          "Mobile and emergency contact numbers cannot be the same",
+        emergencyPhone: "Mobile and emergency contact numbers cannot be the same",
       }));
     } else {
       setErrors((prev) => ({ ...prev, emergencyPhone: "" }));
@@ -130,9 +131,10 @@ const AssignEmployee = () => {
         dateOfBirth: "",
         gender: "",
       });
+      setPhotoPreview(null);
       setStep(1);
       setErrors({});
-      dispatch(fetchEmployees()); // Refresh employee list
+      dispatch(fetchEmployees());
       dispatch(clearState());
       navigate("/admin/employees");
     }
@@ -242,10 +244,12 @@ const AssignEmployee = () => {
         return;
       }
       setEmployee((prev) => ({ ...prev, photo: file }));
+      setPhotoPreview(URL.createObjectURL(file));
       setErrors((prev) => ({ ...prev, photo: "" }));
     } else {
       setErrors((prev) => ({ ...prev, photo: "No file selected" }));
       toast.error("No file selected");
+      setPhotoPreview(null);
     }
   };
 
@@ -328,16 +332,29 @@ const AssignEmployee = () => {
     }
     if (step === 3) {
       if (!employee.joinDate) newErrors.joinDate = "Join Date is required";
-      if (["HR", "Department Head", "Employee", "Manager"].includes(employee.roleType) && !employee.department) {
+      if (
+        ["HR", "Department Head", "Employee", "Manager"].includes(
+          employee.roleType
+        ) &&
+        !employee.department
+      ) {
         newErrors.department = `Department is required for ${employee.roleType} role`;
       }
-      if (["HR", "Department Head", "Employee", "Manager"].includes(employee.roleType) && !employee.position) {
+      if (
+        ["HR", "Department Head", "Employee", "Manager"].includes(
+          employee.roleType
+        ) &&
+        !employee.position
+      ) {
         newErrors.position = `Position is required for ${employee.roleType} role`;
       }
       if (employee.roleType === "HR" && employee.department !== "HR") {
         newErrors.department = "HR role must be in HR department";
       }
-      if (["Employee", "Manager"].includes(employee.roleType) && !employee.employmentType) {
+      if (
+        ["Employee", "Manager"].includes(employee.roleType) &&
+        !employee.employmentType
+      ) {
         newErrors.employmentType = "Employment Type is required";
       }
       if (!employee.basicSalary)
@@ -386,7 +403,6 @@ const AssignEmployee = () => {
         return;
       }
 
-      console.log("FormData entries:");
       const roleMap = {
         HR: "hr",
         "Department Head": "dept_head",
@@ -420,15 +436,11 @@ const AssignEmployee = () => {
         formData.append("employment_type", employee.employmentType || "");
       }
 
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value instanceof File ? value.name : value);
-      }
-
       const resultAction = await dispatch(createEmployee(formData));
 
       if (createEmployee.fulfilled.match(resultAction)) {
         toast.success("Employee created successfully");
-        dispatch(fetchEmployees()); // Refresh employee list
+        dispatch(fetchEmployees());
         setEmployee({
           name: "",
           email: "",
@@ -449,12 +461,12 @@ const AssignEmployee = () => {
           dateOfBirth: "",
           gender: "",
         });
+        setPhotoPreview(null);
         setStep(1);
         setErrors({});
         dispatch(clearState());
         navigate("/admin/employees");
       } else {
-        console.error("Submission error:", resultAction.payload);
         toast.error(resultAction.payload || "Failed to create employee");
         setErrors({
           submit: resultAction.payload || "Failed to create employee",
@@ -484,15 +496,18 @@ const AssignEmployee = () => {
   useEffect(() => {
     return () => {
       dispatch(clearState());
+      if (photoPreview) {
+        URL.revokeObjectURL(photoPreview);
+      }
     };
-  }, [dispatch]);
+  }, [dispatch, photoPreview]);
 
   const renderStepIndicator = () => (
-    <div className="flex justify-center mb-8">
+    <div className="flex flex-col sm:flex-row items-center justify-center mb-6 space-y-4 sm:space-y-0 sm:space-x-4">
       {["Role", "Personal", "Employment"].map((label, index) => (
-        <div key={label} className="flex items-center">
+        <div key={label} className="flex items-center justify-center">
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium z-50 ${
+            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-medium z-50 ${
               step > index + 1
                 ? "bg-teal-600 text-white"
                 : step === index + 1
@@ -503,7 +518,7 @@ const AssignEmployee = () => {
             {index + 1}
           </div>
           <span
-            className={`ml-2 text-sm font-medium ${
+            className={`ml-0 sm:ml-2 text-xs sm:text-sm font-medium ${
               step >= index + 1 ? "text-teal-600" : "text-gray-500"
             }`}
           >
@@ -511,7 +526,7 @@ const AssignEmployee = () => {
           </span>
           {index < 2 && (
             <div
-              className={`w-12 h-1 mx-2 ${
+              className={`w-8 sm:w-12 h-1 mx-2 hidden sm:block ${
                 step > index + 1 ? "bg-teal-600" : "bg-gray-200"
               }`}
             ></div>
@@ -522,8 +537,8 @@ const AssignEmployee = () => {
   );
 
   return (
-    <div className="w-full lg:w-[78%]">
-      <div className="flex justify-end">
+    <div className="w-full lg:w-78/100">
+      <div className="flex justify-end mb-4">
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/admin/dashboard" },
@@ -532,14 +547,11 @@ const AssignEmployee = () => {
         />
         <PageMeta title="Assign Employee" description="Assign a new employee" />
       </div>
-      <div className="min-h-screen bg-white rounded-2xl p-6 ">
-        <div className="bg-white rounded-2xl shadow-md border-1 border-gray-200 p-6 relative z-10">
-          <h2 className="text-3xl font-bold text-center text-teal-600 mb-10 uppercase tracking-tight">
+      <div className="min-h-screen bg-white rounded-2xl p-4 sm:p-6">
+        <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-4 sm:p-6 relative z-10">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center text-teal-600 mb-8 sm:mb-10 uppercase tracking-tight">
             Assign New Employee
           </h2>
-          <div className="text-sm text-gray-500 font-semibold mb-4">
-            Current Step: {step}
-          </div>
           {renderStepIndicator()}
           {error && <p className="text-red-600 text-center mb-4">{error}</p>}
           {successMessage && (
@@ -550,11 +562,10 @@ const AssignEmployee = () => {
           )}
           {step === 1 && (
             <div className="pb-2">
-              <label className="block text-md font-semibold text-gray-900 mb-4">
-                Select Role Type{" "}
-                <span className="text-red-600 font-bold">*</span>
+              <label className="block text-sm sm:text-md font-semibold text-gray-900 mb-4">
+                Select Role Type <span className="text-red-600 font-bold">*</span>
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {filteredRoleTypes.map((role) => (
                   <button
                     key={role.name}
@@ -567,8 +578,8 @@ const AssignEmployee = () => {
                     } ${errors.roleType ? "border-red-500 animate-pulse" : ""}`}
                   >
                     <div className="mb-2 text-teal-600">{role.icon}</div>
-                    <h3 className="text-lg font-semibold">{role.name}</h3>
-                    <p className="text-sm text-gray-500">{role.description}</p>
+                    <h3 className="text-base sm:text-lg font-semibold">{role.name}</h3>
+                    <p className="text-xs sm:text-sm text-gray-500">{role.description}</p>
                   </button>
                 ))}
               </div>
@@ -578,10 +589,10 @@ const AssignEmployee = () => {
                 </p>
               )}
               {employee.roleType && (
-                <div className="w-full flex justify-end">
+                <div className="w-full flex justify-end mt-6">
                   <button
                     type="button"
-                    className="block text-lg px-5 py-2 mt-6 bg-teal-600 text-white rounded-xl hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 hover:scale-105 transition-all duration-200 font-medium z-50"
+                    className="text-base sm:text-lg px-5 py-2 bg-teal-600 text-white rounded-xl hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 hover:scale-105 transition-all duration-200 font-medium z-50"
                     onClick={handleNext}
                   >
                     Next
@@ -591,9 +602,9 @@ const AssignEmployee = () => {
             </div>
           )}
           {step > 1 && (
-            <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 relative z-10">
               {step === 2 && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {[
                     {
                       label: "Full Name",
@@ -642,9 +653,10 @@ const AssignEmployee = () => {
                     {
                       label: "Password",
                       field: "password",
-                      type: "password",
+                      type: showPassword ? "text" : "password",
                       required: true,
                       tooltip: "Minimum 8 characters",
+                      isPassword: true,
                     },
                     {
                       label: "Blood Group",
@@ -669,6 +681,7 @@ const AssignEmployee = () => {
                       tooltip,
                       options,
                       accept,
+                      isPassword,
                     }) => (
                       <div key={field} className="relative group z-10">
                         <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -717,36 +730,62 @@ const AssignEmployee = () => {
                             ))}
                           </select>
                         ) : type === "file" ? (
-                          <input
-                            type="file"
-                            accept={accept}
-                            onChange={handleFileChange}
-                            className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                              errors[field]
-                                ? "border-red-500 animate-pulse"
-                                : ""
-                            }`}
-                            aria-label={label}
-                            required={required}
-                          />
+                          <div>
+                            {photoPreview && (
+                              <div className="mt-4">
+                                <img
+                                  src={photoPreview}
+                                  alt="Photo preview"
+                                  className="w-25 h-25 object-cover rounded-md border-2 border-gray-200"
+                                />
+                              </div>
+                            )}
+                            <input
+                              type="file"
+                              accept={accept}
+                              onChange={handleFileChange}
+                              className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
+                                errors[field]
+                                  ? "border-red-500 animate-pulse"
+                                  : ""
+                              }`}
+                              aria-label={label}
+                              required={required}
+                            />
+                          </div>
                         ) : (
-                          <input
-                            type={type}
-                            value={employee[field]}
-                            onChange={(e) => handleInput(field, e.target.value)}
-                            required={required}
-                            max={
-                              type === "date"
-                                ? new Date().toISOString().split("T")[0]
-                                : undefined
-                            }
-                            className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
-                              errors[field]
-                                ? "border-red-500 animate-pulse"
-                                : ""
-                            }`}
-                            aria-label={label}
-                          />
+                          <div className="relative">
+                            <input
+                              type={type}
+                              value={employee[field]}
+                              onChange={(e) => handleInput(field, e.target.value)}
+                              required={required}
+                              max={
+                                type === "date"
+                                  ? new Date().toISOString().split("T")[0]
+                                  : undefined
+                              }
+                              className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
+                                errors[field]
+                                  ? "border-red-500 animate-pulse"
+                                  : ""
+                              }`}
+                              aria-label={label}
+                            />
+                            {isPassword && (
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-teal-600"
+                              >
+                                {showPassword ? (
+                                  <EyeOff className="w-5 h-5" />
+                                ) : (
+                                  <Eye className="w-5 h-5" />
+                                )}
+                              </button>
+                            )}
+                          </div>
                         )}
                         {errors[field] && (
                           <p className="mt-1 text-sm text-red-600 font-medium">
@@ -759,11 +798,10 @@ const AssignEmployee = () => {
                 </div>
               )}
               {step === 3 && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <div className="relative group z-10">
                     <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Join Date{" "}
-                      <span className="text-red-600 font-bold">*</span>
+                      Join Date <span className="text-red-600 font-bold">*</span>
                     </label>
                     <input
                       type="date"
@@ -783,8 +821,7 @@ const AssignEmployee = () => {
                   </div>
                   <div className="relative group z-10">
                     <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Basic Salary{" "}
-                      <span className="text-red-600 font-bold">*</span>
+                      Basic Salary <span className="text-red-600 font-bold">*</span>
                       <span
                         className="ml-1 text-gray-400 cursor-help"
                         title="Monthly basic salary"
@@ -795,9 +832,7 @@ const AssignEmployee = () => {
                     <input
                       type="number"
                       value={employee.basicSalary}
-                      onChange={(e) =>
-                        handleInput("basicSalary", e.target.value)
-                      }
+                      onChange={(e) => handleInput("basicSalary", e.target.value)}
                       className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
                         errors.basicSalary ? "border-red-500 animate-pulse" : ""
                       }`}
@@ -812,8 +847,7 @@ const AssignEmployee = () => {
                   </div>
                   <div className="relative group z-10">
                     <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Allowances{" "}
-                      <span className="text-red-600 font-bold">*</span>
+                      Allowances <span className="text-red-600 font-bold">*</span>
                       <span
                         className="ml-1 text-gray-400 cursor-help"
                         title="Monthly allowances"
@@ -824,9 +858,7 @@ const AssignEmployee = () => {
                     <input
                       type="number"
                       value={employee.allowances}
-                      onChange={(e) =>
-                        handleInput("allowances", e.target.value)
-                      }
+                      onChange={(e) => handleInput("allowances", e.target.value)}
                       className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
                         errors.allowances ? "border-red-500 animate-pulse" : ""
                       }`}
@@ -870,18 +902,13 @@ const AssignEmployee = () => {
                   ) && (
                     <div className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Department{" "}
-                        <span className="text-red-600 font-bold">*</span>
+                        Department <span className="text-red-600 font-bold">*</span>
                       </label>
                       <select
                         value={employee.department}
-                        onChange={(e) =>
-                          handleInput("department", e.target.value)
-                        }
+                        onChange={(e) => handleInput("department", e.target.value)}
                         className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                          errors.department
-                            ? "border-red-500 animate-pulse"
-                            : ""
+                          errors.department ? "border-red-500 animate-pulse" : ""
                         }`}
                         aria-label="Select department"
                         required
@@ -913,13 +940,9 @@ const AssignEmployee = () => {
                         </label>
                         <select
                           value={employee.position}
-                          onChange={(e) =>
-                            handleInput("position", e.target.value)
-                          }
+                          onChange={(e) => handleInput("position", e.target.value)}
                           className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                            errors.position
-                              ? "border-red-500 animate-pulse"
-                              : ""
+                            errors.position ? "border-red-500 animate-pulse" : ""
                           }`}
                           aria-label="Select designation"
                           required
@@ -949,8 +972,7 @@ const AssignEmployee = () => {
                   {["Employee", "Manager"].includes(employee.roleType) && (
                     <div className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Employment Type{" "}
-                        <span className="text-red-600 font-bold">*</span>
+                        Employment Type <span className="text-red-600 font-bold">*</span>
                       </label>
                       <select
                         value={employee.employmentType}
@@ -981,11 +1003,11 @@ const AssignEmployee = () => {
                   )}
                 </div>
               )}
-              <div className="flex justify-between gap-4 pt-6 relative z-50">
+              <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6 relative z-50">
                 {step > 1 && (
                   <button
                     type="button"
-                    className="block text-lg px-5 py-2 bg-slate-700 text-white rounded-xl hover:bg-slate-800 hover:scale-105 transition-all duration-200 font-medium z-50"
+                    className="w-full sm:w-auto text-base sm:text-lg px-5 py-2 bg-slate-700 text-white rounded-xl hover:bg-slate-800 hover:scale-105 transition-all duration-200 font-medium z-50"
                     onClick={handlePrevious}
                   >
                     Previous
@@ -994,7 +1016,7 @@ const AssignEmployee = () => {
                 {step < 3 ? (
                   <button
                     type="button"
-                    className="block text-lg px-5 py-2 bg-teal-600 text-white rounded-xl hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 hover:scale-105 transition-all duration-200 font-medium ml-auto z-50"
+                    className="w-full sm:w-auto text-base sm:text-lg px-5 py-2 bg-teal-600 text-white rounded-xl hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 hover:scale-105 transition-all duration-200 font-medium sm:ml-auto z-50"
                     onClick={handleNext}
                   >
                     Next
@@ -1002,7 +1024,7 @@ const AssignEmployee = () => {
                 ) : (
                   <button
                     type="submit"
-                    className={`block text-lg px-5 py-2 bg-teal-600 text-white rounded-xl hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 hover:scale-105 transition-all duration-200 font-medium flex items-center justify-center ml-auto z-50 ${
+                    className={`w-full sm:w-auto text-base sm:text-lg px-5 py-2 bg-teal-600 text-white rounded-xl hover:bg-gradient-to-r hover:from-teal-600 hover:to-teal-700 hover:scale-105 transition-all duration-200 font-medium flex items-center justify-center sm:ml-auto z-50 ${
                       isSubmitting ? "opacity-70 cursor-not-allowed" : ""
                     }`}
                     disabled={isSubmitting}

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
 import { Eye, X } from "lucide-react";
+import Select from "react-select";
 import {
   downloadPayslip,
   fetchPayslips,
@@ -19,6 +20,60 @@ import { toast } from "react-toastify";
 import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PayslipGenerator from "./PayslipGenerator";
+
+// Custom styles for react-select
+const selectStyles = {
+  control: (provided) => ({
+    ...provided,
+    minHeight: "40px",
+    border: "1px solid #D1D5DB",
+    borderRadius: "8px",
+    boxShadow: "none",
+    "&:hover": {
+      borderColor: "#4F46E5",
+    },
+    fontSize: "14px",
+    fontWeight: "500",
+    color: "#1E293B",
+  }),
+  menu: (provided) => ({
+    ...provided,
+    minHeight: "150px",
+    borderRadius: "8px",
+    zIndex: 10,
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    fontSize: "14px",
+    fontWeight: "500",
+    color: state.isSelected
+      ? "#1E293B"
+      : state.isFocused
+      ? "#ffffff"
+      : "#1E293B",
+    backgroundColor: state.isSelected
+      ? "#4F46E5"
+      : state.isFocused
+      ? "#0F766E"
+      : "#FFFFFF",
+    "&:active": {
+      backgroundColor: "#C7D2FE",
+    },
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "#1E293B",
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: "#9CA3AF",
+  }),
+};
+
+// Custom styles for input fields
+const inputStyles = {
+  base: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border",
+};
 
 const Payslip = () => {
   const dispatch = useDispatch();
@@ -53,10 +108,38 @@ const Payslip = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
+  // Employee options for react-select
+  const employeeOptions = useMemo(
+    () => [
+      { value: "", label: "All Employees" },
+      ...employees.map((employee) => ({
+        value: employee.employee_id,
+        label: `${employee.full_name} (${employee.employee_id})`,
+      })),
+    ],
+    [employees]
+  );
+
+  // Department options for react-select
+  const departmentOptions = useMemo(() => {
+    console.log("Departments in useMemo:", departments); // Debugging
+    return [
+      { value: "", label: "All Departments" },
+      ...(Array.isArray(departments)
+        ? departments.map((dept) => ({
+            value: dept.department_id,
+            label: dept.department_name,
+          }))
+        : []),
+    ];
+  }, [departments]);
+
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(fetchEmployees());
-      dispatch(fetchDepartments());
+      dispatch(fetchDepartments()).then((result) => {
+        console.log("fetchDepartments result:", result); // Debugging
+      });
       dispatch(
         fetchPayslips({
           month: selectedMonth,
@@ -75,7 +158,8 @@ const Payslip = () => {
           return false;
         return (
           (!selectedEmployeeId || slip.employee_id === selectedEmployeeId) &&
-          (!selectedDepartment || slip.department === selectedDepartment) &&
+          (!selectedDepartment ||
+            slip.department_id === selectedDepartment) &&
           slip.month === selectedMonth
         );
       })
@@ -171,17 +255,17 @@ const Payslip = () => {
   return (
     <div className="w-full lg:w-[78%]">
       <div className="flex justify-end items-center">
-          <PageMeta
-            title="Payslip Management"
-            description="View, generate, and download employee payslips."
-          />
-          <PageBreadcrumb
-            items={[
-              { label: "Home", link: "/" },
-              { label: "Payslip Management", link: "/admin/payslip" },
-            ]}
-          />
-        </div>
+        <PageMeta
+          title="Payslip Management"
+          description="View, generate, and download employee payslips."
+        />
+        <PageBreadcrumb
+          items={[
+            { label: "Home", link: "/" },
+            { label: "Payslip Management", link: "/admin/payslip" },
+          ]}
+        />
+      </div>
       <div className="bg-white rounded-xl shadow-md p-6">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 p-6 mb-6">
@@ -209,22 +293,17 @@ const Payslip = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   Select Employee
                 </label>
-                <select
-                  value={selectedEmployeeId}
-                  onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
-                  disabled={employeesLoading || employees.length === 0}
-                >
-                  <option value="">All Employees</option>
-                  {employees.map((employee) => (
-                    <option
-                      key={employee.employee_id}
-                      value={employee.employee_id}
-                    >
-                      {employee.full_name} ({employee.employee_id})
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  options={employeeOptions}
+                  value={employeeOptions.find(
+                    (option) => option.value === selectedEmployeeId
+                  )}
+                  onChange={(selected) => setSelectedEmployeeId(selected.value)}
+                  styles={selectStyles}
+                  className="mt-1"
+                  placeholder="Select Employee"
+                  isDisabled={employeesLoading || employees.length === 0}
+                />
               </div>
             )}
             <div>
@@ -235,7 +314,7 @@ const Payslip = () => {
                 type="month"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                className={inputStyles.base}
                 max={format(new Date(), "yyyy-MM")}
               />
             </div>
@@ -247,7 +326,7 @@ const Payslip = () => {
                 type="date"
                 value={paymentDate}
                 onChange={(e) => setPaymentDate(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                className={inputStyles.base}
               />
             </div>
             {role !== "employee" && (
@@ -255,19 +334,22 @@ const Payslip = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   Select Department
                 </label>
-                <select
-                  value={selectedDepartment}
-                  onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
-                  disabled={employeesLoading || departments.length === 0}
-                >
-                  <option value="">All Departments</option>
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.name}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  options={departmentOptions}
+                  value={departmentOptions.find(
+                    (option) => option.value === selectedDepartment
+                  )}
+                  onChange={(selected) => setSelectedDepartment(selected.value)}
+                  styles={selectStyles}
+                  className="mt-1"
+                  placeholder="Select Department"
+                  isDisabled={employeesLoading || departmentOptions.length <= 1}
+                />
+                {employeesError && (
+                  <p className="text-red-600 text-sm mt-1">
+                    Error loading departments: {employeesError}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -314,16 +396,16 @@ const Payslip = () => {
           )}
           {!loading && filteredPayslips.length > 0 && (
             <>
-              <div className="overflow-x-auto">
+              <div className="rounded-xl overflow-hidden">
                 <table className="w-full text-sm text-left text-gray-700">
                   <thead className="bg-teal-600 text-white">
                     <tr>
-                      <th className="px-6 py-3">Employee</th>
-                      <th className="px-6 py-3">Department</th>
-                      <th className="px-6 py-3">Total Earnings</th>
-                      <th className="px-6 py-3">Total Deductions</th>
-                      <th className="px-6 py-3">Net Pay</th>
-                      <th className="px-6 py-3">Actions</th>
+                      <th className="px-4 py-3 font-medium">Employee</th>
+                      <th className="px-4 py-3 font-medium">Department</th>
+                      <th className="px-4 py-3 font-medium">Total Earnings</th>
+                      <th className="px-4 py-3 font-medium">Total Deductions</th>
+                      <th className="px-4 py-3 font-medium">Net Pay</th>
+                      <th className="px-4 py-3 font-medium">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -332,20 +414,22 @@ const Payslip = () => {
                         key={`${slip.employee_id}-${slip.month}`}
                         className="hover:bg-gray-50"
                       >
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
                           {slip.employee_name} ({slip.employee_id})
                         </td>
-                        <td className="px-6 py-4">{slip.department || "HR"}</td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
+                          {slip.department_name || slip.department || "HR"}
+                        </td>
+                        <td className="px-4 py-3">
                           ₹{(slip.totalEarnings || 0).toLocaleString("en-IN")}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
                           ₹{(slip.totalDeductions || 0).toLocaleString("en-IN")}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
                           ₹{(slip.netPay || 0).toLocaleString("en-IN")}
                         </td>
-                        <td className="px-6 py-4 flex gap-2">
+                        <td className="px-4 py-3 flex gap-2 whitespace-nowrap">
                           <button
                             onClick={() => handleViewPayslip(slip)}
                             className="text-teal-600 hover:text-teal-800 flex items-center"

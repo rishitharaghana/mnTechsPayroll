@@ -5,7 +5,6 @@ import {
   Mail,
   Phone,
   Calendar,
-  UserPlus,
   Filter,
   Fullscreen,
 } from "lucide-react";
@@ -16,101 +15,39 @@ import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import { fetchEmployees, clearState } from "../../redux/slices/employeeSlice";
 
-
-const departmentSelectStyles = {
+// Simplified select styles
+const selectStyles = {
   control: (provided) => ({
     ...provided,
     minHeight: "40px",
-    border: "1px solid #D1D5DB", 
+    border: "1px solid #e5e7eb",
     borderRadius: "8px",
     boxShadow: "none",
-    "&:hover": {
-      borderColor: "#4F46E5", 
-    },
-    fontSize: "14px", 
-    fontWeight: "500", 
-    color: "#1E293B", 
+    "&:hover": { borderColor: "#4f46e5" },
+    fontSize: "14px",
   }),
   menu: (provided) => ({
     ...provided,
-    minHeight: "150px", 
     borderRadius: "8px",
     zIndex: 10,
   }),
   option: (provided, state) => ({
     ...provided,
-    fontSize: "14px", 
-    fontWeight: "500", 
-    color: state.isSelected
-      ? "#1E293B" 
-      : state.isFocused
-      ? "#ffffff" 
-      : "#1E293B", 
+    fontSize: "14px",
+    color: state.isSelected ? "#ffffff" : state.isFocused ? "#ffffff" : "#1e293b",
     backgroundColor: state.isSelected
-      ? "#4F46E5" 
+      ? "#4f46e5"
       : state.isFocused
-      ? "#0F766E" 
-      : "#FFFFFF", 
-    "&:active": {
-      backgroundColor: "#C7D2FE", 
-    },
+      ? "#0f766e"
+      : "#ffffff",
   }),
   singleValue: (provided) => ({
     ...provided,
-    color: "#1E293B", 
+    color: "#1e293b",
   }),
   placeholder: (provided) => ({
     ...provided,
-    color: "#9CA3AF", 
-  }),
-};
-
-
-const roleSelectStyles = {
-  control: (provided) => ({
-    ...provided,
-    minHeight: "40px",
-    border: "1px solid #D1D5DB", 
-    borderRadius: "8px",
-    boxShadow: "none",
-    "&:hover": {
-      borderColor: "#4F46E5", 
-    },
-    fontSize: "14px", 
-    fontWeight: "500", 
-    color: "#1E293B", 
-  }),
-  menu: (provided) => ({
-    ...provided,
-    minHeight: "100px", 
-    borderRadius: "8px",
-    zIndex: 10,
-  }),
-  option: (provided, state) => ({
-    ...provided,
-    fontSize: "14px", 
-    fontWeight: "500", 
-    color: state.isSelected
-      ? "#1E293B" 
-      : state.isFocused
-      ? "#ffffff" 
-      : "#1E293B", 
-    backgroundColor: state.isSelected
-      ? "#4F46E5" 
-      : state.isFocused
-      ? "#0F766E" 
-      : "#FFFFFF", 
-    "&:active": {
-      backgroundColor: "#C7D2FE", 
-    },
-  }),
-  singleValue: (provided) => ({
-    ...provided,
-    color: "#1E293B", 
-  }),
-  placeholder: (provided) => ({
-    ...provided,
-    color: "#9CA3AF", 
+    color: "#9ca3af",
   }),
 };
 
@@ -120,12 +57,19 @@ const Employee = () => {
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const employeesPerPage = 9; // 3 rows * 3 columns for lg screens
 
-  
-  const departments = [...new Set(employees.map((emp) => emp.department_name))];
-  const roles = [...new Set(employees.map((emp) => emp.role))];
+  // Debug: Log employees data
+  useEffect(() => {
+    console.log("Employees data:", employees);
+    console.log("Loading:", loading, "Error:", error);
+  }, [employees, loading, error]);
 
-  
+  // Generate department and role options with safety checks
+  const departments = [...new Set(employees?.map((emp) => emp.department_name) || [])];
+  const roles = [...new Set(employees?.map((emp) => emp.role) || [])];
+
   const departmentOptions = [
     { value: "all", label: "All Departments" },
     ...departments.map((dept) => ({ value: dept, label: dept })),
@@ -145,20 +89,51 @@ const Employee = () => {
     };
   }, [dispatch]);
 
-  const filtered = employees.filter((emp) => {
+  // Filter employees with safety check
+  const filtered = employees?.filter((emp) => {
     const name = emp.full_name || emp.name || "";
     const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
     const matchesDepartment =
       departmentFilter === "all" || emp.department_name === departmentFilter;
     const matchesRole = roleFilter === "all" || emp.role === roleFilter;
     return matchesSearch && matchesDepartment && matchesRole;
-  });
+  }) || [];
 
-  const getSalary = (emp) => {
-    if (emp.role === "employee" || emp.role === "manager") {
-      return emp.basic_salary * 12 + (emp.allowances || 0);
+  // Pagination logic
+  const totalPages = Math.ceil(filtered.length / employeesPerPage);
+  const indexOfLastEmployee = currentPage * employeesPerPage;
+  const indexOfFirstEmployee = indexOfLastEmployee - employeesPerPage;
+  const currentEmployees = filtered.slice(
+    indexOfFirstEmployee,
+    indexOfLastEmployee
+  );
+
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    return null;
+  };
+
+  // Show only 3 page numbers
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 3;
+
+    // Calculate start page to center the current page when possible
+    let startPage = Math.max(1, currentPage - 1);
+    if (currentPage === totalPages && totalPages >= 3) {
+      startPage = totalPages - 2;
+    } else if (currentPage === totalPages - 1 && totalPages >= 3) {
+      startPage = totalPages - 2;
+    }
+
+    // Add up to 3 pages
+    for (let i = startPage; i < startPage + maxPagesToShow && i <= totalPages; i++) {
+      pageNumbers.push(i);
+    }
+
+    return pageNumbers;
   };
 
   const getImageUrl = (emp) => {
@@ -167,19 +142,19 @@ const Employee = () => {
       manager: "FF6F61",
       employee: "6B7280",
     };
-    const initials = (emp.full_name || "")
+    const initials = (emp.full_name || emp.name || "")
       .split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase();
-    return `https:
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(
       initials
-    )}&bg=${bgColors[emp.role] || "6B7280"}`;
+    )}&background=${bgColors[emp.role] || "6B7280"}&color=fff`;
   };
 
   return (
-    <div className="w-full lg:w-[78%]">
-      <div className="flex justify-end">
+    <div className="w-full">
+      <div className="hidden :flex md:justify-end">
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/" },
@@ -191,20 +166,20 @@ const Employee = () => {
           description="Manage your employees efficiently."
         />
       </div>
-      <div className="bg-white rounded-2xl p-6">
-        <div className="flex justify-between items-center mb-6">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-md">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Employees</h1>
-            <p className="text-gray-500">Manage your team members</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Employees</h1>
+            <p className="text-gray-500 text-sm sm:text-base">Manage your team members</p>
           </div>
         </div>
 
-        <div className="mb-6 flex bg-white shadow-md p-4 border-1 border-gray-200 rounded-xl flex-col sm:flex-row gap-4">
-          <div className="relative flex-1 w-5/12">
+        <div className="mb-6 bg-white shadow-md p-4 border border-gray-200 rounded-xl flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
             <input
               type="text"
               placeholder="Search by name..."
-              className="w-8/12 p-2 pl-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full p-2 pl-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -213,59 +188,64 @@ const Employee = () => {
               size={16}
             />
           </div>
-          <div className="flex justify-items-end gap-3 items-end">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 items-start sm:items-center">
             <Select
               options={departmentOptions}
               value={departmentOptions.find(
                 (option) => option.value === departmentFilter
               )}
               onChange={(selected) => setDepartmentFilter(selected.value)}
-              styles={departmentSelectStyles}
-              className="w-56"
+              styles={selectStyles}
+              className="w-full sm:w-56"
               placeholder="Select Department"
             />
             <Select
               options={roleOptions}
               value={roleOptions.find((option) => option.value === roleFilter)}
               onChange={(selected) => setRoleFilter(selected.value)}
-              styles={roleSelectStyles}
-              className="w-44"
+              styles={selectStyles}
+              className="w-full sm:w-44"
               placeholder="Select Role"
             />
           </div>
         </div>
 
         {loading && (
-          <div className="text-center text-gray-600">Loading employees...</div>
+          <div className="text-center text-gray-600 py-4">Loading employees...</div>
         )}
-        {error && <div className="text-center text-red-600">{error}</div>}
+        {error && (
+          <div className="text-center text-red-600 py-4">
+            Error: {error} <br />
+            Please check your Redux setup or data source.
+          </div>
+        )}
         {!loading && !error && filtered.length === 0 && (
-          <div className="text-center text-gray-600">No employees found.</div>
+          <div className="text-center text-gray-600 py-4">No employees found.</div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((emp) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {currentEmployees.map((emp) => (
             <div
               key={`${emp.role}-${emp.id}`}
-              className="bg-white/70 backdrop-blur-md rounded-2xl p-6 border-1 border-gray-200 shadow-md hover:-translate-y-1 transition"
+              className="bg-white rounded-2xl p-6 border border-gray-200 shadow-md hover:-translate-y-1 transition"
             >
               <div className="flex flex-col items-center mb-4">
                 <img
                   src={getImageUrl(emp)}
-                  alt={emp.name}
-                  className="w-30 h-30 rounded-full border-4 border-white shadow-md -mt-4"
+                  alt={emp.name || "Employee"}
+                  className="w-20 h-20 rounded-full border-4 border-white shadow-md -mt-4"
                 />
               </div>
 
               <div className="mb-2">
-                <h3 className="font-bold text-lg text-gray-900">{emp.name}</h3>
-                <div className="w-full flex justify-between items-center">
-                  <div className="w-8/12">
-                    <p className="text-indigo-600 font-medium">
-                      {emp.employee_id}
-                    </p>
-                  </div>
-                  <div className="w-4/12 flex items-center justify-end">
+                <h3 className="font-bold text-base sm:text-lg text-gray-900">
+                  {emp.name || "Unknown"}
+                </h3>
+                <div className="flex justify-between items-center">
+                  <p className="text-indigo-600 font-medium text-sm">
+                    {emp.employee_id || "N/A"}
+                  </p>
+                  <div className="flex items-center gap-1">
                     <Link
                       to={`/admin/employees/edit/${emp.role}/${emp.id}`}
                       className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
@@ -286,16 +266,16 @@ const Employee = () => {
                 </div>
               </div>
 
-              <div className="space-y-2 text-gray-600 text-sm mt-2">
+              <div className="space-y-2 text-gray-600 text-sm">
                 <div className="flex items-center gap-2">
-                  <Mail size={14} /> {emp.email}
+                  <Mail size={14} /> {emp.email || "N/A"}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Phone size={14} /> {emp.mobile}
+                  <Phone size={14} /> {emp.mobile || "N/A"}
                 </div>
                 {(emp.role === "employee" || emp.role === "manager") && (
                   <div className="flex items-center gap-2">
-                    <Calendar size={14} /> {emp.join_date}
+                    <Calendar size={14} /> {emp.join_date || "N/A"}
                   </div>
                 )}
               </div>
@@ -303,7 +283,7 @@ const Employee = () => {
               <div className="pt-3 border-t border-gray-200 mt-3">
                 <div className="flex justify-between mb-1">
                   <span className="text-sm text-gray-600">
-                    {emp.department_name}
+                    {emp.department_name || "N/A"}
                   </span>
                   {(emp.role === "employee" || emp.role === "manager") && (
                     <span
@@ -313,23 +293,60 @@ const Employee = () => {
                           : "bg-blue-100 text-blue-800"
                       }`}
                     >
-                      {emp.employment_type}
+                      {emp.employment_type || "N/A"}
                     </span>
                   )}
                 </div>
-                <p className="font-medium text-gray-900">
-                  {emp.designation_name}
+                <p className="font-medium text-gray-900 text-sm sm:text-base">
+                  {emp.designation_name || "N/A"}
                 </p>
-                {(emp.role === "employee" || emp.role === "manager") &&
-                  getSalary(emp) && (
-                    <p className="text-sm text-gray-600">
-                      Salary: ${getSalary(emp).toLocaleString()}
-                    </p>
-                  )}
               </div>
             </div>
           ))}
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-6 flex justify-center lg:justify-end items-center gap-2 flex-wrap">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                currentPage === 1
+                  ? "bg-slate-300 text-white cursor-not-allowed"
+                  : "bg-slate-700 text-white hover:bg-teal-700"
+              }`}
+            >
+              Previous
+            </button>
+
+            {getPageNumbers().map((page, index) => (
+              <button
+                key={index}
+                onClick={() => handlePageChange(page)}
+                disabled={page === currentPage}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  page === currentPage
+                    ? "bg-teal-700 text-white"
+                    : "bg-slate-700 text-white hover:bg-teal-700"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                currentPage === totalPages
+                  ? "bg-slate-300 text-white cursor-not-allowed"
+                  : "bg-slate-700 text-white hover:bg-teal-700"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
