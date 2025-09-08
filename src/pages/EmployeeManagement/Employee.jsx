@@ -16,116 +16,114 @@ import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import { fetchEmployees, clearState } from "../../redux/slices/employeeSlice";
 
-
 const departmentSelectStyles = {
   control: (provided) => ({
     ...provided,
     minHeight: "40px",
-    border: "1px solid #D1D5DB", 
+    border: "1px solid #D1D5DB",
     borderRadius: "8px",
     boxShadow: "none",
     "&:hover": {
-      borderColor: "#4F46E5", 
+      borderColor: "#4F46E5",
     },
-    fontSize: "14px", 
-    fontWeight: "500", 
-    color: "#1E293B", 
+    fontSize: "14px",
+    fontWeight: "500",
+    color: "#1E293B",
   }),
   menu: (provided) => ({
     ...provided,
-    minHeight: "150px", 
+    minHeight: "150px",
     borderRadius: "8px",
     zIndex: 10,
   }),
   option: (provided, state) => ({
     ...provided,
-    fontSize: "14px", 
-    fontWeight: "500", 
+    fontSize: "14px",
+    fontWeight: "500",
     color: state.isSelected
-      ? "#1E293B" 
+      ? "#1E293B"
       : state.isFocused
-      ? "#ffffff" 
-      : "#1E293B", 
+      ? "#ffffff"
+      : "#1E293B",
     backgroundColor: state.isSelected
-      ? "#4F46E5" 
+      ? "#4F46E5"
       : state.isFocused
-      ? "#0F766E" 
-      : "#FFFFFF", 
+      ? "#0F766E"
+      : "#FFFFFF",
     "&:active": {
-      backgroundColor: "#C7D2FE", 
+      backgroundColor: "#C7D2FE",
     },
   }),
   singleValue: (provided) => ({
     ...provided,
-    color: "#1E293B", 
+    color: "#1E293B",
   }),
   placeholder: (provided) => ({
     ...provided,
-    color: "#9CA3AF", 
+    color: "#9CA3AF",
   }),
 };
-
 
 const roleSelectStyles = {
   control: (provided) => ({
     ...provided,
     minHeight: "40px",
-    border: "1px solid #D1D5DB", 
+    border: "1px solid #D1D5DB",
     borderRadius: "8px",
     boxShadow: "none",
     "&:hover": {
-      borderColor: "#4F46E5", 
+      borderColor: "#4F46E5",
     },
-    fontSize: "14px", 
-    fontWeight: "500", 
-    color: "#1E293B", 
+    fontSize: "14px",
+    fontWeight: "500",
+    color: "#1E293B",
   }),
   menu: (provided) => ({
     ...provided,
-    minHeight: "100px", 
+    minHeight: "100px",
     borderRadius: "8px",
     zIndex: 10,
   }),
   option: (provided, state) => ({
     ...provided,
-    fontSize: "14px", 
-    fontWeight: "500", 
+    fontSize: "14px",
+    fontWeight: "500",
     color: state.isSelected
-      ? "#1E293B" 
+      ? "#1E293B"
       : state.isFocused
-      ? "#ffffff" 
-      : "#1E293B", 
+      ? "#ffffff"
+      : "#1E293B",
     backgroundColor: state.isSelected
-      ? "#4F46E5" 
+      ? "#4F46E5"
       : state.isFocused
-      ? "#0F766E" 
-      : "#FFFFFF", 
+      ? "#0F766E"
+      : "#FFFFFF",
     "&:active": {
-      backgroundColor: "#C7D2FE", 
+      backgroundColor: "#C7D2FE",
     },
   }),
   singleValue: (provided) => ({
     ...provided,
-    color: "#1E293B", 
+    color: "#1E293B",
   }),
   placeholder: (provided) => ({
     ...provided,
-    color: "#9CA3AF", 
+    color: "#9CA3AF",
   }),
 };
 
 const Employee = () => {
   const dispatch = useDispatch();
   const { employees, loading, error } = useSelector((state) => state.employee);
+  const { user } = useSelector((state) => state.auth); // Access logged-in user
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
 
-  
+  // Initialize department and role options
   const departments = [...new Set(employees.map((emp) => emp.department_name))];
   const roles = [...new Set(employees.map((emp) => emp.role))];
 
-  
   const departmentOptions = [
     { value: "all", label: "All Departments" },
     ...departments.map((dept) => ({ value: dept, label: dept })),
@@ -145,12 +143,72 @@ const Employee = () => {
     };
   }, [dispatch]);
 
+  // Restrict department filter options for dept_head and manager
+  const availableDepartmentOptions = () => {
+    if (user?.role === "dept_head" || user?.role === "manager") {
+      return departmentOptions.filter(
+        (option) =>
+          option.value === "all" || option.value === user.department
+      );
+    }
+    return departmentOptions;
+  };
+
+  // Restrict role filter options for dept_head and manager
+  const availableRoleOptions = () => {
+    if (user?.role === "dept_head") {
+      return roleOptions.filter(
+        (option) =>
+          option.value === "all" ||
+          option.value === "employee" ||
+          option.value === "manager"
+      );
+    } else if (user?.role === "manager") {
+      return roleOptions.filter(
+        (option) =>
+          option.value === "all" ||
+          option.value === "dept_head" ||
+          option.value === "employee"
+      );
+    } else if (user?.role === "employee") {
+      return roleOptions.filter((option) => option.value === "all");
+    }
+    return roleOptions;
+  };
+
+  // Filter employees based on user role and department
   const filtered = employees.filter((emp) => {
     const name = emp.full_name || emp.name || "";
     const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
     const matchesDepartment =
       departmentFilter === "all" || emp.department_name === departmentFilter;
     const matchesRole = roleFilter === "all" || emp.role === roleFilter;
+
+    if (!user) return false; // If no user is logged in, show nothing
+
+    if (user.role === "dept_head") {
+      // Department heads see employees and managers in their department
+      return (
+        emp.department_name === user.department &&
+        (emp.role === "employee" || emp.role === "manager") &&
+        matchesSearch &&
+        matchesDepartment &&
+        matchesRole
+      );
+    } else if (user.role === "manager") {
+      // Managers see department heads and employees in their department
+      return (
+        emp.department_name === user.department &&
+        (emp.role === "dept_head" || emp.role === "employee") &&
+        matchesSearch &&
+        matchesDepartment &&
+        matchesRole
+      );
+    } else if (user.role === "employee") {
+      // Employees see only their own profile
+      return emp.id === user.id && matchesSearch && matchesDepartment && matchesRole;
+    }
+    // HR and super_admin see all employees
     return matchesSearch && matchesDepartment && matchesRole;
   });
 
@@ -172,7 +230,7 @@ const Employee = () => {
       .map((n) => n[0])
       .join("")
       .toUpperCase();
-    return `https:
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(
       initials
     )}&bg=${bgColors[emp.role] || "6B7280"}`;
   };
@@ -197,6 +255,15 @@ const Employee = () => {
             <h1 className="text-3xl font-bold text-gray-800">Employees</h1>
             <p className="text-gray-500">Manage your team members</p>
           </div>
+          {(user?.role === "hr" || user?.role === "super_admin") && (
+            <Link
+              to="/admin/assign-employee"
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            >
+              <UserPlus size={16} />
+              Add Employee
+            </Link>
+          )}
         </div>
 
         <div className="mb-6 flex bg-white shadow-md p-4 border-1 border-gray-200 rounded-xl flex-col sm:flex-row gap-4">
@@ -215,8 +282,8 @@ const Employee = () => {
           </div>
           <div className="flex justify-items-end gap-3 items-end">
             <Select
-              options={departmentOptions}
-              value={departmentOptions.find(
+              options={availableDepartmentOptions()}
+              value={availableDepartmentOptions().find(
                 (option) => option.value === departmentFilter
               )}
               onChange={(selected) => setDepartmentFilter(selected.value)}
@@ -225,8 +292,10 @@ const Employee = () => {
               placeholder="Select Department"
             />
             <Select
-              options={roleOptions}
-              value={roleOptions.find((option) => option.value === roleFilter)}
+              options={availableRoleOptions()}
+              value={availableRoleOptions().find(
+                (option) => option.value === roleFilter
+              )}
               onChange={(selected) => setRoleFilter(selected.value)}
               styles={roleSelectStyles}
               className="w-44"
@@ -266,22 +335,31 @@ const Employee = () => {
                     </p>
                   </div>
                   <div className="w-4/12 flex items-center justify-end">
-                    <Link
-                      to={`/admin/employees/edit/${emp.role}/${emp.id}`}
-                      className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
-                    >
-                      <Edit size={16} />
-                    </Link>
-                    <Link
-                      to={`/admin/employees/preview/${emp.id}`}
-                      state={{ employee: emp }}
-                      className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
-                    >
-                      <Fullscreen size={16} />
-                    </Link>
-                    <button className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg">
-                      <Trash2 size={16} />
-                    </button>
+                    {(user?.role === "hr" || user?.role === "super_admin") && (
+                      <>
+                        <Link
+                          to={`/admin/employees/edit/${emp.role}/${emp.id}`}
+                          className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                        >
+                          <Edit size={16} />
+                        </Link>
+                        <Link
+                          to={`/admin/employees/preview/${emp.id}`}
+                          state={{ employee: emp }}
+                          className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                        >
+                          <Fullscreen size={16} />
+                        </Link>
+                        <button
+                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          onClick={() =>
+                            dispatch(deleteEmployee({ id: emp.id, role: emp.role }))
+                          }
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
