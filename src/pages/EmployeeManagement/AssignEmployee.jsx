@@ -7,6 +7,7 @@ import {
   clearState,
   fetchDepartments,
   fetchDesignations,
+  fetchEmployees,
 } from "../../redux/slices/employeeSlice";
 import { toast } from "react-toastify";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
@@ -131,8 +132,9 @@ const AssignEmployee = () => {
       });
       setStep(1);
       setErrors({});
+      dispatch(fetchEmployees()); // Refresh employee list
       dispatch(clearState());
-      navigate("/admin/assign-employee");
+      navigate("/admin/employees");
     }
     if (error) {
       toast.error(error);
@@ -141,66 +143,65 @@ const AssignEmployee = () => {
     }
   }, [successMessage, error, dispatch, navigate]);
 
-  // Filter departments based on role
   const getFilteredDepartments = () => {
     if (!departments) return [];
     if (employee.roleType === "HR") {
       return departments.filter((dept) => dept.department_name === "HR");
     }
-    if (["Department Head", "Manager"].includes(employee.roleType)) {
-      return departments.filter(
-        (dept) =>
-          dept.department_name !== "HR" && dept.department_name !== "Manager"
-      );
-    }
     return departments.filter((dept) => dept.department_name !== "Manager");
   };
 
-  // Filter designations based on role and department
   const getFilteredDesignations = () => {
     if (!designations || !employee.department) return [];
     const deptDesignations = designations.filter(
       (des) => des.department_name === employee.department
     );
     if (employee.roleType === "HR") {
-      return deptDesignations.filter((des) =>
-        [
-          "HR Manager",
-          "HR Executive",
-          "Payroll Executive",
-          "Recruitment Specialist",
-          "Training & Development Officer",
-        ].includes(des.designation_name)
-      );
+      return deptDesignations;
     }
-    if (
-      employee.roleType === "Department Head" ||
-      employee.roleType === "Manager"
-    ) {
+    if (employee.roleType === "Department Head") {
       return deptDesignations.filter((des) =>
         [
-          "Facility Manager",
-          "Office Administrator",
+          "Technical Lead",
+          "IT Director",
           "General Manager",
           "Digital Marketing Manager",
           "Design Manager",
-          "Technical Lead",
           "Marketing Manager",
           "Telemarketing Manager",
+          "Facility Manager",
+          "Office Administrator",
+        ].includes(des.designation_name)
+      );
+    }
+    if (employee.roleType === "Manager") {
+      return deptDesignations.filter((des) =>
+        [
+          "Project Manager",
+          "Team Lead",
+          "Operations Manager",
+          "Marketing Coordinator",
+          "Design Coordinator",
         ].includes(des.designation_name)
       );
     }
     return deptDesignations.filter(
       (des) =>
         ![
-          "Facility Manager",
-          "Office Administrator",
+          "Technical Lead",
+          "IT Director",
           "General Manager",
           "Digital Marketing Manager",
           "Design Manager",
-          "Technical Lead",
           "Marketing Manager",
           "Telemarketing Manager",
+          "Facility Manager",
+          "Office Administrator",
+          "Project Manager",
+          "Team Lead",
+          "Operations Manager",
+          "Marketing Coordinator",
+          "Design Coordinator",
         ].includes(des.designation_name)
     );
   };
@@ -297,7 +298,6 @@ const AssignEmployee = () => {
           newErrors.photo = "Photo size must not exceed 5MB";
         }
       }
-      // Validate Date of Birth
       if (!employee.dateOfBirth) {
         newErrors.dateOfBirth = "Date of Birth is required";
       } else if (isNaN(new Date(employee.dateOfBirth).getTime())) {
@@ -320,7 +320,6 @@ const AssignEmployee = () => {
           newErrors.dateOfBirth = "Date of Birth cannot be in the future";
         }
       }
-      // Validate Gender
       if (!employee.gender) {
         newErrors.gender = "Gender is required";
       } else if (!genders.includes(employee.gender)) {
@@ -329,26 +328,16 @@ const AssignEmployee = () => {
     }
     if (step === 3) {
       if (!employee.joinDate) newErrors.joinDate = "Join Date is required";
-      if (
-        ["Department Head", "Employee", "Manager"].includes(
-          employee.roleType
-        ) &&
-        !employee.department
-      ) {
+      if (["HR", "Department Head", "Employee", "Manager"].includes(employee.roleType) && !employee.department) {
         newErrors.department = `Department is required for ${employee.roleType} role`;
       }
-      if (
-        ["Department Head", "Employee", "Manager"].includes(
-          employee.roleType
-        ) &&
-        !employee.position
-      ) {
+      if (["HR", "Department Head", "Employee", "Manager"].includes(employee.roleType) && !employee.position) {
         newErrors.position = `Position is required for ${employee.roleType} role`;
       }
-      if (
-        ["Employee", "Manager"].includes(employee.roleType) &&
-        !employee.employmentType
-      ) {
+      if (employee.roleType === "HR" && employee.department !== "HR") {
+        newErrors.department = "HR role must be in HR department";
+      }
+      if (["Employee", "Manager"].includes(employee.roleType) && !employee.employmentType) {
         newErrors.employmentType = "Employment Type is required";
       }
       if (!employee.basicSalary)
@@ -397,8 +386,7 @@ const AssignEmployee = () => {
         return;
       }
 
-      console.log("Submitting dateOfBirth:", employee.dateOfBirth); // Debug DOB
-
+      console.log("FormData entries:");
       const roleMap = {
         HR: "hr",
         "Department Head": "dept_head",
@@ -419,14 +407,12 @@ const AssignEmployee = () => {
       formData.append("bonuses", parseFloat(employee.bonuses) || 0);
       formData.append("join_date", employee.joinDate || "");
       formData.append("blood_group", employee.bloodGroup || "");
-      formData.append("dob", employee.dateOfBirth || ""); // Changed to 'dob'
+      formData.append("dob", employee.dateOfBirth || "");
       formData.append("gender", employee.gender || "");
       if (employee.photo) {
         formData.append("photo", employee.photo);
       }
-      if (
-        ["Department Head", "Manager", "Employee"].includes(employee.roleType)
-      ) {
+      if (["HR", "Department Head", "Manager", "Employee"].includes(employee.roleType)) {
         formData.append("department_name", employee.department || "");
         formData.append("designation_name", employee.position || "");
       }
@@ -434,7 +420,6 @@ const AssignEmployee = () => {
         formData.append("employment_type", employee.employmentType || "");
       }
 
-      console.log("FormData entries:");
       for (let [key, value] of formData.entries()) {
         console.log(`${key}:`, value instanceof File ? value.name : value);
       }
@@ -442,8 +427,8 @@ const AssignEmployee = () => {
       const resultAction = await dispatch(createEmployee(formData));
 
       if (createEmployee.fulfilled.match(resultAction)) {
-        console.log("Create employee response:", resultAction.payload); // Debug response
         toast.success("Employee created successfully");
+        dispatch(fetchEmployees()); // Refresh employee list
         setEmployee({
           name: "",
           email: "",
@@ -467,7 +452,7 @@ const AssignEmployee = () => {
         setStep(1);
         setErrors({});
         dispatch(clearState());
-        navigate("/admin/assign-employee");
+        navigate("/admin/employees");
       } else {
         console.error("Submission error:", resultAction.payload);
         toast.error(resultAction.payload || "Failed to create employee");
@@ -880,7 +865,7 @@ const AssignEmployee = () => {
                       </p>
                     )}
                   </div>
-                  {["Department Head", "Employee", "Manager"].includes(
+                  {["HR", "Department Head", "Employee", "Manager"].includes(
                     employee.roleType
                   ) && (
                     <div className="relative group z-10">
@@ -915,7 +900,7 @@ const AssignEmployee = () => {
                       )}
                     </div>
                   )}
-                  {["Department Head", "Employee", "Manager"].includes(
+                  {["HR", "Department Head", "Employee", "Manager"].includes(
                     employee.roleType
                   ) &&
                     employee.department && (
