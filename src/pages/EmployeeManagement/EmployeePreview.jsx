@@ -318,6 +318,9 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
     },
   ];
 
+  // ✅ Fix applied: ensure activeTab is valid
+  const currentTab = tabGroups[activeTab] || tabGroups[0];
+
   return (
     <div className="relative">
       {/* Error and Success Messages */}
@@ -337,9 +340,9 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
         className="bg-white rounded-lg p-6 shadow-md transition-all duration-300 animate-fade-in"
         style={{ animationDelay: `${activeTab * 100}ms` }}
       >
-        <h4 className="text-xl font-semibold text-teal-600 mb-6">{tabGroups[activeTab].title}</h4>
+        <h4 className="text-xl font-semibold text-teal-600 mb-6">{currentTab.title}</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700">
-          {tabGroups[activeTab].fields.map((field, idx) => (
+          {currentTab.fields.map((field, idx) => (
             <div key={idx} className="flex flex-col gap-2">
               <strong className="text-sm font-medium text-gray-900">{field.label}:</strong>
               <div className="text-sm">{field.value}</div>

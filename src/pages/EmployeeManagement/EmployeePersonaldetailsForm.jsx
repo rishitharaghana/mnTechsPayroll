@@ -8,7 +8,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="flex flex-col">
         <label className="mb-1 text-sm font-bold text-black tracking-tight">Full Name</label>
-        <input
+        <input  
           type="text"
           name="fullName"
           value={formData.fullName}
@@ -60,7 +60,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <label className="mb-1 text-sm font-bold text-black tracking-tight">Date of Birth</label>
         <div className="relative">
           <DatePicker
-            selected={formData.dateOfBirth ? new Date(formData.dateOfBirth) : null}
+            selected={formData.dob ? new Date(formData.dob) : null}
             onChange={(date) => handleDateChange("dateOfBirth", date)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300 pr-10"
             dateFormat="yyyy-MM-dd"
@@ -72,7 +72,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           />
           <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
         </div>
-        {errors.dateOfBirth && <span className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</span>}
+        {errors.dob && <span className="text-red-500 text-xs mt-1">{errors.dob}</span>}
       </div>
       <div className="flex flex-col">
         <label className="mb-1 text-sm font-bold text-black tracking-tight">Email</label>
@@ -102,7 +102,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         </select>
         {errors.gender && <span className="text-red-500 text-xs mt-1">{errors.gender}</span>}
       </div>
-      {/* PAN Card Number */}
       <div className="flex flex-col">
         <label className="mb-1 text-sm font-bold text-black tracking-tight">PAN Card Number</label>
         <input
@@ -116,7 +115,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         />
         {errors.panCard && <span className="text-red-500 text-xs mt-1">{errors.panCard}</span>}
       </div>
-      {/* Aadhar Card Number */}
       <div className="flex flex-col">
         <label className="mb-1 text-sm font-bold text-black tracking-tight">Aadhar Card Number</label>
         <input
@@ -163,7 +161,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           value={formData.previousAddress}
           onChange={handleChange}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
-          placeholder="Enter previous address"
+          placeholder="Enter permanent address"
         />
         {errors.previousAddress && (
           <span className="text-red-500 text-xs mt-1">{errors.previousAddress}</span>

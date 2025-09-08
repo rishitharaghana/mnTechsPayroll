@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   applyLeave,
   fetchMyLeaves,
   fetchRecipientOptions,
   fetchLeaveBalances,
+  allocateMonthlyLeaves,
   clearState,
-} from "../../redux/slices/leaveSlice";
-import { Calendar, List, Send, RefreshCw } from "lucide-react";
-import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
-import PageMeta from "../../Components/common/PageMeta";
-import DatePicker from "../../Components/ui/date/DatePicker";
+} from '../../redux/slices/leaveSlice';
+import { Calendar, List, Send, RefreshCw } from 'lucide-react';
+import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
+import PageMeta from '../../Components/common/PageMeta';
+import DatePicker from '../../Components/ui/date/DatePicker';
 
 const LeaveApplication = () => {
   const dispatch = useDispatch();
@@ -19,47 +20,46 @@ const LeaveApplication = () => {
   const {
     leaves = [],
     recipients = [],
-    leaveBalances = { vacation: 0, sick: 0, casual: 0, maternity: 0 },
+    leaveBalances = { vacation: 0, sick: 0, casual: 0, maternity: 0, paternity: 0 },
     loading,
     error,
     successMessage,
   } = useSelector((state) => state.leaves);
-  const { role, token } = useSelector((state) => state.auth);
+  const { role, token, employee_id } = useSelector((state) => state.auth);
   const [formData, setFormData] = useState({
-    start_date: "",
-    end_date: "",
-    reason: "",
-    leave_type: "",
-    recipient_id: "",
+    start_date: '',
+    end_date: '',
+    reason: '',
+    leave_type: '',
+    recipient_id: '',
   });
 
   useEffect(() => {
-    const userToken = localStorage.getItem("userToken");
-    if (!token || !userToken) {
-      console.log("No token found, redirecting to login");
-      navigate("/login");
+    if (!token || !localStorage.getItem('userToken')) {
+      console.log('No token found, redirecting to login');
+      navigate('/login');
       return;
     }
     try {
-      const { token: parsedToken } = JSON.parse(userToken);
+      const { token: parsedToken } = JSON.parse(localStorage.getItem('userToken'));
       if (parsedToken !== token) {
-        console.warn("Token mismatch between Redux and localStorage");
-        navigate("/login");
+        console.warn('Token mismatch between Redux and localStorage');
+        navigate('/login');
         return;
       }
     } catch (error) {
-      console.error("Error parsing userToken:", error);
-      navigate("/login");
+      console.error('Error parsing userToken:', error);
+      navigate('/login');
       return;
     }
 
-    console.log("Fetching leaves, recipient options, and balances");
     dispatch(fetchMyLeaves());
     dispatch(fetchRecipientOptions());
     dispatch(fetchLeaveBalances());
     const interval = setInterval(() => {
-      console.log("Polling fetchMyLeaves");
+      console.log('Polling fetchMyLeaves and fetchLeaveBalances');
       dispatch(fetchMyLeaves());
+      dispatch(fetchLeaveBalances());
     }, 30000);
 
     return () => clearInterval(interval);
@@ -67,10 +67,7 @@ const LeaveApplication = () => {
 
   useEffect(() => {
     if (successMessage || error) {
-      const timer = setTimeout(() => {
-        console.log("Clearing state due to success or error");
-        dispatch(clearState());
-      }, 3000);
+      const timer = setTimeout(() => dispatch(clearState()), 3000);
       return () => clearTimeout(timer);
     }
   }, [successMessage, error, dispatch]);
@@ -81,21 +78,26 @@ const LeaveApplication = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Submitting leave request:", formData);
-    dispatch(applyLeave(formData)).then((result) => {
+    if (!formData.leave_type || leaveBalances[formData.leave_type] <= 0) {
+      dispatch({
+        type: 'leaves/clearState',
+        payload: { error: `No ${formData.leave_type || 'selected'} leave balance available` },
+      });
+      return;
+    }
+    dispatch(applyLeave({ ...formData, employee_id })).then((result) => {
       if (result.error) {
-        console.error("applyLeave error:", result.error.message);
-        if (result.error.message.includes("No authentication token")) {
-          navigate("/login");
+        console.error('applyLeave error:', result.error.message);
+        if (result.error.message.includes('No authentication token')) {
+          navigate('/login');
         }
-      } else if (result.meta.requestStatus === "fulfilled") {
-        console.log("Leave applied successfully, resetting form");
+      } else if (result.meta.requestStatus === 'fulfilled') {
         setFormData({
-          start_date: "",
-          end_date: "",
-          reason: "",
-          leave_type: "",
-          recipient_id: "",
+          start_date: '',
+          end_date: '',
+          reason: '',
+          leave_type: '',
+          recipient_id: '',
         });
         dispatch(fetchMyLeaves());
         dispatch(fetchLeaveBalances());
@@ -112,13 +114,13 @@ const LeaveApplication = () => {
         />
         <PageBreadcrumb
           items={[
-            { label: "Home", link: "/emp-dashboard" },
-            { label: "Leave Application", link: "/employee/leave-application" },
+            { label: 'Home', link: '/emp-dashboard' },
+            { label: 'Leave Application', link: '/employee/leave-application' },
           ]}
         />
       </div>
       <div className="p-6 space-y-6 bg-white rounded-2xl min-h-screen font-sans">
-        <style jsx>{`
+        <style>{`
           select option {
             background-color: #ffffff;
             color: #1e293b;
@@ -131,11 +133,15 @@ const LeaveApplication = () => {
             background-color: #ccfbf1;
             color: #0f766e;
           }
+          select option:disabled {
+            color: #a0aec0;
+            background-color: #f7fafc;
+          }
           textarea {
-            min-height: 45px; /* Minimum height */
-            max-height: 500px; /* Maximum height */
-            resize: vertical; /* Allow vertical resizing only */
-            overflow-y: auto; /* Show scrollbar if content exceeds max-height */
+            min-height: 45px;
+            max-height: 500px;
+            resize: vertical;
+            overflow-y: auto;
           }
         `}</style>
 
@@ -143,9 +149,7 @@ const LeaveApplication = () => {
           <div className="flex items-center gap-2">
             <Calendar size={24} className="text-teal-700" />
             <div>
-              <h1 className="text-3xl font-bold text-slate-700">
-                Leave Application
-              </h1>
+              <h1 className="text-3xl font-bold text-slate-700">Leave Application</h1>
               <p className="text-slate-700 mt-1">Submit your leave request</p>
             </div>
           </div>
@@ -157,7 +161,7 @@ const LeaveApplication = () => {
           {successMessage && <p className="text-teal-700">{successMessage}</p>}
         </div>
 
-        {role === "super_admin" ? (
+        {role === 'super_admin' ? (
           <p className="text-red-500">Super admins cannot apply for leaves.</p>
         ) : (
           <form
@@ -170,7 +174,7 @@ const LeaveApplication = () => {
                   name="start_date"
                   title="Start Date"
                   value={formData.start_date}
-                  onChange={(date) => handleInputChange("start_date", date)}
+                  onChange={(date) => handleInputChange('start_date', date)}
                   icon={<Calendar size={20} className="text-teal-700" />}
                 />
               </div>
@@ -179,71 +183,74 @@ const LeaveApplication = () => {
                   name="end_date"
                   title="End Date"
                   value={formData.end_date}
-                  onChange={(date) => handleInputChange("end_date", date)}
+                  onChange={(date) => handleInputChange('end_date', date)}
                   icon={<Calendar size={20} className="text-teal-700" />}
                 />
               </div>
               <div className="col-span-1">
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Leave Type
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Leave Type</label>
                 <select
                   name="leave_type"
                   value={formData.leave_type}
-                  onChange={(e) => handleInputChange("leave_type", e.target.value)}
+                  onChange={(e) => handleInputChange('leave_type', e.target.value)}
                   className="mt-1 block w-full rounded-lg border border-teal-700 bg-white py-2.5 px-3 text-slate-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition duration-150 ease-in-out"
                   required
                 >
-                  <option value="" disabled>
-                    Select Leave Type
-                  </option>
-                  <option value="vacation">Vacation ({leaveBalances.vacation} days)</option>
-                  <option value="sick">Sick ({leaveBalances.sick} days)</option>
-                  <option value="casual">Casual ({leaveBalances.casual} days)</option>
-                  <option value="maternity">Maternity ({leaveBalances.maternity} days)</option>
-                </select>
-              </div>
-              <div className="col-span-1">
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Recipient
-                </label>
-                <select
-                  name="recipient_id"
-                  value={formData.recipient_id}
-                  onChange={(e) => handleInputChange("recipient_id", e.target.value)}
-                  className="mt-1 block w-full rounded-lg border border-teal-700 bg-white py-2.5 px-3 text-slate-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition duration-150 ease-in-out"
-                  required
-                >
-                  <option value="" disabled>
-                    Select Recipient
-                  </option>
-                  {recipients.map((recipient) => (
-                    <option key={recipient.employee_id} value={recipient.employee_id}>
-                      {recipient.full_name}
+                  <option value="" disabled>Select Leave Type</option>
+                  {Object.entries(leaveBalances).map(([type, balance]) => (
+                    <option key={type} value={type} disabled={balance <= 0}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)} ({balance} days)
                     </option>
                   ))}
                 </select>
               </div>
+              <div className="col-span-1">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Recipient</label>
+                <select
+                  name="recipient_id"
+                  value={formData.recipient_id}
+                  onChange={(e) => handleInputChange('recipient_id', e.target.value)}
+                  className="mt-1 block w-full rounded-lg border border-teal-700 bg-white py-2.5 px-3 text-slate-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition duration-150 ease-in-out"
+                  required
+                >
+                  <option value="" disabled>Select Recipient</option>
+                  {recipients.map((recipient, index) => (
+  <option
+    key={recipient.employee_id || `recipient-${index}`}
+    value={recipient.employee_id || ""}
+    disabled={!recipient.employee_id}
+  >
+    {recipient.full_name || "Unnamed Recipient"}
+  </option>
+))}
+
+                </select>
+              </div>
               <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Reason
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Reason</label>
                 <textarea
                   name="reason"
                   value={formData.reason}
-                  onChange={(e) => handleInputChange("reason", e.target.value)}
+                  onChange={(e) => handleInputChange('reason', e.target.value)}
                   className="mt-1 block w-full rounded-lg border border-teal-700 bg-white py-2.5 px-3 text-slate-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition duration-150 ease-in-out"
                   placeholder="Enter reason for leave"
                   required
                 />
               </div>
               <div className="md:col-span-3 flex justify-end gap-2">
+                {['super_admin', 'hr'].includes(role) && (
+                  <button
+                    type="button"
+                    onClick={() => dispatch(allocateMonthlyLeaves()).then(() => dispatch(fetchLeaveBalances()))}
+                    className="px-3 py-2 bg-teal-700 text-white rounded-lg hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-700 transition duration-150 ease-in-out flex items-center gap-2"
+                  >
+                    <RefreshCw size={16} />
+                    <span>Allocate Leaves</span>
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => {
-                    console.log("Manual refresh leaves");
-                    dispatch(fetchMyLeaves());
-                  }}
+                  onClick={() => dispatch(fetchMyLeaves())}
                   className="px-3 py-2 bg-slate-700 text-white rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700 transition duration-150 ease-in-out flex items-center gap-2"
                 >
                   <RefreshCw size={16} />
@@ -251,11 +258,11 @@ const LeaveApplication = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || !formData.recipient_id}
+                  disabled={loading || !formData.recipient_id || !formData.leave_type || leaveBalances[formData.leave_type] <= 0}
                   className="flex items-center gap-2 bg-teal-700 text-white px-3 py-2 rounded-lg hover:bg-slate-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-700 transition duration-150 ease-in-out"
                 >
                   <Send size={16} />
-                  <span>{loading ? "Submitting..." : "Submit"}</span>
+                  <span>{loading ? 'Submitting...' : 'Submit'}</span>
                 </button>
               </div>
             </div>
@@ -274,70 +281,52 @@ const LeaveApplication = () => {
               <table className="min-w-full divide-y divide-teal-700">
                 <thead className="bg-teal-700/10">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">
-                      Start Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">
-                      End Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">
-                      Days
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">
-                      Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">
-                      Reason
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">
-                      Recipients
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">
-                      Approved At
-                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Start Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">End Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Days</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Reason</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Recipients</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Approved At</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-teal-700">
                   {leaves.map((leave) => (
                     <tr key={leave.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
-                        {new Date(leave.start_date).toLocaleDateString() || "N/A"}
+                        {new Date(leave.start_date).toLocaleDateString() || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
-                        {new Date(leave.end_date).toLocaleDateString() || "N/A"}
+                        {new Date(leave.end_date).toLocaleDateString() || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
-                        {leave.total_days || "N/A"}
+                        {leave.total_days || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
-                        {leave.leave_type || "N/A"}
+                        {leave.leave_type || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-700">
-                        {leave.reason || "N/A"}
+                        {leave.reason || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-700">
-                        {leave.recipients?.join(", ") || "Pending"}
+                        {leave.recipients?.join(', ') || 'Pending'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            leave.status?.toLowerCase() === "approved"
-                              ? "bg-teal-700/20 text-teal-700"
-                              : leave.status?.toLowerCase() === "rejected"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-yellow-100 text-yellow-700"
+                            leave.status?.toLowerCase() === 'approved'
+                              ? 'bg-teal-700/20 text-teal-700'
+                              : leave.status?.toLowerCase() === 'rejected'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-yellow-100 text-yellow-700'
                           }`}
                         >
-                          {leave.status || "Unknown"}
+                          {leave.status || 'Unknown'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
-                        {leave.approved_at
-                          ? new Date(leave.approved_at).toLocaleString()
-                          : "Pending"}
+                        {leave.approved_at ? new Date(leave.approved_at).toLocaleString() : 'Pending'}
                       </td>
                     </tr>
                   ))}

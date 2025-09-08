@@ -1,19 +1,32 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Eye, Download, X } from 'lucide-react';
-import { fetchPayslips, downloadPayslip, clearError } from '../../redux/slices/payslipSlice';
-import { getCurrentUserProfile } from '../../redux/slices/employeeSlice';
-import { toast } from 'react-toastify';
-import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
-import PageMeta from '../../Components/common/PageMeta';
-import PayslipGenerator from '../PayslipManagement/PayslipGenerator';
+import React, { useState, useEffect, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Eye, Download, X } from "lucide-react";
+import {
+  fetchPayslips,
+  downloadPayslip,
+  clearError,
+} from "../../redux/slices/payslipSlice";
+import { getCurrentUserProfile } from "../../redux/slices/employeeSlice";
+import { toast } from "react-toastify";
+import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
+import PageMeta from "../../Components/common/PageMeta";
+import PayslipGenerator from "../PayslipManagement/PayslipGenerator";
 
 const EmployeePayslip = () => {
   const dispatch = useDispatch();
   const { user, role, isAuthenticated } = useSelector((state) => state.auth);
-  const { employeeId, loading: employeeLoading, error: employeeError } = useSelector((state) => state.employee);
-  const { loading, error, payslips = [], totalRecords = 0 } = useSelector((state) => state.payslip);
-  const [selectedMonth, setSelectedMonth] = useState('2025-09');
+  const {
+    employeeId,
+    loading: employeeLoading,
+    error: employeeError,
+  } = useSelector((state) => state.employee);
+  const {
+    loading,
+    error,
+    payslips = [],
+    totalRecords = 0,
+  } = useSelector((state) => state.payslip);
+  const [selectedMonth, setSelectedMonth] = useState("2025-09");
   const [isLoadingDownload, setIsLoadingDownload] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
   const [showPreview, setShowPreview] = useState(null);
@@ -22,29 +35,50 @@ const EmployeePayslip = () => {
 
   // Debug states
   useEffect(() => {
-    console.log('Auth state:', { isAuthenticated, role, user });
-    console.log('Employee state:', { employeeId, employeeLoading, employeeError });
-    console.log('Payslip state:', { loading, error, payslips, totalRecords });
-  }, [isAuthenticated, role, user, employeeId, employeeLoading, employeeError, loading, error, payslips, totalRecords]);
+    console.log("Auth state:", { isAuthenticated, role, user });
+    console.log("Employee state:", {
+      employeeId,
+      employeeLoading,
+      employeeError,
+    });
+    console.log("Payslip state:", { loading, error, payslips, totalRecords });
+  }, [
+    isAuthenticated,
+    role,
+    user,
+    employeeId,
+    employeeLoading,
+    employeeError,
+    loading,
+    error,
+    payslips,
+    totalRecords,
+  ]);
 
   // Fetch current user profile
   useEffect(() => {
-    if (isAuthenticated && role?.toLowerCase() === 'employee' && !employeeId) {
-      console.log('Fetching user profile...');
+    if (isAuthenticated && role?.toLowerCase() === "employee" && !employeeId) {
+      console.log("Fetching user profile...");
       dispatch(getCurrentUserProfile());
     }
   }, [dispatch, isAuthenticated, role, employeeId]);
 
   // Fetch payslips
   useEffect(() => {
-    if (isAuthenticated && role?.toLowerCase() === 'employee' && employeeId) {
-      console.log('Fetching payslips for:', { employeeId, selectedMonth, page: currentPage });
-      dispatch(fetchPayslips({
-        month: selectedMonth,
-        employeeId: employeeId,
+    if (isAuthenticated && role?.toLowerCase() === "employee" && employeeId) {
+      console.log("Fetching payslips for:", {
+        employeeId,
+        selectedMonth,
         page: currentPage,
-        limit: itemsPerPage,
-      }));
+      });
+      dispatch(
+        fetchPayslips({
+          month: selectedMonth,
+          employeeId: employeeId,
+          page: currentPage,
+          limit: itemsPerPage,
+        })
+      );
       dispatch(clearError());
     }
   }, [dispatch, isAuthenticated, role, employeeId, selectedMonth, currentPage]);
@@ -53,12 +87,19 @@ const EmployeePayslip = () => {
   const filteredPayslips = useMemo(() => {
     const filtered = (Array.isArray(payslips) ? payslips : [])
       .filter((slip) => {
-        if (role?.toLowerCase() !== 'employee' || slip.employee_id !== employeeId) return false;
-        return (!selectedMonth || slip.month === selectedMonth) && ['Approved', 'Paid', 'Pending'].includes(slip.status);
+        if (
+          role?.toLowerCase() !== "employee" ||
+          slip.employee_id !== employeeId
+        )
+          return false;
+        return (
+          (!selectedMonth || slip.month === selectedMonth) &&
+          ["Approved", "Paid", "Pending"].includes(slip.status)
+        );
       })
       .map((slip) => ({
         ...slip,
-        employee_name: slip.employee || slip.employee_name || 'Unknown', // Ensure employee_name is set
+        employee_name: slip.employee || slip.employee_name || "Unknown", // Ensure employee_name is set
         totalEarnings:
           (parseFloat(slip.basic_salary) || 0) +
           (parseFloat(slip.hra) || 0) +
@@ -71,22 +112,22 @@ const EmployeePayslip = () => {
           (parseFloat(slip.tax_deduction) || 0),
         netPay: parseFloat(slip.net_salary) || 0,
         net_salary: parseFloat(slip.net_salary) || 0, // Ensure net_salary is included
-        pan_number: slip.pan_number || '-', // Fallback for missing fields
-        uan_number: slip.uan_number || '-',
-        bank_account_number: slip.bank_account_number || '-',
-        ifsc_code: slip.ifsc_code || '-',
+        pan_number: slip.pan_number || "-", // Fallback for missing fields
+        uan_number: slip.uan_number || "-",
+        bank_account_number: slip.bank_account_number || "-",
+        ifsc_code: slip.ifsc_code || "-",
         payment_date: slip.payment_date || null,
       }))
-      .sort((a, b) => new Date(b.month + '-01') - new Date(a.month + '-01'));
-    console.log('Filtered payslips:', filtered);
+      .sort((a, b) => new Date(b.month + "-01") - new Date(a.month + "-01"));
+    console.log("Filtered payslips:", filtered);
     return filtered;
   }, [payslips, selectedMonth, role, employeeId]);
 
   const payPeriods = useMemo(() => {
     const periods = [...new Set(payslips.map((slip) => slip.month))].sort(
-      (a, b) => new Date(b + '-01') - new Date(a + '-01')
+      (a, b) => new Date(b + "-01") - new Date(a + "-01")
     );
-    console.log('Pay periods:', periods);
+    console.log("Pay periods:", periods);
     return periods;
   }, [payslips]);
 
@@ -94,21 +135,21 @@ const EmployeePayslip = () => {
 
   const handleDownload = async (employeeId, month) => {
     if (!employeeId || !month) {
-      setDownloadError('Please select a month');
-      toast.error('Please select a month');
+      setDownloadError("Please select a month");
+      toast.error("Please select a month");
       return;
     }
     setIsLoadingDownload(true);
     setDownloadError(null);
     try {
-      console.log('Downloading payslip for:', { employeeId, month });
+      console.log("Downloading payslip for:", { employeeId, month });
       await dispatch(downloadPayslip({ employeeId, month })).unwrap();
-      toast.success('Payslip downloaded successfully');
+      toast.success("Payslip downloaded successfully");
     } catch (err) {
-      const errorMessage = err?.error || 'Failed to download payslip';
+      const errorMessage = err?.error || "Failed to download payslip";
       setDownloadError(errorMessage);
       toast.error(errorMessage);
-      console.error('Download error:', err);
+      console.error("Download error:", err);
     } finally {
       setIsLoadingDownload(false);
     }
@@ -126,12 +167,13 @@ const EmployeePayslip = () => {
       </div>
     );
   }
-  if (role?.toLowerCase() !== 'employee') {
+  if (role?.toLowerCase() !== "employee") {
     return (
       <div className="min-h-screen bg-gray-100 p-6">
         <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
           <p className="text-red-600 font-semibold">
-            Access restricted: User role is '{role || 'undefined'}', not 'employee'.
+            Access restricted: User role is '{role || "undefined"}', not
+            'employee'.
           </p>
         </div>
       </div>
@@ -142,7 +184,10 @@ const EmployeePayslip = () => {
       <div className="min-h-screen bg-gray-100 p-6">
         <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
           <p className="text-red-600 font-semibold">
-            Access restricted: Employee ID is missing. {employeeLoading ? 'Loading profile...' : employeeError || 'Please try again.'}
+            Access restricted: Employee ID is missing.{" "}
+            {employeeLoading
+              ? "Loading profile..."
+              : employeeError || "Please try again."}
           </p>
         </div>
       </div>
@@ -151,12 +196,22 @@ const EmployeePayslip = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <PageMeta title="Employee Payslips" description="View and download your payslips." />
-      <PageBreadcrumb items={[{ label: 'Home', link: '/emp-dashboard' }, { label: 'My Payslips', link: '/employee-payslip' }]} />
+      <PageMeta
+        title="Employee Payslips"
+        description="View and download your payslips."
+      />
+      <PageBreadcrumb
+        items={[
+          { label: "Home", link: "/emp-dashboard" },
+          { label: "My Payslips", link: "/employee-payslip" },
+        ]}
+      />
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-xl shadow-md p-6 mb-6">
           <h1 className="text-2xl font-bold text-gray-800">My Payslips</h1>
-          <p className="text-gray-600 mt-2">View and download your payslips for any month.</p>
+          <p className="text-gray-600 mt-2">
+            View and download your payslips for any month.
+          </p>
         </div>
         {(error || downloadError || employeeError) && (
           <div className="p-4 rounded-lg mb-6 bg-red-50 text-red-700">
@@ -164,10 +219,14 @@ const EmployeePayslip = () => {
           </div>
         )}
         <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Select Pay Period</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            Select Pay Period
+          </h2>
           <div className="flex items-center gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Pay Period</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Pay Period
+              </label>
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
@@ -177,7 +236,10 @@ const EmployeePayslip = () => {
                 <option value="">Select a month</option>
                 {payPeriods.map((month) => (
                   <option key={month} value={month}>
-                    {new Date(month + '-01').toLocaleString('default', { month: 'long', year: 'numeric' })}
+                    {new Date(month + "-01").toLocaleString("default", {
+                      month: "long",
+                      year: "numeric",
+                    })}
                   </option>
                 ))}
               </select>
@@ -185,12 +247,14 @@ const EmployeePayslip = () => {
             <button
               onClick={() => {
                 setCurrentPage(1);
-                dispatch(fetchPayslips({
-                  month: selectedMonth,
-                  employeeId: employeeId,
-                  page: 1,
-                  limit: itemsPerPage,
-                }));
+                dispatch(
+                  fetchPayslips({
+                    month: selectedMonth,
+                    employeeId: employeeId,
+                    page: 1,
+                    limit: itemsPerPage,
+                  })
+                );
               }}
               disabled={loading || employeeLoading}
               className="py-2 px-4 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
@@ -200,18 +264,31 @@ const EmployeePayslip = () => {
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Payslip History</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            Payslip History
+          </h2>
           {(loading || employeeLoading) && (
             <div className="flex justify-center items-center">
-              <svg className="animate-spin h-5 w-5 text-teal-600" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              <svg
+                className="animate-spin h-5 w-5 text-teal-600"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                />
               </svg>
               <span className="ml-2 text-gray-600">Loading payslips...</span>
             </div>
           )}
           {!loading && !employeeLoading && filteredPayslips.length === 0 && (
             <p className="text-gray-600">
-              No approved, paid, or pending payslips found for {selectedMonth || 'the selected month'}.
+              No approved, paid, or pending payslips found for{" "}
+              {selectedMonth || "the selected month"}.
             </p>
           )}
           {!loading && !employeeLoading && filteredPayslips.length > 0 && (
@@ -230,32 +307,41 @@ const EmployeePayslip = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {filteredPayslips.map((slip) => (
-                      <tr key={`${slip.employee_id}-${slip.month}`} className="hover:bg-gray-50">
+                    {filteredPayslips.map((slip, index) => (
+                      <tr
+                        key={
+                          slip.id ??
+                          `${slip.employee_id}-${slip.month}-${index}`
+                        }
+                        className="hover:bg-gray-50"
+                      >
                         <td className="px-6 py-4">
-                          {new Date(slip.month + '-01').toLocaleString('default', { month: 'long', year: 'numeric' })}
+                          {new Date(slip.month + "-01").toLocaleString(
+                            "default",
+                            { month: "long", year: "numeric" }
+                          )}
                         </td>
                         <td className="px-6 py-4">
-                          ₹{(slip.totalEarnings || 0).toLocaleString('en-IN')}
+                          ₹{(slip.totalEarnings || 0).toLocaleString("en-IN")}
                         </td>
                         <td className="px-6 py-4">
-                          ₹{(slip.totalDeductions || 0).toLocaleString('en-IN')}
+                          ₹{(slip.totalDeductions || 0).toLocaleString("en-IN")}
                         </td>
                         <td className="px-6 py-4">
-                          ₹{(slip.netPay || 0).toLocaleString('en-IN')}
+                          ₹{(slip.netPay || 0).toLocaleString("en-IN")}
                         </td>
                         <td className="px-6 py-4">
                           {slip.payment_date
-                            ? new Date(slip.payment_date).toLocaleDateString('en-IN')
-                            : 'N/A'}
+                            ? new Date(slip.payment_date).toLocaleDateString(
+                                "en-IN"
+                              )
+                            : "N/A"}
                         </td>
-                        <td className="px-6 py-4">
-                          {slip.status}
-                        </td>
+                        <td className="px-6 py-4">{slip.status}</td>
                         <td className="px-6 py-4 flex gap-2">
                           <button
                             onClick={() => {
-                              console.log('Opening preview for:', slip);
+                              console.log("Opening preview for:", slip);
                               setShowPreview(slip);
                             }}
                             className="flex items-center text-teal-600 hover:text-teal-800"
@@ -265,14 +351,27 @@ const EmployeePayslip = () => {
                             View
                           </button>
                           <button
-                            onClick={() => handleDownload(slip.employee_id, slip.month)}
+                            onClick={() =>
+                              handleDownload(slip.employee_id, slip.month)
+                            }
                             disabled={isLoadingDownload}
                             className="flex items-center text-teal-600 hover:text-teal-800 disabled:text-gray-400 disabled:cursor-not-allowed"
                             aria-label={`Download payslip for ${slip.month}`}
                           >
-                            {isLoadingDownload && slip.month === selectedMonth ? (
-                              <svg className="animate-spin h-5 w-5 mr-1" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            {isLoadingDownload &&
+                            slip.month === selectedMonth ? (
+                              <svg
+                                className="animate-spin h-5 w-5 mr-1"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                  fill="none"
+                                />
                               </svg>
                             ) : (
                               <Download size={18} className="mr-1" />
@@ -318,7 +417,9 @@ const EmployeePayslip = () => {
               >
                 <X size={24} />
               </button>
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Payslip Preview</h2>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Payslip Preview
+              </h2>
               <PayslipGenerator
                 employee={showPreview}
                 selectedMonth={showPreview.month}

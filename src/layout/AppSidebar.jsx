@@ -60,11 +60,17 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/admin/assign-employee",
           allowedRoles: ["super_admin", "hr"],
         },
-         {
+        {
           id: "view-employee",
           label: "View Employees",
           path: "/admin/view-employees",
           allowedRoles: ["super_admin", "hr"],
+        },
+        {
+          id: "view-employeees",
+          label: "Add Details",
+          path: "/employee/employee-details",
+          allowedRoles: ["hr",],
         },
       ],
     },
@@ -72,13 +78,13 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "employees",
       label: "Employee",
       icon: Users,
-      allowedRoles: ["employee"],
+      allowedRoles: ["employee", ],
       children: [
         {
           id: "view-employees",
           label: "Add Details",
           path: "/employee/employee-details",
-          allowedRoles: ["employee"],
+          allowedRoles: ["employee",],
         },
       ],
     },
@@ -94,20 +100,18 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/employee/employee-attendance",
           allowedRoles: ["employee", "dept_head", "manager"],
         },
-         {
+        {
           id: "admin-attendance",
           label: " Attendance",
           path: "/admin/attendance",
-          allowedRoles: ["super_admin", "hr","dept_head", "manager"],
+          allowedRoles: ["super_admin", "hr", "manager"],
         },
-         {
+        {
           id: "working hours",
           label: "Employee Avg Hours",
           path: "/admin/working-hours",
-          allowedRoles: ["super_admin", "hr","dept_head", "manager"],
+          allowedRoles: ["super_admin", "hr", "manager"],
         },
-       
-        
       ],
     },
     {
@@ -127,7 +131,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           id: "leave-application",
           label: "Apply Leave",
           path: "/employee/leave-application",
-          allowedRoles: ["employee"],
+          allowedRoles: ["employee", "dept_head"],
         },
       ],
     },
@@ -178,18 +182,30 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
       children: [
         {
-          id: "calendar",
+          id: "holiday-calendar",
           label: "Holiday Calendar",
           path: "/admin/calendar",
-          allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
+          allowedRoles: [
+            "super_admin",
+            "hr",
+            "dept_head",
+            "manager",
+            "employee",
+          ],
         },
         {
           id: "calendar",
           label: "Annual Calendar",
           path: "/admin/annual-calendar",
-          allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
-        }
-      ]
+          allowedRoles: [
+            "super_admin",
+            "hr",
+            "dept_head",
+            "manager",
+            "employee",
+          ],
+        },
+      ],
     },
     {
       id: "performance",
@@ -201,7 +217,13 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           id: "view-performance",
           label: "View Performance",
           path: "/admin/performance",
-          allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
+          allowedRoles: [
+            "super_admin",
+            "hr",
+            "dept_head",
+            "manager",
+            "employee",
+          ],
         },
         {
           id: "view-performance",
@@ -255,16 +277,25 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "idcard",
       label: "ID Card",
       icon: IdCardIcon,
-      path: "/idcard",
-      allowedRoles: ["super_admin", "hr", "manager", "dept_head"],
+      allowedRoles: ["super_admin", "hr", "manager", "dept_head", "employee"],
+      children: [
+        {
+          id: "idcards",
+          label: "View ID Card",
+          icon: IdCardIcon,
+          path: "/employee/employee-idcards",
+          allowedRoles: ["employee", "hr", "manager", "dept_head"],
+        },
+        {
+          id: "idcard",
+          label: "ID Card",
+          icon: IdCardIcon,
+          path: "/idcard",
+          allowedRoles: ["employee", "hr", "manager", "dept_head"],
+        },
+      ],
     },
-    {
-      id: "idcard",
-      label: "ID Card",
-      icon: IdCardIcon,
-      path: "/employee/employee-idcards",
-      allowedRoles: ["employee"],
-    },
+
     {
       id: "travelexpenses",
       label: "Travel Expenses",
@@ -361,7 +392,9 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                       }
                     }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
-                      isActive ? "bg-teal-600 text-white shadow-md" : "hover:bg-slate-700 hover:text-white"
+                      isActive
+                        ? "bg-teal-600 text-white shadow-md"
+                        : "hover:bg-slate-700 hover:text-white"
                     }`}
                   >
                     <div className="flex items-center space-x-3">
@@ -379,7 +412,9 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={({ isActive }) =>
                             `block px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                              isActive ? "bg-teal-100 text-teal-800" : "hover:bg-slate-100 text-gray-700"
+                              isActive
+                                ? "bg-teal-100 text-teal-800"
+                                : "hover:bg-slate-100 text-gray-700"
                             }`
                           }
                         >
@@ -414,37 +449,35 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
             );
           })}
           <div className="p-4 border-t-2 border-slate-700">
-          {filteredProfileItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.id}
-                to={item.path}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={({ isActive }) =>
-                  `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                    item.id === "logout"
-                      ? isActive
-                        ? "text-red-600 bg-red-50"
-                        : "text-red-600 hover:bg-red-50"
-                      : isActive || activeTab === item.id
-                      ? "bg-teal-600 text-white shadow-md"
-                      : "hover:bg-slate-700 hover:text-white"
-                  }`
-                }
-              >
-                <Icon size={20} />
-                <span className="font-medium">{item.label}</span>
-              </NavLink>
-            );
-          })}
-        </div>
+            {filteredProfileItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.id}
+                  to={item.path}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={({ isActive }) =>
+                    `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                      item.id === "logout"
+                        ? isActive
+                          ? "text-red-600 bg-red-50"
+                          : "text-red-600 hover:bg-red-50"
+                        : isActive || activeTab === item.id
+                        ? "bg-teal-600 text-white shadow-md"
+                        : "hover:bg-slate-700 hover:text-white"
+                    }`
+                  }
+                >
+                  <Icon size={20} />
+                  <span className="font-medium">{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </div>
         </nav>
-
-        
       </aside>
 
       {isMobileMenuOpen && (

@@ -115,12 +115,11 @@ const roleSelectStyles = {
 const Employee = () => {
   const dispatch = useDispatch();
   const { employees, loading, error } = useSelector((state) => state.employee);
-  const { user } = useSelector((state) => state.auth); // Access logged-in user
+  const { user } = useSelector((state) => state.auth); 
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
 
-  // Initialize department and role options
   const departments = [...new Set(employees.map((emp) => emp.department_name))];
   const roles = [...new Set(employees.map((emp) => emp.role))];
 
@@ -143,7 +142,6 @@ const Employee = () => {
     };
   }, [dispatch]);
 
-  // Restrict department filter options for dept_head and manager
   const availableDepartmentOptions = () => {
     if (user?.role === "dept_head" || user?.role === "manager") {
       return departmentOptions.filter(
@@ -154,7 +152,6 @@ const Employee = () => {
     return departmentOptions;
   };
 
-  // Restrict role filter options for dept_head and manager
   const availableRoleOptions = () => {
     if (user?.role === "dept_head") {
       return roleOptions.filter(
@@ -176,7 +173,6 @@ const Employee = () => {
     return roleOptions;
   };
 
-  // Filter employees based on user role and department
   const filtered = employees.filter((emp) => {
     const name = emp.full_name || emp.name || "";
     const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
@@ -184,10 +180,8 @@ const Employee = () => {
       departmentFilter === "all" || emp.department_name === departmentFilter;
     const matchesRole = roleFilter === "all" || emp.role === roleFilter;
 
-    if (!user) return false; // If no user is logged in, show nothing
-
+    if (!user) return false; 
     if (user.role === "dept_head") {
-      // Department heads see employees and managers in their department
       return (
         emp.department_name === user.department &&
         (emp.role === "employee" || emp.role === "manager") &&
@@ -196,7 +190,6 @@ const Employee = () => {
         matchesRole
       );
     } else if (user.role === "manager") {
-      // Managers see department heads and employees in their department
       return (
         emp.department_name === user.department &&
         (emp.role === "dept_head" || emp.role === "employee") &&
@@ -205,16 +198,14 @@ const Employee = () => {
         matchesRole
       );
     } else if (user.role === "employee") {
-      // Employees see only their own profile
       return emp.id === user.id && matchesSearch && matchesDepartment && matchesRole;
     }
-    // HR and super_admin see all employees
     return matchesSearch && matchesDepartment && matchesRole;
   });
 
   const getSalary = (emp) => {
     if (emp.role === "employee" || emp.role === "manager") {
-      return emp.basic_salary * 12 + (emp.allowances || 0);
+      return emp.basic_salary * 12 
     }
     return null;
   };

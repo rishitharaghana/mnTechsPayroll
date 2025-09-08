@@ -107,6 +107,7 @@ export const fetchAllLeaves = createAsyncThunk(
     }
   }
 );
+
 export const approveLeave = createAsyncThunk(
   "leaves/approveLeave",
   async (leave_id, { rejectWithValue }) => {

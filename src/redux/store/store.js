@@ -11,6 +11,7 @@ import performanceReducer from '../slices/performanceSlice';
 import siteVisitReducer from '../slices/siteVisitSlice';
 import companyReducer from '../slices/companySlice';
 import dashboardReducer from '../slices/dashboardSlice';
+import visitingCardReducer from '../slices/visitingCardSlice';
 
 const store = configureStore({
   reducer: {
@@ -26,6 +27,7 @@ const store = configureStore({
     siteVisit : siteVisitReducer,
     company : companyReducer,
     dashboard: dashboardReducer,
+    visitingCard : visitingCardReducer,
   },
 });
 export default store;
