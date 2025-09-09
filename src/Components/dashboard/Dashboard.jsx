@@ -110,14 +110,14 @@ const AdminDashboard = () => {
 
  
   return (
-    <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6">
-      <div className="bg-gradient-to-r from-slate-700 to-teal-600 rounded-lg border border-slate-200/50 p-8 shadow-sm hover:shadow-md transition-shadow duration-300">
+    <div className="space-y-8 bg-white rounded-2xl min-h-screen sm:p-6 p-4">
+      <div className="bg-gradient-to-r from-slate-700 to-teal-600 rounded-lg border border-slate-200/50 md:p-8 p-5 sm:mb-8 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">
-              Welcome back, {user?.name || role.toUpperCase()}!
+            <h1 className="md:text-3xl sm:text-2xl text-xl font-extrabold text-white tracking-tight">
+              Welcome Back, {user?.name || role.toUpperCase()}!
             </h1>
-            <p className="text-gray-200 text-lg mt-1">
+            <p className="text-gray-200 md:text-lg sm:text-md text-sm mt-1">
               {user?.name && <span>{user.name}, </span>}
               Here to access your workspace {role === 'dept_head' ? 'team' : 'organization'} today.
             </p>
@@ -126,7 +126,7 @@ const AdminDashboard = () => {
       </div>
 
       {stats.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 sm:gap-6 gap-6 sm:mb-8 mb-6">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
@@ -150,33 +150,44 @@ const AdminDashboard = () => {
         <p className="text-gray-500 text-center">No statistics available for this role.</p>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 sm:gap-8 gap-6 sm:mb-8 mb-6">
         {recentActivities.length > 0 ? (
           <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-            <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-t-lg -mx-6 -mt-6 p-4">
-              <h2 className="text-xl font-bold text-white">Recent Activities</h2>
-            </div>
-            <div className="space-y-4 mt-6">
-              {recentActivities.map((activity, index) => {
-                const Icon = activity.icon;
-                return (
-                  <div
-                    key={index}
-                    className="flex items-center space-x-4 p-3 rounded-lg hover:bg-slate-50 transition-colors duration-200"
-                  >
-                    <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg flex items-center justify-center w-10 h-10">
-                      <Icon className="text-white" size={16} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-slate-900 font-medium">{activity.type}</p>
-                      <p className="text-slate-500 text-sm">{activity.name}</p>
-                    </div>
-                    <span className="text-slate-400 text-sm">{activity.time}</span>
-                  </div>
-                );
-              })}
-            </div>
+  {/* Header */}
+  <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-t-lg -mx-6 -mt-6 p-4">
+    <h2 className="text-xl font-bold text-white">Recent Activities</h2>
+  </div>
+
+  {/* Content */}
+  <div className="mt-6 grid gap-4 sm:space-y-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-1">
+    {recentActivities.map((activity, index) => {
+      const Icon = activity.icon;
+      return (
+        <div
+          key={index}
+          className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 sm:gap-4 gap-1 p-3 rounded-lg hover:bg-slate-50 transition-colors duration-200 shadow sm:shadow-none border-gray-200 sm:border-0"
+        >
+          {/* Icon */}
+          <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg flex items-center justify-center w-10 h-10 mx-auto sm:mx-0 mb-2 sm:mb-0">
+            <Icon className="text-white" size={16} />
           </div>
+
+          {/* Text */}
+          <div className="flex-1 text-center sm:text-left m-0">
+            <p className="text-slate-900 font-medium">{activity.type}</p>
+            <p className="text-slate-500 text-sm">{activity.name}</p>
+          </div>
+
+          {/* Time */}
+          <span className="text-slate-400 text-xs sm:text-sm text-center sm:text-right mt-1 sm:mt-0">
+            {activity.time}
+          </span>
+        </div>
+      );
+    })}
+  </div>
+</div>
+
         ) : (
           <p className="text-gray-500 text-center">No recent activities available for this role.</p>
         )}
@@ -219,8 +230,8 @@ const AdminDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
             {performanceMetrics.map((metric, index) => (
               <div key={index} className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-r from-teal-600 to-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-xl font-bold text-white">{metric.value}</span>
+                <div className="sm:w-20 w-15 sm:h-20 h-15 bg-gradient-to-r from-teal-600 to-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="sm:text-xl text-sm font-bold text-white">{metric.value}</span>
                 </div>
                 <h3 className="font-semibold text-slate-900">{metric.title}</h3>
                 <p className="text-slate-500 text-sm">{metric.description}</p>

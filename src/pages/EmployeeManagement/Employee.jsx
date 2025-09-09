@@ -35,7 +35,11 @@ const selectStyles = {
   option: (provided, state) => ({
     ...provided,
     fontSize: "14px",
-    color: state.isSelected ? "#ffffff" : state.isFocused ? "#ffffff" : "#1e293b",
+    color: state.isSelected
+      ? "#ffffff"
+      : state.isFocused
+      ? "#ffffff"
+      : "#1e293b",
     backgroundColor: state.isSelected
       ? "#4f46e5"
       : state.isFocused
@@ -69,7 +73,9 @@ const Employee = () => {
   }, [employees, loading, error]);
 
   // Generate department and role options with safety checks
-  const departments = [...new Set(employees?.map((emp) => emp.department_name) || [])];
+  const departments = [
+    ...new Set(employees?.map((emp) => emp.department_name) || []),
+  ];
   const roles = [...new Set(employees?.map((emp) => emp.role) || [])];
 
   const departmentOptions = [
@@ -96,35 +102,41 @@ const Employee = () => {
   }, [dispatch]);
 
   // Filter employees with safety check
-  const filtered = employees?.filter((emp) => {
-    const name = emp.full_name || emp.name || "";
-    const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
-    const matchesDepartment =
-      departmentFilter === "all" || emp.department_name === departmentFilter;
-    const matchesRole = roleFilter === "all" || emp.role === roleFilter;
+  const filtered =
+    employees?.filter((emp) => {
+      const name = emp.full_name || emp.name || "";
+      const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
+      const matchesDepartment =
+        departmentFilter === "all" || emp.department_name === departmentFilter;
+      const matchesRole = roleFilter === "all" || emp.role === roleFilter;
 
-    if (!user) return false;
-    if (user.role === "dept_head") {
-      return (
-        emp.department_name === user.department &&
-        (emp.role === "employee" || emp.role === "manager") &&
-        matchesSearch &&
-        matchesDepartment &&
-        matchesRole
-      );
-    } else if (user.role === "manager") {
-      return (
-        emp.department_name === user.department &&
-        (emp.role === "dept_head" || emp.role === "employee") &&
-        matchesSearch &&
-        matchesDepartment &&
-        matchesRole
-      );
-    } else if (user.role === "employee") {
-      return emp.id === user.id && matchesSearch && matchesDepartment && matchesRole;
-    }
-    return matchesSearch && matchesDepartment && matchesRole;
-  }) || [];
+      if (!user) return false;
+      if (user.role === "dept_head") {
+        return (
+          emp.department_name === user.department &&
+          (emp.role === "employee" || emp.role === "manager") &&
+          matchesSearch &&
+          matchesDepartment &&
+          matchesRole
+        );
+      } else if (user.role === "manager") {
+        return (
+          emp.department_name === user.department &&
+          (emp.role === "dept_head" || emp.role === "employee") &&
+          matchesSearch &&
+          matchesDepartment &&
+          matchesRole
+        );
+      } else if (user.role === "employee") {
+        return (
+          emp.id === user.id &&
+          matchesSearch &&
+          matchesDepartment &&
+          matchesRole
+        );
+      }
+      return matchesSearch && matchesDepartment && matchesRole;
+    }) || [];
 
   // Pagination logic
   const totalPages = Math.ceil(filtered.length / employeesPerPage);
@@ -156,7 +168,11 @@ const Employee = () => {
     }
 
     // Add up to 3 pages
-    for (let i = startPage; i < startPage + maxPagesToShow && i <= totalPages; i++) {
+    for (
+      let i = startPage;
+      i < startPage + maxPagesToShow && i <= totalPages;
+      i++
+    ) {
       pageNumbers.push(i);
     }
 
@@ -181,7 +197,7 @@ const Employee = () => {
 
   return (
     <div className="w-full">
-      <div className="hidden :flex md:justify-end">
+      <div className="hidden md:flex md:justify-end">
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/" },
@@ -196,21 +212,16 @@ const Employee = () => {
       <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-md">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Employees</h1>
-            <p className="text-gray-500 text-sm sm:text-base">Manage your team members</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+              Employees
+            </h1>
+            <p className="text-gray-500 text-sm sm:text-base">
+              Manage your team members
+            </p>
           </div>
-          {(user?.role === "hr" || user?.role === "super_admin") && (
-            <Link
-              to="/admin/assign-employee"
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-            >
-              <UserPlus size={16} />
-              Add Employee
-            </Link>
-          )}
         </div>
 
-        <div className="mb-6 bg-white shadow-md p-4 border border-gray-200 rounded-xl flex flex-col sm:flex-row gap-4">
+        <div className="mb-6 bg-white shadow-md p-4 border border-gray-200 rounded-xl flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <input
               type="text"
@@ -224,7 +235,7 @@ const Employee = () => {
               size={16}
             />
           </div>
-          <div className="flex flex-col sm:flex-row justify-end gap-3 items-start sm:items-center">
+          <div className="flex flex-col md:flex-row justify-end gap-3 items-start md:items-center">
             <Select
               options={availableDepartmentOptions()}
               value={availableDepartmentOptions().find(
@@ -232,7 +243,7 @@ const Employee = () => {
               )}
               onChange={(selected) => setDepartmentFilter(selected.value)}
               styles={selectStyles}
-              className="w-full sm:w-56"
+              className="w-full md:w-56"
               placeholder="Select Department"
             />
             <Select
@@ -242,14 +253,16 @@ const Employee = () => {
               )}
               onChange={(selected) => setRoleFilter(selected.value)}
               styles={selectStyles}
-              className="w-full sm:w-44"
+              className="w-full md:w-44"
               placeholder="Select Role"
             />
           </div>
         </div>
 
         {loading && (
-          <div className="text-center text-gray-600 py-4">Loading employees...</div>
+          <div className="text-center text-gray-600 py-4">
+            Loading employees...
+          </div>
         )}
         {error && (
           <div className="text-center text-red-600 py-4">
@@ -258,10 +271,12 @@ const Employee = () => {
           </div>
         )}
         {!loading && !error && filtered.length === 0 && (
-          <div className="text-center text-gray-600 py-4">No employees found.</div>
+          <div className="text-center text-gray-600 py-4">
+            No employees found.
+          </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {currentEmployees.map((emp) => (
             <div
               key={`${emp.role}-${emp.id}`}
@@ -276,30 +291,31 @@ const Employee = () => {
               </div>
 
               <div className="mb-2">
-                <h3 className="font-bold text-base sm:text-lg text-gray-900">
+                <h3 className="font-bold mb-1 text-md sm:text-lg text-gray-900">
                   {emp.name || "Unknown"}
                 </h3>
-                <div className="flex justify-between items-center">
-                  <p className="text-indigo-600 font-medium text-sm">
+                <div className="flex items-center lg:flex-wrap sm:flex-row justify-between sm:items-center gap-3 lg:gap-3">
+                  <p className="text-indigo-600 font-medium text-xs sm:text-sm">
                     {emp.employee_id || "N/A"}
                   </p>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center justify-end sm:justify-end gap-1 sm:gap-2">
                     <Link
                       to={`/admin/employees/edit/${emp.role}/${emp.id}`}
-                      className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                      className="p-1.5 sm:p-2 text-gray-600 hover:text-indigo-600 bg-indigo-50 hover:bg-indigo-50 rounded-lg"
                     >
-                      <Edit size={16} />
+                      <Edit size={14} className="sm:w-4 sm:h-4" />
                     </Link>
+                    <button className="p-1.5 sm:p-2 text-gray-600 hover:text-red-600 bg-indigo-50 hover:bg-red-50 rounded-lg">
+                      <Trash2 size={14} className="sm:w-4 sm:h-4" />
+                    </button>
+                    
                     <Link
                       to={`/admin/employees/preview/${emp.id}`}
                       state={{ employee: emp }}
-                      className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                      className="p-1.5 sm:p-2 text-gray-600 hover:text-indigo-600 bg-green-100 hover:bg-indigo-50 rounded-lg"
                     >
-                      <Fullscreen size={16} />
+                      <Fullscreen size={14} className="sm:w-4 sm:h-4" />
                     </Link>
-                    <button className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg">
-                      <Trash2 size={16} />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -348,7 +364,7 @@ const Employee = () => {
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`sm:px-3 px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
                 currentPage === 1
                   ? "bg-slate-300 text-white cursor-not-allowed"
                   : "bg-slate-700 text-white hover:bg-teal-700"
@@ -375,7 +391,7 @@ const Employee = () => {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`sm:px-3 px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
                 currentPage === totalPages
                   ? "bg-slate-300 text-white cursor-not-allowed"
                   : "bg-slate-700 text-white hover:bg-teal-700"

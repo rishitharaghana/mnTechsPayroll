@@ -1,7 +1,12 @@
-// src/components/EmployeePreview.jsx
 import React from "react";
 
-const EmployeePreview = ({ formData, error, successMessage, closePreview, activeTab }) => {
+const EmployeePreview = ({
+  formData,
+  error,
+  successMessage,
+  closePreview,
+  activeTab,
+}) => {
   const tabGroups = [
     {
       title: "Personal Details",
@@ -12,12 +17,18 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
         { label: "Phone", value: formData.phone || "N/A" },
         { label: "Email", value: formData.email || "N/A" },
         { label: "Gender", value: formData.gender || "N/A" },
+        { label: "Present Address", value: formData.presentAddress || "N/A" },
+        { label: "Previous Address", value: formData.previousAddress || "N/A" },
         {
           label: "Image",
           value: formData.image ? (
             <div className="flex flex-col items-center">
               <img
-                src={typeof formData.image === "string" ? formData.image : URL.createObjectURL(formData.image)}
+                src={
+                  typeof formData.image === "string"
+                    ? formData.image
+                    : URL.createObjectURL(formData.image)
+                }
                 alt="Employee"
                 className="w-32 h-32 rounded-lg shadow-md object-cover"
               />
@@ -26,8 +37,6 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
             "N/A"
           ),
         },
-        { label: "Present Address", value: formData.presentAddress || "N/A" },
-        { label: "Previous Address", value: formData.previousAddress || "N/A" },
       ],
     },
     {
@@ -36,11 +45,23 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
         { label: "Position Type", value: formData.positionType || "N/A" },
         ...(formData.positionType === "experienced"
           ? [
-              { label: "Employer ID/Name", value: formData.employerIdName || "N/A" },
-              { label: "Position Title", value: formData.positionTitle || "N/A" },
-              { label: "Employment Type", value: formData.employmentType || "N/A" },
+              {
+                label: "Employer ID/Name",
+                value: formData.employerIdName || "N/A",
+              },
+              {
+                label: "Position Title",
+                value: formData.positionTitle || "N/A",
+              },
+              {
+                label: "Employment Type",
+                value: formData.employmentType || "N/A",
+              },
               { label: "Joining Date", value: formData.joiningDate || "N/A" },
-              { label: "Contract End Date", value: formData.contractEndDate || "N/A" },
+              {
+                label: "Contract End Date",
+                value: formData.contractEndDate || "N/A",
+              },
             ]
           : []),
       ],
@@ -49,13 +70,39 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
       title: "Education Details",
       fields: [
         { label: "10th Class Name", value: formData.tenthClassName || "N/A" },
-        { label: "10th Class Marks", value: formData.tenthClassMarks ? `${formData.tenthClassMarks}%` : "N/A" },
-        { label: "Intermediate Name", value: formData.intermediateName || "N/A" },
-        { label: "Intermediate Marks", value: formData.intermediateMarks ? `${formData.intermediateMarks}%` : "N/A" },
+        {
+          label: "10th Class Marks",
+          value: formData.tenthClassMarks
+            ? `${formData.tenthClassMarks}%`
+            : "N/A",
+        },
+        {
+          label: "Intermediate Name",
+          value: formData.intermediateName || "N/A",
+        },
+        {
+          label: "Intermediate Marks",
+          value: formData.intermediateMarks
+            ? `${formData.intermediateMarks}%`
+            : "N/A",
+        },
         { label: "Graduation Name", value: formData.graduationName || "N/A" },
-        { label: "Graduation Marks", value: formData.graduationMarks ? `${formData.graduationMarks}%` : "N/A" },
-        { label: "Postgraduation Name", value: formData.postgraduationName || "N/A" },
-        { label: "Postgraduation Marks", value: formData.postgraduationMarks ? `${formData.postgraduationMarks}%` : "N/A" },
+        {
+          label: "Graduation Marks",
+          value: formData.graduationMarks
+            ? `${formData.graduationMarks}%`
+            : "N/A",
+        },
+        {
+          label: "Postgraduation Name",
+          value: formData.postgraduationName || "N/A",
+        },
+        {
+          label: "Postgraduation Marks",
+          value: formData.postgraduationMarks
+            ? `${formData.postgraduationMarks}%`
+            : "N/A",
+        },
       ],
     },
     {
@@ -64,7 +111,8 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
         {
           label: "10th Class Document",
           value: formData.tenthClassDoc ? (
-            formData.tenthClassDoc.includes(".jpg") || formData.tenthClassDoc.includes(".png") ? (
+            formData.tenthClassDoc.includes(".jpg") ||
+            formData.tenthClassDoc.includes(".png") ? (
               <img
                 src={formData.tenthClassDoc}
                 alt="10th Class Document"
@@ -105,7 +153,8 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
         {
           label: "Intermediate Document",
           value: formData.intermediateDoc ? (
-            formData.intermediateDoc.includes(".jpg") || formData.intermediateDoc.includes(".png") ? (
+            formData.intermediateDoc.includes(".jpg") ||
+            formData.intermediateDoc.includes(".png") ? (
               <img
                 src={formData.intermediateDoc}
                 alt="Intermediate Document"
@@ -146,7 +195,8 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
         {
           label: "Graduation Document",
           value: formData.graduationDoc ? (
-            formData.graduationDoc.includes(".jpg") || formData.graduationDoc.includes(".png") ? (
+            formData.graduationDoc.includes(".jpg") ||
+            formData.graduationDoc.includes(".png") ? (
               <img
                 src={formData.graduationDoc}
                 alt="Graduation Document"
@@ -187,7 +237,8 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
         {
           label: "Postgraduation Document",
           value: formData.postgraduationDoc ? (
-            formData.postgraduationDoc.includes(".jpg") || formData.postgraduationDoc.includes(".png") ? (
+            formData.postgraduationDoc.includes(".jpg") ||
+            formData.postgraduationDoc.includes(".png") ? (
               <img
                 src={formData.postgraduationDoc}
                 alt="Postgraduation Document"
@@ -228,7 +279,8 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
         {
           label: "Aadhar Document",
           value: formData.aadharDoc ? (
-            formData.aadharDoc.includes(".jpg") || formData.aadharDoc.includes(".png") ? (
+            formData.aadharDoc.includes(".jpg") ||
+            formData.aadharDoc.includes(".png") ? (
               <img
                 src={formData.aadharDoc}
                 alt="Aadhar Document"
@@ -269,7 +321,8 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
         {
           label: "PAN Document",
           value: formData.panDoc ? (
-            formData.panDoc.includes(".jpg") || formData.panDoc.includes(".png") ? (
+            formData.panDoc.includes(".jpg") ||
+            formData.panDoc.includes(".png") ? (
               <img
                 src={formData.panDoc}
                 alt="PAN Document"
@@ -318,7 +371,7 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
     },
   ];
 
-  // ✅ Fix applied: ensure activeTab is valid
+  // Ensure activeTab is valid
   const currentTab = tabGroups[activeTab] || tabGroups[0];
 
   return (
@@ -337,22 +390,26 @@ const EmployeePreview = ({ formData, error, successMessage, closePreview, active
 
       {/* Content Area with Animation */}
       <div
-        className="bg-white rounded-lg p-6 shadow-md transition-all duration-300 animate-fade-in"
+        className="bg-white rounded-lg sm:p-6 p-5 shadow-md transition-all duration-300 animate-fade-in"
         style={{ animationDelay: `${activeTab * 100}ms` }}
       >
-        <h4 className="text-xl font-semibold text-teal-600 mb-6">{currentTab.title}</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700">
+        <h4 className="text-xl font-bold text-slate-700 mb-6">
+          {currentTab.title}
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 sm:gap-6 gap-4 text-gray-700">
           {currentTab.fields.map((field, idx) => (
-            <div key={idx} className="flex flex-col gap-2">
-              <strong className="text-sm font-medium text-gray-900">{field.label}:</strong>
-              <div className="text-sm">{field.value}</div>
+            <div key={idx} className="flex items-start gap-4">
+              <strong className="text-sm font-medium text-gray-900 sm:w-40 w-27 shrink-0">
+                {field.label}
+              </strong>
+              <div className="text-sm flex-1">: {field.value}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Back Button */}
-      <div className="mt-6">
+      <div className="mt-6 sm:text-left text-center">
         <button
           onClick={closePreview}
           className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-300 text-sm font-medium"

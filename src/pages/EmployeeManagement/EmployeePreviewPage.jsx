@@ -136,8 +136,8 @@ const EmployeePreviewPage = () => {
   };
 
   return (
-    <div className="w-78/100">
-      <div className="flex justify-end mb-4">
+    <div className="w-full">
+      <div className="hidden md:flex md:justify-end">
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/" },
@@ -150,48 +150,46 @@ const EmployeePreviewPage = () => {
           description="View detailed employee information."
         />
       </div>
-      <div className="w-full">
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h3 className="text-2xl font-bold text-left text-gray-900 mb-5 tracking-tight">
-            Employee Information
-          </h3>
-          {/* Top Tab Navigation */}
-          <div className="mb-6 overflow-x-auto bg-white/80 backdrop-blur-xl rounded-xl shadow-md border-1 border-gray-200 p-1">
-            <div className="flex space-x-2">
-              {tabs.map((tab, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveTab(index)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    activeTab === index
-                      ? "bg-teal-600 text-white shadow-md"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  } whitespace-nowrap`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-          </div>
+      <div className="">
+        <h3 className="text-2xl font-bold text-left text-gray-900 mb-5 tracking-tight">
+          Employee Information
+        </h3>
+        {/* Top Tab Navigation */}
+        <div className="mb-4 overflow-x-auto bg-white/80 backdrop-blur-xl rounded-xl shadow-md border border-gray-200 p-2 sm:p-3 md:p-4">
+  <div className="flex space-x-2 min-w-max">
+    {tabs.map((tab, index) => (
+      <button
+        key={index}
+        onClick={() => setActiveTab(index)}
+        className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 ${
+          activeTab === index
+            ? "bg-teal-600 text-white shadow-md"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        } whitespace-nowrap`}
+      >
+        {tab}
+      </button>
+    ))}
+  </div>
+</div>
 
-          {/* Content Area */}
-          <div>
-            {loading ? (
-              <div className="text-center text-gray-600 animate-pulse">
-                Loading employee details...
-              </div>
-            ) : error ? (
-              <div className="text-center text-red-600 bg-red-50 p-4 rounded-lg">
-                {error}
-              </div>
-            ) : (
-              <EmployeePreview
-                formData={formData}
-                activeTab={activeTab}
-                closePreview={closePreview}
-              />
-            )}
-          </div>
+        {/* Content Area */}
+        <div>
+          {loading ? (
+            <div className="text-center text-gray-600 animate-pulse">
+              Loading employee details...
+            </div>
+          ) : error ? (
+            <div className="text-center text-red-600 bg-red-50 p-4 rounded-lg">
+              {error}
+            </div>
+          ) : (
+            <EmployeePreview
+              formData={formData}
+              activeTab={activeTab}
+              closePreview={closePreview}
+            />
+          )}
         </div>
       </div>
     </div>
