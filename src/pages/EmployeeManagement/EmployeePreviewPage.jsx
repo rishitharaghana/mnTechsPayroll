@@ -151,7 +151,7 @@ const EmployeePreviewPage = () => {
         />
       </div>
       <div className="">
-        <h3 className="text-2xl font-bold text-left text-gray-900 mb-5 tracking-tight">
+        <h3 className="text-2xl font-bold text-left text-gray-900 mb-3 tracking-tight">
           Employee Information
         </h3>
         {/* Top Tab Navigation */}
