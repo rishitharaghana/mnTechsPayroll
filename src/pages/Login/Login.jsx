@@ -11,12 +11,11 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [uiRole, setUiRole] = useState('Admin');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false); // Added state for Remember Me
+  const [rememberMe, setRememberMe] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
 
-  // Role options for React Select
   const roleOptions = [
     { value: 'Admin', label: 'Admin' },
     { value: 'HR', label: 'HR' },
@@ -123,7 +122,6 @@ const Login = () => {
             isTemporaryPassword: result.isTemporaryPassword || false,
           })
         );
-        // Store rememberMe preference if needed
         localStorage.setItem('rememberMe', rememberMe);
       }
 

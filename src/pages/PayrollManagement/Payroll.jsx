@@ -265,7 +265,7 @@ const Payroll = () => {
           </div>
         </div>
 
-        {(error || successMessage) && (
+        {/* {(error || successMessage) && (
           <div
             className={`p-4 rounded-lg ${
               error ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
@@ -273,7 +273,7 @@ const Payroll = () => {
           >
             {error || successMessage}
           </div>
-        )}
+        )} */}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-full">
           {summaryStats.map(({ title, value, change, icon: Icon }, idx) => (

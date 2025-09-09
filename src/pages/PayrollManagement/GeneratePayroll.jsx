@@ -144,16 +144,16 @@ const GeneratePayroll = () => {
             Generate payroll for all employees or a specific employee for the selected month.
           </p>
         </div>
-
+{/* 
         {(error || successMessage || employeesError) && (
           <div
             className={`p-4 rounded-lg ${
-              error || employeesError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+              error || employeesError ? "bg-red-100 text-red-700" : ""
             }`}
           >
             {error || employeesError || successMessage}
           </div>
-        )}
+        )} */}
 
         <div className="bg-white rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

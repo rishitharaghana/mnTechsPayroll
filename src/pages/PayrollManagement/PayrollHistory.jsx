@@ -161,7 +161,7 @@ const PayrollHistory = () => {
           </div>
         </div>
 
-        {(error || successMessage) && (
+        {/* {(error || successMessage) && (
           <div
             className={`p-4 rounded-lg ${
               error ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
@@ -169,7 +169,7 @@ const PayrollHistory = () => {
           >
             {error || successMessage}
           </div>
-        )}
+        )} */}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-full">
           <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-300 min-w-0">
