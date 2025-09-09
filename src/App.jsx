@@ -91,7 +91,6 @@ const App = () => {
                   path="/admin/working-hours"
                   element={<EmployeeAvgHours />}
                 />
-
                 <Route path="/admin/dashboard" element={<Dashboard />} />
                 <Route path="/admin/employees" element={<Employee />} />
                 <Route

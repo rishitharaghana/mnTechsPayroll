@@ -44,7 +44,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "employees",
       label: "Employees",
       icon: Users,
-      allowedRoles: ["super_admin", "hr", "dept_head", "manager"],
+      allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
       children: [
         {
           id: "view-employees",
@@ -68,24 +68,11 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           id: "view-employeees",
           label: "Add Details",
           path: "/employee/employee-details",
-          allowedRoles: ["hr",],
+          allowedRoles: ["hr","dept_head","employee"],
         },
       ],
     },
-    {
-      id: "employees",
-      label: "Employee",
-      icon: Users,
-      allowedRoles: ["employee", ],
-      children: [
-        {
-          id: "view-employees",
-          label: "Add Details",
-          path: "/employee/employee-details",
-          allowedRoles: ["employee",],
-        },
-      ],
-    },
+
     {
       id: "attendance",
       label: "Attendance",
