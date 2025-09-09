@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchEmployees } from "../../redux/slices/employeeSlice.js";
+import { fetchEmployees, getCurrentUserProfile } from "../../redux/slices/employeeSlice.js";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb.jsx";
 import PageMeta from "../../Components/common/PageMeta.jsx";
 import Select from "react-select";
@@ -10,8 +10,8 @@ const ViewIdCard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { employees, loading, error } = useSelector((state) => state.employee);
-  console.log(employees, "employees");
+  const { employees, currentEmployee, loading, error } = useSelector((state) => state.employee);
+  console.log("employees:", employees, "currentEmployee:", currentEmployee);
 
   const [card, setCard] = useState(null);
   const [selectedId, setSelectedId] = useState("");
@@ -22,23 +22,34 @@ const ViewIdCard = () => {
   const role = authData?.role;
   const loggedInEmployeeId = authData?.employee_id;
 
-  // Fetch employees
   useEffect(() => {
-    dispatch(fetchEmployees()).then((res) => {
-      if (role === "employee") {
-        const data = res.payload || [];
-        const self = data.find(
-          (emp) => String(emp.employee_id) === String(loggedInEmployeeId)
-        );
-        if (self) {
-          setCard(self);
-          setSelectedId(String(self.id)); // Sync selectedId for consistency
+    if (role === "employee") {
+      // Fetch only the current user's profile
+      dispatch(getCurrentUserProfile()).then((res) => {
+        if (res.meta.requestStatus === "fulfilled") {
+          const self = res.payload?.data;
+          if (self) {
+            setCard(self);
+            setSelectedId(String(self.id));
+          }
         }
-      }
-    });
+      });
+    } else if (["super_admin", "hr"].includes(role)) {
+      // Fetch all employees for admin roles
+      dispatch(fetchEmployees()).then((res) => {
+        if (res.meta.requestStatus === "fulfilled") {
+          const data = Array.isArray(res.payload) ? res.payload : res.payload?.data || [];
+          // Optionally set default card (e.g., first employee)
+          if (data.length > 0) {
+            setCard(data[0]);
+            setSelectedId(String(data[0].id));
+          }
+        }
+      });
+    }
   }, [dispatch, role, loggedInEmployeeId]);
 
-  // Handle dropdown change
+  // Handle dropdown change (for super_admin/hr)
   const handleSelectChange = (selectedOption) => {
     const empId = selectedOption ? String(selectedOption.value) : "";
     setSelectedId(empId);
@@ -46,11 +57,11 @@ const ViewIdCard = () => {
     setCard(selectedEmployee || null);
   };
 
-  // Memoize employee options for performance
+  // Memoize employee options for performance (for super_admin/hr)
   const employeeOptions = useMemo(
     () =>
       employees.map((emp) => ({
-        value: String(emp.id), // Ensure value is a string for consistency
+        value: String(emp.id),
         label: `${emp.full_name || "Unknown"} (${emp.employee_id || "N/A"})`,
       })),
     [employees]
@@ -104,15 +115,13 @@ const ViewIdCard = () => {
             {employees.length > 0 ? (
               <Select
                 options={employeeOptions}
-                value={employeeOptions.find(
-                  (option) => option.value === selectedId
-                ) || null}
+                value={employeeOptions.find((option) => option.value === selectedId) || null}
                 onChange={handleSelectChange}
                 placeholder="Select Employee"
                 className="w-full"
                 classNamePrefix="react-select"
                 menuPlacement="auto"
-                maxMenuHeight={200} 
+                maxMenuHeight={200}
                 classNames={{
                   input: () => "text-sm font-bold text-gray-900",
                 }}
@@ -123,7 +132,7 @@ const ViewIdCard = () => {
                     borderRadius: "0.5rem",
                     borderColor: "#d1d5db",
                     boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
-                    zIndex:"9999",
+                    zIndex: "9999",
                     "&:hover": { borderColor: "#14b8a6" },
                   }),
                   menu: (base) => ({
@@ -136,18 +145,14 @@ const ViewIdCard = () => {
                     ...base,
                     padding: "0.4rem 2rem",
                     borderRadius: "0.5rem",
-                    backgroundColor: isSelected
-                      ? "#14b8a6"
-                      : isFocused
-                      ? "#e0f2fe"
-                      : "white",
+                    backgroundColor: isSelected ? "#14b8a6" : isFocused ? "#e0f2fe" : "white",
                     color: isSelected ? "white" : "#1f2937",
                     "&:hover": {
                       backgroundColor: isSelected ? "#14b8a6" : "#e0f2fe",
                     },
                   }),
                 }}
-                isSearchable // Enables search functionality
+                isSearchable
                 filterOption={(option, inputValue) =>
                   option.label.toLowerCase().includes(inputValue.toLowerCase())
                 }
@@ -175,8 +180,8 @@ const ViewIdCard = () => {
                       alt={`${card.full_name || "Employee"}'s profile`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.style.display = "none"; // Hide image on error
-                        e.target.nextSibling.style.display = "flex"; // Show initials
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "flex";
                       }}
                     />
                   ) : null}
@@ -244,7 +249,7 @@ const ViewIdCard = () => {
             </div>
           </div>
         ) : (
-          !error && <p className="text-slate-500"></p>
+          !error && <p className="text-slate-500">Please select an employee.</p>
         )}
 
         {/* <div className="flex justify-end">
