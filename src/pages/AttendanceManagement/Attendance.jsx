@@ -149,8 +149,8 @@ const Attendance = () => {
   ];
 
   return (
-    <div className="w-full lg:w-[78%]">
-      <div className="flex justify-end">
+    <div className="w-full">
+      <div className="hidden sm:flex  sm:justify-end">
         <PageMeta
           title="Attendance Management"
           description="Track and manage employee attendance efficiently."
@@ -164,9 +164,9 @@ const Attendance = () => {
       </div>
       <div className="space-y-6 bg-white rounded-2xl min-h-screen p-6">
         {/* Header */}
-        <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+        <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="w-[65%]">
+            <div className="w-full sm:w-[50%] md:w-[65%]">
               <h1 className="text-3xl font-bold text-white">
                 Attendance Tracking
               </h1>
@@ -174,7 +174,7 @@ const Attendance = () => {
                 Monitor employee attendance and working hours
               </p>
             </div>
-            <div className="w-[35%] flex items-center space-x-4">
+            <div className="w-full sm:w-[50%] md:w-[35%] flex items-center space-x-4">
               <DatePicker
                 name="attendanceDate"
                 value={selectedDate} // ✅ Date object
@@ -218,12 +218,12 @@ const Attendance = () => {
 
         {/* Table */}
         <div className="bg-white/90 rounded-lg border border-slate-200/50 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
-          <div className="p-6 border-b border-slate-200/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="p-4 sm:p-6 border-b border-slate-200/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h2 className="text-xl font-bold text-slate-900">
               Attendance Records
             </h2>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-slate-600">
+            <div className="flex items-center flex-wrap gap-2 space-x-4">
+              <span className="text-md border border-slate-200 rounded-lg p-2 px-3 shadow-md text-slate-600">
                 Date: {format(selectedDate, "dd/MM/yyyy")}
               </span>
               <button className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105">
@@ -233,143 +233,134 @@ const Attendance = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table
-              className="w-full table-fixed text-sm"
-              aria-label="Employee Attendance Table"
+  <table
+    className="w-full table-fixed text-sm min-w-[800px]" // Added min-w-[800px] for scroll trigger
+    aria-label="Employee Attendance Table"
+  >
+    <thead className="bg-gradient-to-r from-teal-600 to-slate-700">
+      <tr>
+        <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+          Employee
+        </th>
+        <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+          Date
+        </th>
+        <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+          Check In
+        </th>
+        <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+          Check Out
+        </th>
+        <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+          Location
+        </th>
+        <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+          Status
+        </th>
+        {["super_admin", "hr"].includes(userRole) && (
+          <th className="w-[20%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+            Actions
+          </th>
+        )}
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-slate-200/50">
+      {filteredSubmissions.length === 0 ? (
+        <tr>
+          <td
+            colSpan={["super_admin", "hr"].includes(userRole) ? 7 : 6}
+            className="px-2 py-3 sm:px-4 text-sm text-slate-500 text-center whitespace-nowrap"
+          >
+            No attendance records found for{" "}
+            {format(selectedDate, "dd/MM/yyyy")}.
+          </td>
+        </tr>
+      ) : (
+        filteredSubmissions.map(
+          ({
+            id,
+            employee_name,
+            date,
+            login_time,
+            logout_time,
+            location,
+            status,
+          }) => (
+            <tr
+              key={id}
+              className="hover:bg-slate-100/80 transition-colors duration-200"
             >
-              <thead className="bg-gradient-to-r from-teal-600 to-slate-700">
-                <tr>
-                  <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">
-                    Employee
-                  </th>
-                  <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">
-                    Date
-                  </th>
-                  <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">
-                    Check In
-                  </th>
-                  <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">
-                    Check Out
-                  </th>
-                  <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">
-                    Location
-                  </th>
-                  <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">
-                    Status
-                  </th>
-                  {["super_admin", "hr"].includes(userRole) && (
-                    <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-white uppercase">
-                      Actions
-                    </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200/50">
-                {filteredSubmissions.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={["super_admin", "hr"].includes(userRole) ? 7 : 6}
-                      className="px-4 py-3 text-sm text-slate-500 text-center"
-                    >
-                      No attendance records found for{" "}
-                      {format(selectedDate, "dd/MM/yyyy")}.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredSubmissions.map(
-                    ({
-                      id,
-                      employee_name,
-                      date,
-                      login_time,
-                      logout_time,
-                      location,
-                      status,
-                    }) => (
-                      <tr
-                        key={id}
-                        className="hover:bg-slate-100/80 transition-colors duration-200"
+              <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                <div className="text-sm font-medium text-slate-900">
+                  {employee_name}
+                </div>
+              </td>
+              <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                <span className="text-sm text-slate-900">
+                  {format(parse(date, "yyyy-MM-dd", new Date()), "dd/MM/yyyy")}
+                </span>
+              </td>
+              <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <Clock size={12} className="text-slate-400 sm:w-4 sm:h-4" />
+                  <span className="text-sm text-slate-900">{login_time}</span>
+                </div>
+              </td>
+              <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <Clock size={12} className="text-slate-400 sm:w-4 sm:h-4" />
+                  <span className="text-sm text-slate-900">
+                    {logout_time || "N/A"}
+                  </span>
+                </div>
+              </td>
+              <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                <span
+                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLocationColor(
+                    location
+                  )}`}
+                >
+                  {location}
+                </span>
+              </td>
+              <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                <span
+                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                    status
+                  )}`}
+                >
+                  {status}
+                </span>
+              </td>
+              {["super_admin", "hr"].includes(userRole) && (
+                <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                  {status === "Pending" && (
+                    <div className="flex space-x-1 sm:space-x-2">
+                      <button
+                        onClick={() => handleStatusUpdate(id, "Approved")}
+                        className="px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm bg-green-600 text-white rounded-lg hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 transition-transform duration-300"
+                        disabled={loading}
                       >
-                        <td className="px-4 py-3">
-                          <div className="text-sm font-medium text-slate-900">
-                            {employee_name}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="text-sm text-slate-900">
-                            {format(
-                              parse(date, "yyyy-MM-dd", new Date()),
-                              "dd/MM/yyyy"
-                            )}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center space-x-2">
-                            <Clock size={14} className="text-slate-400" />
-                            <span className="text-sm text-slate-900">
-                              {login_time}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center space-x-2">
-                            <Clock size={14} className="text-slate-400" />
-                            <span className="text-sm text-slate-900">
-                              {logout_time || "N/A"}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLocationColor(
-                              location
-                            )}`}
-                          >
-                            {location}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                              status
-                            )}`}
-                          >
-                            {status}
-                          </span>
-                        </td>
-                        {["super_admin", "hr"].includes(userRole) && (
-                          <td className="px-4 py-3">
-                            {status === "Pending" && (
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() =>
-                                    handleStatusUpdate(id, "Approved")
-                                  }
-                                  className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 transition-transform duration-300"
-                                  disabled={loading}
-                                >
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleStatusUpdate(id, "Rejected")
-                                  }
-                                  className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-400 transition-transform duration-300"
-                                  disabled={loading}
-                                >
-                                  Reject
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        )}
-                      </tr>
-                    )
-                  )
-                )}
-              </tbody>
-            </table>
-          </div>
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleStatusUpdate(id, "Rejected")}
+                        className="px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm bg-red-600 text-white rounded-lg hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-400 transition-transform duration-300"
+                        disabled={loading}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </td>
+              )}
+            </tr>
+          )
+        )
+      )}
+    </tbody>
+  </table>
+</div>
         </div>
         <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
           <h2 className="text-xl font-bold text-slate-900 mb-4">

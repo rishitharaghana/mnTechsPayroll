@@ -251,8 +251,8 @@ const LeaveTracker = () => {
   const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "?");
 
   return (
-    <div className="w-full lg:w-[78%]">
-      <div className="flex justify-end">
+    <div className="w-full">
+      <div className="hidden sm:flex sm:justify-end">
         <PageMeta
           title="Leave Tracker"
           description="Manage and track employee leave requests"
@@ -264,9 +264,9 @@ const LeaveTracker = () => {
           ]}
         />
       </div>
-      <div className="px-6 p-10 space-y-6 bg-white rounded-2xl font-sans">
+      <div className="p-6 space-y-6 bg-white rounded-2xl font-sans">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="w-8/12">
+          <div className="w-full sm:w-7/12 md:w-8/12">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-slate-700 bg-clip-text text-transparent">
               Leave Management
             </h1>
@@ -276,7 +276,7 @@ const LeaveTracker = () => {
               requests
             </p>
           </div>
-          <div className="w-4/12 flex gap-4">
+          <div className="w-full sm:w-5/12 md:w-4/12 flex gap-4">
             <DatePicker
               title="Select Date"
               value={selectDate}
@@ -368,9 +368,9 @@ const LeaveTracker = () => {
                   key={req.id}
                   className="p-6 bg-white/95 rounded-2xl border-1 border-teal-200/50 shadow-md transform hover:scale-[1.02] transition-all duration-300"
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                    <div className="col-span-2 flex items-start gap-4">
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-r from-teal-600 to-slate-700 text-white flex items-center justify-center text-2xl font-bold shadow-md">
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-6">
+                    <div className="col-span-2 flex-col sm:flex-row flex sm:items-start gap-4">
+                      <div className="w-16 h-16 m-auto sm:m-0 rounded-full bg-gradient-to-r from-teal-600 to-slate-700 text-white flex items-center justify-center text-2xl font-bold shadow-md">
                         {getInitial(req.employee_name)}
                       </div>
                       <div className="space-y-1">
@@ -441,7 +441,7 @@ const LeaveTracker = () => {
                         </p>
                       </div>
                       {req.status?.toLowerCase() === "pending" && (
-                        <div className="flex gap-2">
+                        <div className="flex sm:flex-col md:flex-row gap-2">
                           <button
                             onClick={() => handleApprove(req.id)}
                             className="px-4 py-1.5 bg-gradient-to-r from-green-500 to-green-700 text-white text-xs rounded-lg hover:from-green-600 hover:to-green-800 transition-all duration-300 shadow-md"
@@ -469,102 +469,7 @@ const LeaveTracker = () => {
             )}
           </div>
         </div>
-        {(role === "hr" || role === "super_admin") && (
-          <div className="bg-white/90 p-6 rounded-2xl border-1 border-teal-700/50 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <PlusCircle size={24} className="text-teal-700" />
-              <h2 className="text-xl font-bold text-slate-700">
-                Allocate Leaves
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">
-                  Monthly Leave Allocation
-                </h3>
-                <button
-                  onClick={handleAllocateMonthlyLeaves}
-                  disabled={loading}
-                  className="flex items-center gap-2 bg-teal-700 text-white px-6 py-3 rounded-xl hover:bg-slate-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-700 transition duration-150 ease-in-out"
-                >
-                  <PlusCircle size={20} />
-                  <span>
-                    {loading ? "Allocating..." : "Allocate Monthly Leaves"}
-                  </span>
-                </button>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">
-                  Special Leave Allocation
-                </h3>
-                <form
-                  onSubmit={handleAllocateSpecialLeave}
-                  className="space-y-4"
-                >
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Employee ID
-                    </label>
-                    <input
-                      type="text"
-                      name="employee_id"
-                      value={specialLeaveData.employee_id}
-                      onChange={(e) =>
-                        handleSpecialLeaveChange("employee_id", e.target.value)
-                      }
-                      className="mt-1 block w-full rounded-lg border border-teal-700 bg-white py-2.5 px-3 text-slate-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition duration-150 ease-in-out"
-                      placeholder="Enter employee ID"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Leave Type
-                    </label>
-                    <select
-                      name="leave_type"
-                      value={specialLeaveData.leave_type}
-                      onChange={(e) =>
-                        handleSpecialLeaveChange("leave_type", e.target.value)
-                      }
-                      className="mt-1 block w-full rounded-lg border border-teal-700 bg-white py-2.5 px-3 text-slate-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition duration-150 ease-in-out"
-                      required
-                    >
-                      <option value="maternity">Maternity</option>
-                      <option value="paternity">Paternity</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Days
-                    </label>
-                    <input
-                      type="number"
-                      name="days"
-                      value={specialLeaveData.days}
-                      onChange={(e) =>
-                        handleSpecialLeaveChange("days", e.target.value)
-                      }
-                      className="mt-1 block w-full rounded-lg border border-teal-700 bg-white py-2.5 px-3 text-slate-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition duration-150 ease-in-out"
-                      placeholder="Enter number of days"
-                      required
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex items-center gap-2 bg-teal-700 text-white px-6 py-3 rounded-xl hover:bg-slate-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-700 transition duration-150 ease-in-out"
-                  >
-                    <PlusCircle size={20} />
-                    <span>
-                      {loading ? "Allocating..." : "Allocate Special Leave"}
-                    </span>
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+        
       </div>
     </div>
   );

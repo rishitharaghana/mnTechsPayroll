@@ -534,9 +534,9 @@ const EmployeeAvgHours = () => {
   }
 
   return (
-    <div className="w-78/100">
+    <div className="w-full">
       <ToastContainer />
-      <div className="flex justify-end">
+      <div className="hidden sm:flex  sm:justify-end">
         <PageMeta
           title="Working Hours Analytics"
           description="Visualize employee working hours and trends."
@@ -690,8 +690,6 @@ const EmployeeAvgHours = () => {
                   onChange={(e) => {
                     setDepartmentFilter(e.target.value);
                     setCurrentPage(1);
-
-    
                   }}
                   className="px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-teal-400"
                 >

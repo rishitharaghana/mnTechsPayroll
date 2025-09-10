@@ -101,7 +101,8 @@ const AssignEmployee = () => {
     ) {
       setErrors((prev) => ({
         ...prev,
-        emergencyPhone: "Mobile and emergency contact numbers cannot be the same",
+        emergencyPhone:
+          "Mobile and emergency contact numbers cannot be the same",
       }));
     } else {
       setErrors((prev) => ({ ...prev, emergencyPhone: "" }));
@@ -275,8 +276,7 @@ const AssignEmployee = () => {
         employee.emergencyPhone &&
         !/^[0-9]{10}$/.test(employee.emergencyPhone)
       ) {
-        newErrors.emergencyPhone =
-          "Emergency Phone must be a 10-digit number";
+        newErrors.emergencyPhone = "Emergency Phone must be a 10-digit number";
       }
       if (
         employee.emergencyPhone &&
@@ -375,8 +375,7 @@ const AssignEmployee = () => {
           parseFloat(employee.allowances) < 0 ||
           employee.allowances.trim() === "")
       ) {
-        newErrors.allowances =
-          "Allowances must be a valid non-negative number";
+        newErrors.allowances = "Allowances must be a valid non-negative number";
       }
       if (!employee.bonuses) newErrors.bonuses = "Bonuses is required";
       if (
@@ -428,7 +427,11 @@ const AssignEmployee = () => {
       if (employee.photo) {
         formData.append("photo", employee.photo);
       }
-      if (["HR", "Department Head", "Manager", "Employee"].includes(employee.roleType)) {
+      if (
+        ["HR", "Department Head", "Manager", "Employee"].includes(
+          employee.roleType
+        )
+      ) {
         formData.append("department_name", employee.department || "");
         formData.append("designation_name", employee.position || "");
       }
@@ -503,42 +506,45 @@ const AssignEmployee = () => {
   }, [dispatch, photoPreview]);
 
   const renderStepIndicator = () => (
-    <div className="flex flex-col sm:flex-row items-center justify-center mb-6 space-y-4 sm:space-y-0 sm:space-x-4">
-      {["Role", "Personal", "Employment"].map((label, index) => (
-        <div key={label} className="flex items-center justify-center">
-          <div
-            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-medium z-50 ${
-              step > index + 1
-                ? "bg-teal-600 text-white"
-                : step === index + 1
-                ? "bg-teal-100 text-teal-600 border-2 border-teal-600"
-                : "bg-gray-200 text-gray-500"
-            }`}
-          >
-            {index + 1}
-          </div>
-          <span
-            className={`ml-0 sm:ml-2 text-xs sm:text-sm font-medium ${
-              step >= index + 1 ? "text-teal-600" : "text-gray-500"
-            }`}
-          >
-            {label}
-          </span>
-          {index < 2 && (
-            <div
-              className={`w-8 sm:w-12 h-1 mx-2 hidden sm:block ${
-                step > index + 1 ? "bg-teal-600" : "bg-gray-200"
-              }`}
-            ></div>
-          )}
-        </div>
-      ))}
+    <div className="flex flex-col sm:flex-row border-2 border-gray-200 sm:border-0 sm:border-none p-4 sm:p-0 rounded-xl sm:rounded-none shadow-md sm:shadow-none items-start sm:items-center sm:justify-center justify-start mb-5 sm:mb-6 space-y-3 sm:space-y-0 sm:space-x-3 md:space-x-4 lg:space-x-6">
+  {["Role", "Personal", "Employment"].map((label, index) => (
+    <div
+      key={label}
+      className="flex sm:items-center items-center sm:justify-center justify-start w-full sm:w-auto"
+    >
+      <div
+        className={`w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs xs:text-sm sm:text-base font-medium z-50 ${
+          step > index + 1
+            ? "bg-teal-600 text-white"
+            : step === index + 1
+            ? "bg-teal-100 text-teal-600 border-2 border-teal-600"
+            : "bg-gray-200 text-gray-500"
+        }`}
+      >
+        {index + 1}
+      </div>
+      <span
+        className={`ml-2 text-xs xs:text-sm sm:text-sm md:text-base font-medium text-center sm:text-left ${
+          step >= index + 1 ? "text-teal-600" : "text-gray-500"
+        }`}
+      >
+        {label}
+      </span>
+      {index < 2 && (
+        <div
+          className={`w-6 sm:w-8 md:w-10 lg:w-12 h-1 mx-1 sm:mx-2 hidden sm:block ${
+            step > index + 1 ? "bg-teal-600" : "bg-gray-200"
+          }`}
+        ></div>
+      )}
     </div>
+  ))}
+</div>
   );
 
   return (
-    <div className="w-full lg:w-78/100">
-      <div className="flex justify-end mb-4">
+    <div className="w-full">
+      <div className="hidden sm:flex sm:justify-end mb-4">
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/admin/dashboard" },
@@ -549,7 +555,7 @@ const AssignEmployee = () => {
       </div>
       <div className="min-h-screen bg-white rounded-2xl p-4 sm:p-6">
         <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-4 sm:p-6 relative z-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center text-teal-600 mb-8 sm:mb-10 uppercase tracking-tight">
+          <h2 className="text-xl pt-3 sm:pt-0 sm:text-3xl font-bold text-center text-teal-600 mb-8 sm:mb-10 uppercase tracking-tight">
             Assign New Employee
           </h2>
           {renderStepIndicator()}
@@ -563,23 +569,30 @@ const AssignEmployee = () => {
           {step === 1 && (
             <div className="pb-2">
               <label className="block text-sm sm:text-md font-semibold text-gray-900 mb-4">
-                Select Role Type <span className="text-red-600 font-bold">*</span>
+                Select Role Type{" "}
+                <span className="text-red-600 font-bold">*</span>
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4">
                 {filteredRoleTypes.map((role) => (
                   <button
                     key={role.name}
                     type="button"
                     onClick={() => handleInput("roleType", role.name)}
-                    className={`p-6 rounded-xl border-2 bg-white shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-center text-center z-50 ${
+                    className={`p-4 sm:p-6 rounded-xl border-2 bg-white shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-between text-center z-50 min-h-[150px] sm:min-h-[180px] ${
                       employee.roleType === role.name
                         ? "border-teal-600 bg-teal-50 text-teal-700 scale-105"
                         : "border-gray-200 text-gray-700 hover:border-teal-400 hover:bg-teal-50"
                     } ${errors.roleType ? "border-red-500 animate-pulse" : ""}`}
                   >
-                    <div className="mb-2 text-teal-600">{role.icon}</div>
-                    <h3 className="text-base sm:text-lg font-semibold">{role.name}</h3>
-                    <p className="text-xs sm:text-sm text-gray-500">{role.description}</p>
+                    <div className="mb-2 text-teal-600 flex items-center justify-center h-8 sm:h-10">
+                      <span className="text-2xl sm:text-3xl">{role.icon}</span>
+                    </div>
+                    <h3 className="text-sm sm:text-base md:text-lg font-semibold">
+                      {role.name}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                      {role.description}
+                    </p>
                   </button>
                 ))}
               </div>
@@ -602,7 +615,10 @@ const AssignEmployee = () => {
             </div>
           )}
           {step > 1 && (
-            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 relative z-10">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-6 sm:space-y-8 relative z-10"
+            >
               {step === 2 && (
                 <div className="space-y-4 sm:space-y-6">
                   {[
@@ -758,7 +774,9 @@ const AssignEmployee = () => {
                             <input
                               type={type}
                               value={employee[field]}
-                              onChange={(e) => handleInput(field, e.target.value)}
+                              onChange={(e) =>
+                                handleInput(field, e.target.value)
+                              }
                               required={required}
                               max={
                                 type === "date"
@@ -801,7 +819,8 @@ const AssignEmployee = () => {
                 <div className="space-y-4 sm:space-y-6">
                   <div className="relative group z-10">
                     <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Join Date <span className="text-red-600 font-bold">*</span>
+                      Join Date{" "}
+                      <span className="text-red-600 font-bold">*</span>
                     </label>
                     <input
                       type="date"
@@ -821,7 +840,8 @@ const AssignEmployee = () => {
                   </div>
                   <div className="relative group z-10">
                     <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Basic Salary <span className="text-red-600 font-bold">*</span>
+                      Basic Salary{" "}
+                      <span className="text-red-600 font-bold">*</span>
                       <span
                         className="ml-1 text-gray-400 cursor-help"
                         title="Monthly basic salary"
@@ -832,7 +852,9 @@ const AssignEmployee = () => {
                     <input
                       type="number"
                       value={employee.basicSalary}
-                      onChange={(e) => handleInput("basicSalary", e.target.value)}
+                      onChange={(e) =>
+                        handleInput("basicSalary", e.target.value)
+                      }
                       className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
                         errors.basicSalary ? "border-red-500 animate-pulse" : ""
                       }`}
@@ -847,7 +869,8 @@ const AssignEmployee = () => {
                   </div>
                   <div className="relative group z-10">
                     <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Allowances <span className="text-red-600 font-bold">*</span>
+                      Allowances{" "}
+                      <span className="text-red-600 font-bold">*</span>
                       <span
                         className="ml-1 text-gray-400 cursor-help"
                         title="Monthly allowances"
@@ -858,7 +881,9 @@ const AssignEmployee = () => {
                     <input
                       type="number"
                       value={employee.allowances}
-                      onChange={(e) => handleInput("allowances", e.target.value)}
+                      onChange={(e) =>
+                        handleInput("allowances", e.target.value)
+                      }
                       className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
                         errors.allowances ? "border-red-500 animate-pulse" : ""
                       }`}
@@ -902,13 +927,18 @@ const AssignEmployee = () => {
                   ) && (
                     <div className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Department <span className="text-red-600 font-bold">*</span>
+                        Department{" "}
+                        <span className="text-red-600 font-bold">*</span>
                       </label>
                       <select
                         value={employee.department}
-                        onChange={(e) => handleInput("department", e.target.value)}
+                        onChange={(e) =>
+                          handleInput("department", e.target.value)
+                        }
                         className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                          errors.department ? "border-red-500 animate-pulse" : ""
+                          errors.department
+                            ? "border-red-500 animate-pulse"
+                            : ""
                         }`}
                         aria-label="Select department"
                         required
@@ -940,9 +970,13 @@ const AssignEmployee = () => {
                         </label>
                         <select
                           value={employee.position}
-                          onChange={(e) => handleInput("position", e.target.value)}
+                          onChange={(e) =>
+                            handleInput("position", e.target.value)
+                          }
                           className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                            errors.position ? "border-red-500 animate-pulse" : ""
+                            errors.position
+                              ? "border-red-500 animate-pulse"
+                              : ""
                           }`}
                           aria-label="Select designation"
                           required
@@ -972,7 +1006,8 @@ const AssignEmployee = () => {
                   {["Employee", "Manager"].includes(employee.roleType) && (
                     <div className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Employment Type <span className="text-red-600 font-bold">*</span>
+                        Employment Type{" "}
+                        <span className="text-red-600 font-bold">*</span>
                       </label>
                       <select
                         value={employee.employmentType}
