@@ -30,17 +30,31 @@ const Payroll = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const dispatch = useDispatch();
-  const { payrollList = [], loading, error, successMessage, totalRecords } = useSelector((state) => state.payroll);
+  const {
+    payrollList = [],
+    loading,
+    error,
+    successMessage,
+    totalRecords,
+  } = useSelector((state) => state.payroll);
   const { user, role } = useSelector((state) => state.auth);
 
   // Default to September 2025 for testing
-  const [selectedMonth, setSelectedMonth] = useState(startOfMonth(parse("2025-09", "yyyy-MM", new Date())));
+  const [selectedMonth, setSelectedMonth] = useState(
+    startOfMonth(parse("2025-09", "yyyy-MM", new Date()))
+  );
 
   const itemsPerPage = 25;
 
   useEffect(() => {
     const formattedMonth = format(selectedMonth, "yyyy-MM");
-    dispatch(fetchPayroll({ month: formattedMonth, page: currentPage, limit: itemsPerPage }));
+    dispatch(
+      fetchPayroll({
+        month: formattedMonth,
+        page: currentPage,
+        limit: itemsPerPage,
+      })
+    );
   }, [dispatch, selectedMonth, currentPage]);
 
   useEffect(() => {
@@ -51,12 +65,16 @@ const Payroll = () => {
     console.log("Current filters:", filters);
   }, [payrollList, totalRecords, filters]);
 
-  const departments = [...new Set(payrollList.map(emp => emp.department))].sort();
+  const departments = [
+    ...new Set(payrollList.map((emp) => emp.department)),
+  ].sort();
 
   const filteredData = payrollList
     .filter(
       (emp) =>
-        emp.employee_name?.toLowerCase().includes(filters.search.toLowerCase()) &&
+        emp.employee_name
+          ?.toLowerCase()
+          .includes(filters.search.toLowerCase()) &&
         (!filters.department || emp.department === filters.department) &&
         (!filters.status || emp.status === filters.status) &&
         (role !== "employee" || emp.employee_id === user.id)
@@ -110,7 +128,9 @@ const Payroll = () => {
       setCurrentPage(1);
       setFilters({ search: "", department: "", status: "" });
       setTimeout(() => {
-        dispatch(fetchPayroll({ month: formattedMonth, page: 1, limit: itemsPerPage }));
+        dispatch(
+          fetchPayroll({ month: formattedMonth, page: 1, limit: itemsPerPage })
+        );
       }, 500);
       if (generatePayroll.fulfilled.match(result)) {
         toast.success("Payroll generated successfully");
@@ -216,23 +236,25 @@ const Payroll = () => {
         />
       </div>
       <div className="space-y-6 rounded-lg bg-white min-h-screen p-4 sm:p-6">
-        <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-4 sm:p-6 md:p-8 shadow-sm hover:shadow-md transition-shadow duration-300">
-  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+  <div className="flex flex-row flex-wrap lg:flex-row md:flex-col md:items-start sm:flex-col sm:items-start justify-between items-start sm:items-center gap-4 sm:gap-6">
     {/* Title and Description Section */}
-    <div className="w-full sm:w-7/12">
-      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
+    <div className="flex-1 min-w-0">
+      <h1 className="text-2xl sm:text-3xl md:text-3xl font-bold text-white truncate(3) max-w-full">
         Payroll Management
       </h1>
-      <p className="text-slate-200 text-xs sm:text-sm md:text-base lg:text-lg mt-1">
+      <p className="text-slate-200 text-xs sm:text-sm md:text-base mt-1">
         Manage employee deductions and payroll processing
       </p>
     </div>
 
     {/* Date Picker and Buttons Section */}
-    <div className="w-full sm:w-5/12 flex flex-col sm:flex-row justify-end items-end gap-3 sm:gap-4">
+    <div className="flex flex-col sm:flex-row md:flex-row sm:items-end-safe gap-4 sm:gap-3 w-full sm:w-auto">
       {/* Date Picker */}
-      <div className="w-full sm:w-auto flex flex-col items-start gap-2">
-        <p className="text-white text-xs sm:text-sm md:text-base">Select Date</p>
+      <div className="flex flex-col w-full sm:w-60">
+        <p className="text-white text-xs sm:text-sm md:text-base mb-2">
+          Select Date
+        </p>
         <DatePicker
           name="monthPicker"
           value={selectedMonth}
@@ -240,16 +262,16 @@ const Payroll = () => {
           maxDate={new Date()}
           titleClassName="text-slate-200 text-xs sm:text-sm md:text-base font-medium"
           showOnlyMonthYear
-          className="w-full sm:w-auto rounded-lg border border-slate-300 bg-white text-teal-600 focus:ring-2 focus:ring-teal-400"
+          className="w-full px-3 rounded-lg border border-slate-300 bg-white text-teal-600 focus:ring-2 focus:ring-teal-400"
         />
       </div>
 
       {/* Buttons for HR and Super Admin */}
       {["hr", "super_admin"].includes(role) && (
-        <div className="w-full flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <div className="flex sm:flex-row justify-between gap-2 sm:gap-3 w-full sm:w-auto">
           <button
             onClick={handleProcessPayroll}
-            className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-white text-teal-600 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105 text-xs sm:text-sm md:text-base"
+            className="w-1/2 sm:w-auto px-4 py-2 bg-white text-teal-600 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105 text-md sm:text-sm md:text-base"
           >
             Process
           </button>
@@ -258,9 +280,15 @@ const Payroll = () => {
               const formattedMonth = format(selectedMonth, "yyyy-MM");
               setCurrentPage(1);
               setFilters({ search: "", department: "", status: "" });
-              dispatch(fetchPayroll({ month: formattedMonth, page: 1, limit: itemsPerPage }));
+              dispatch(
+                fetchPayroll({
+                  month: formattedMonth,
+                  page: 1,
+                  limit: itemsPerPage,
+                })
+              );
             }}
-            className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-white text-teal-600 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105 text-xs sm:text-sm md:text-base"
+            className="w-1/2 sm:w-auto px-4 py-2 bg-white text-teal-600 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300 transform hover:scale-105 text-md sm:text-sm md:text-base"
           >
             Refresh
           </button>
@@ -380,7 +408,9 @@ const Payroll = () => {
                             : null
                         }
                         className={`px-3 py-2 sm:px-4 sm:py-3 text-left font-medium text-white uppercase tracking-wider text-xs sm:text-sm ${
-                          ["Employee", "Gross Salary", "Net Salary"].includes(col)
+                          ["Employee", "Gross Salary", "Net Salary"].includes(
+                            col
+                          )
                             ? "cursor-pointer hover:text-slate-200"
                             : ""
                         }`}
@@ -413,19 +443,30 @@ const Payroll = () => {
                       </td>
                       <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
                         <div className="font-medium text-slate-900 truncate">
-                          ₹{(parseFloat(emp.gross_salary) || 0).toLocaleString("en-IN")}
+                          ₹
+                          {(parseFloat(emp.gross_salary) || 0).toLocaleString(
+                            "en-IN"
+                          )}
                         </div>
                         <div className="text-slate-500 text-xs">Base</div>
                       </td>
                       <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
                         <div className="text-red-600 font-medium truncate">
-                          ₹{(parseFloat(emp.pf_deduction) || 0).toLocaleString("en-IN")}
+                          ₹
+                          {(parseFloat(emp.pf_deduction) || 0).toLocaleString(
+                            "en-IN"
+                          )}
                         </div>
-                        <div className="text-slate-500 text-xs">Provident Fund</div>
+                        <div className="text-slate-500 text-xs">
+                          Provident Fund
+                        </div>
                       </td>
                       <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
                         <div className="font-bold text-teal-600 truncate">
-                          ₹{(parseFloat(emp.net_salary) || 0).toLocaleString("en-IN")}
+                          ₹
+                          {(parseFloat(emp.net_salary) || 0).toLocaleString(
+                            "en-IN"
+                          )}
                         </div>
                         <div className="text-slate-500 text-xs">Take-home</div>
                       </td>
