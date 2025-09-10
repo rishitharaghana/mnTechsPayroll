@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react"; // Add useRef for click-outside handling
 import { useDispatch, useSelector } from "react-redux";
 import { format, startOfMonth } from "date-fns";
 import DatePicker from "../../Components/ui/date/DatePicker";
@@ -15,6 +15,74 @@ import { fetchEmployees, fetchDepartments } from "../../redux/slices/employeeSli
 import { downloadPayslip } from "../../redux/slices/payslipSlice";
 import PayslipGenerator from "../PayslipManagement/PayslipGenerator";
 import { toast } from "react-toastify";
+
+// Custom Select Component
+const CustomSelect = ({ value, onChange, options, disabled, placeholder }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (selectRef.current && !selectRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelect = (optionValue) => {
+    onChange({ target: { value: optionValue } });
+    setIsOpen(false);
+  };
+
+  const selectedOption = options.find((option) => option.value === value);
+
+  return (
+    <div className="relative" ref={selectRef}>
+      <label className="text-slate-500 text-sm font-medium">Select Employee</label>
+      <div
+        className={`mt-1 block w-full rounded-md border border-slate-300 bg-white py-2 px-3 shadow-sm focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500 sm:text-sm cursor-pointer transition-all duration-200 ${
+          disabled ? "bg-slate-100 cursor-not-allowed" : "hover:border-teal-400"
+        }`}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+      >
+        <div className="flex justify-between items-center">
+          <span className={value ? "text-slate-900" : "text-slate-400"}>
+            {selectedOption ? selectedOption.label : placeholder}
+          </span>
+          <svg
+            className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${
+              isOpen ? "rotate-180" : ""
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+      {isOpen && !disabled && (
+        <div className="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+          {options.map((option) => (
+            <div
+              key={option.value}
+              className={`px-3 py-2 text-sm cursor-pointer hover:bg-teal-50 hover:text-teal-700 ${
+                value === option.value ? "bg-teal-100 text-teal-800 font-medium" : "text-slate-900"
+              }`}
+              onClick={() => handleSelect(option.value)}
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const GeneratePayroll = () => {
   const dispatch = useDispatch();
@@ -118,14 +186,23 @@ const GeneratePayroll = () => {
 
   const handleViewPayslip = (record) => {
     const formattedMonth = format(selectedMonth, "yyyy-MM");
-    setSelectedPayroll(record); 
+    setSelectedPayroll(record);
   };
 
   const totalPages = Math.ceil(totalRecords / itemsPerPage);
 
+  // Prepare options for the custom select
+  const employeeOptions = [
+    { value: "", label: "Select an employee" },
+    ...employees.map((employee) => ({
+      value: employee.employee_id,
+      label: `${employee.full_name} (${employee.employee_id})`,
+    })),
+  ];
+
   return (
-    <div className="w-full lg:w-[78%]">
-      <div className="flex justify-end">
+    <div className="w-full">
+      <div className="hidden sm:flex sm:justify-end">
         <PageMeta
           title="Generate Payroll"
           description="Generate payroll for all employees or a specific employee in a selected month."
@@ -139,21 +216,11 @@ const GeneratePayroll = () => {
       </div>
       <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6">
         <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-          <h1 className="text-3xl font-bold text-white">💼 Generate Payroll</h1>
-          <p className="text-slate-200 text-lg mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">💼 Generate Payroll</h1>
+          <p className="text-gray-200 text-md sm:text-lg mt-1">
             Generate payroll for all employees or a specific employee for the selected month.
           </p>
         </div>
-{/* 
-        {(error || successMessage || employeesError) && (
-          <div
-            className={`p-4 rounded-lg ${
-              error || employeesError ? "bg-red-100 text-red-700" : ""
-            }`}
-          >
-            {error || employeesError || successMessage}
-          </div>
-        )} */}
 
         <div className="bg-white rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -168,20 +235,13 @@ const GeneratePayroll = () => {
               />
             </div>
             <div>
-              <label className="text-slate-500 text-sm font-medium">Select Employee</label>
-              <select
+              <CustomSelect
                 value={selectedEmployeeId}
                 onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-slate-300 bg-white py-2 px-3 shadow-sm focus:border-teal-500 focus:outline-none focus:ring-teal-500 sm:text-sm"
+                options={employeeOptions}
                 disabled={employeesLoading || employees.length === 0}
-              >
-                <option value="">Select an employee</option>
-                {employees.map((employee) => (
-                  <option key={employee.employee_id} value={employee.employee_id}>
-                    {employee.full_name} ({employee.employee_id})
-                  </option>
-                ))}
-              </select>
+                placeholder="Select an employee"
+              />
             </div>
           </div>
 
@@ -239,33 +299,33 @@ const GeneratePayroll = () => {
           <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
             <h2 className="text-xl font-bold text-slate-900 mb-4">Generated Payroll Records</h2>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gradient-to-r from-teal-600 to-slate-700 text-white">
+              <table className="min-w-full text-sm border-collapse">
+                <thead className="bg-gradient-to-r border border-slate-200 rounded-md shadow-md from-teal-600 to-slate-700 text-white">
                   <tr>
-                    <th className="px-6 py-4 text-left">Employee</th>
-                    <th className="px-6 py-4 text-left">Department</th>
-                    <th className="px-6 py-4 text-left">Gross Salary</th>
-                    <th className="px-6 py-4 text-left">Net Salary</th>
-                    <th className="px-6 py-4 text-left">Status</th>
-                    <th className="px-6 py-4 text-left">Actions</th>
+                    <th className="px-6 py-4 text-left whitespace-nowrap">Employee</th>
+                    <th className="px-6 py-4 text-left whitespace-nowrap hidden sm:table-cell">Department</th>
+                    <th className="px-6 py-4 text-left whitespace-nowrap">Gross Salary</th>
+                    <th className="px-6 py-4 text-left whitespace-nowrap">Net Salary</th>
+                    <th className="px-6 py-4 text-left whitespace-nowrap">Status</th>
+                    <th className="px-6 py-4 text-left whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="border border-slate-200 divide-y divide-slate-200">
                   {payrollList.map((record) => (
                     <tr key={`${record.employee_id}-${record.month}`} className="hover:bg-slate-50">
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 whitespace-nowrap truncate max-w-[180px]">
                         {record.employee_name} ({record.employee_id})
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                         {record.department || "HR"}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 whitespace-nowrap">
                         ₹{(parseFloat(record.gross_salary) || 0).toLocaleString("en-IN")}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 whitespace-nowrap">
                         ₹{(parseFloat(record.net_salary) || 0).toLocaleString("en-IN")}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             record.status === "Processed" || record.status === "Paid"
@@ -278,19 +338,13 @@ const GeneratePayroll = () => {
                           {record.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 flex gap-2">
+                      <td className="px-6 py-4 flex flex-col sm:flex-row gap-2 whitespace-nowrap">
                         <button
                           onClick={() => handleViewPayslip(record)}
                           className="text-teal-600 hover:text-teal-800"
                         >
                           View Payslip
                         </button>
-                        {/* <button
-                          onClick={() => handleGeneratePayrollForEmployee(record.employee_id)}
-                          className="text-teal-600 hover:text-teal-800"
-                        >
-                          Regenerate Payroll
-                        </button> */}
                         <button
                           onClick={() => handleDownloadEmployeePayslip(record.employee_id)}
                           className="text-teal-600 hover:text-teal-800"
@@ -303,21 +357,21 @@ const GeneratePayroll = () => {
                 </tbody>
               </table>
             </div>
-            <div className="flex justify-between items-center p-4">
+
+            {/* Pagination */}
+            <div className="flex sm:flex-row justify-between items-center gap-3 pt-4 sm:p-4">
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
-                className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
+                className="px-3 sm:px-4 py-2 text-sm sm:text-md bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
-              <span className="text-slate-500">
-                Page {currentPage} of {totalPages}
-              </span>
+              <span className="text-sm sm:text-md text-slate-500">Page {currentPage} of {totalPages}</span>
               <button
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(currentPage + 1)}
-                className="px-4 py-2 bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
+                className="px-3 sm:px-4 py-2 text-sm sm:text-md bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
               >
                 Next
               </button>
