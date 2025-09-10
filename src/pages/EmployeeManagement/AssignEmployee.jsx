@@ -85,7 +85,7 @@ const AssignEmployee = () => {
     "O+ve",
     "O-ve",
   ];
-  const employmentTypes = ["Full-time", "Part-time", "Internship", "Contract"];
+  const employmentTypes = ["full_time", "part_time", "intern", "contract"];
   const genders = ["Male", "Female", "Others"];
 
   useEffect(() => {

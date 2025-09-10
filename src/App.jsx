@@ -48,6 +48,8 @@ import EmployeeIdCards from "./pages/Cards/EmployeeIdCards";
 import EmployeeVisitingCard from "./pages/Cards/EmployeeVisitingCard";
 import AnnualCalendar from "./pages/HolidayCalendar/AnnualCalendar";
 import EmployeeAvgHours from "./pages/AttendanceManagement/EmployeeAvgHours";
+import EmpAttendanceOverview from "./pages/AttendanceManagement/EmpAttendanceOverview";
+import DetailedAttendanceReport from "./pages/AttendanceManagement/DetailedAttendanceReport";
 
 const App = () => {
   return (
@@ -146,6 +148,10 @@ const App = () => {
                   path="/employee/leave-dashboard"
                   element={<LeaveDashboard />}
                 />
+                <Route path="/employee/attendance-report" element={<DetailedAttendanceReport />} />
+
+
+        <Route path="/employee/attendance-overview" element={<EmpAttendanceOverview />} />
 
                 <Route
                   path="/employee/employee-visitingcards"
@@ -177,7 +183,7 @@ const App = () => {
                   element={<EmployeeDetails />}
                 />
                 <Route
-                  path="/leave-application"
+                  path="employee/leave-application"
                   element={<LeaveApplication />}
                 />
               </Route>

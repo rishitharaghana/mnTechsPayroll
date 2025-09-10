@@ -222,9 +222,9 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 transition-all duration-300"
             >
               <option value="">Select Employment Type</option>
-              <option value="full-time">Full-time</option>
-              <option value="part-time">Part-time</option>
-              <option value="internship">Internship</option>
+              <option value="full_time">Full-time</option>
+              <option value="part_time">Part-time</option>
+              <option value="intern">Internship</option>
               <option value="contract">Contract</option>
             </select>
             {errors.employmentType && (

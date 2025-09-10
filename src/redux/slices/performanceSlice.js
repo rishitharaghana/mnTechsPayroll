@@ -153,11 +153,12 @@ export const submitSelfReview = createAsyncThunk(
 const performanceSlice = createSlice({
   name: "performance",
   initialState: {
-    performance: null,
+    performance: { goals: [], tasks: [], competencies: [], achievements: [], feedback: [], learningGrowth: [], appraisals: [] },
     loading: false,
     error: null,
      employees: [],
     successMessage: null,
+    
   },
   reducers: {
     clearState: (state) => {

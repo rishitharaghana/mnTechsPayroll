@@ -171,6 +171,32 @@ export const updateAttendanceStatus = createAsyncThunk(
   }
 );
 
+export const fetchDetailedAttendance = createAsyncThunk(
+  'attendance/fetchDetailedAttendance',
+  async ({ employee_id, start_date, end_date }, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem('userToken');
+      if (!userToken) {
+        return rejectWithValue('No authentication token found. Please log in.');
+      }
+            const { token } = JSON.parse(userToken);
+
+      const response = await axios.post('http://localhost:3007/api/attendance/detailed', { employee_id, start_date, end_date },
+         {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch detailed attendance');
+    }
+  }
+);
+
 const attendanceSlice = createSlice({
   name: 'attendance',
   initialState: {
@@ -182,6 +208,7 @@ const attendanceSlice = createSlice({
     loading: false,
     error: null,
     successMessage: null,
+    detailedAttendance: null,
   },
   reducers: {
     clearState: (state) => {
@@ -288,6 +315,19 @@ const attendanceSlice = createSlice({
         }
       })
       .addCase(updateAttendanceStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchDetailedAttendance.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDetailedAttendance.fulfilled, (state, action) => {
+        state.loading = false;
+        state.detailedAttendance = action.payload;
+        state.successMessage = 'Detailed attendance report fetched successfully';
+      })
+      .addCase(fetchDetailedAttendance.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

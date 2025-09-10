@@ -9,67 +9,83 @@ import { fetchEmployees } from "../../redux/slices/employeeSlice";
 const Performance = () => {
   const dispatch = useDispatch();
   const { employees } = useSelector((state) => state.employee);
-  const { performance, loading, error } = useSelector(
-    (state) => state.performance
-  );
+  const { performance, loading, error } = useSelector((state) => state.performance);
   const [selectedEmployee, setSelectedEmployee] = useState("all");
-  const [selectedPeriod, setSelectedPeriod] = useState("monthly");
+  const [selectedPeriod, setSelectedPeriod] = useState("quarterly");
 
   useEffect(() => {
     dispatch(fetchEmployees());
     if (selectedEmployee !== "all") {
-      dispatch(fetchEmployeePerformance(selectedEmployee));
+      dispatch(fetchEmployeePerformance(selectedEmployee)).catch((err) =>
+        console.error("Failed to fetch performance:", err)
+      );
     }
   }, [dispatch, selectedEmployee]);
+
+  // Calculate date range for 3-month cycle
+  const getDateRange = () => {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), Math.floor(today.getMonth() / 3) * 3, 1);
+    const end = new Date(today.getFullYear(), Math.floor(today.getMonth() / 3) * 3 + 3, 0);
+    return { start, end };
+  };
+
+  // Filter performance data by date range
+  const filteredPerformance = {
+    ...performance,
+    reviews: (performance?.reviews || []).filter((review) => {
+      if (selectedPeriod !== "quarterly") return true; // Adjust for other periods if needed
+      const reviewDate = new Date(review.reviewDate);
+      const { start, end } = getDateRange();
+      return reviewDate >= start && reviewDate <= end;
+    }),
+    goals: (performance?.goals || []).filter((goal) => {
+      if (selectedPeriod !== "quarterly") return true;
+      const dueDate = new Date(goal.due_date);
+      const { start, end } = getDateRange();
+      return dueDate >= start && dueDate <= end;
+    }),
+  };
 
   const performanceMetrics = [
     {
       title: "Team Performance",
-      value: performance?.reviews?.length
+      value: filteredPerformance?.reviews?.length
         ? `${Math.round(
-            performance.reviews.reduce(
-              (sum, r) => sum + r.performance_score,
-              0
-            ) / performance.reviews.length
+            filteredPerformance.reviews.reduce((sum, r) => sum + (r.performance_score || 0), 0) /
+              filteredPerformance.reviews.length
           )}%`
         : "N/A",
-      change: "+4.2%",
+      change: filteredPerformance?.reviews?.length ? "+4.2%" : "N/A", // Replace with dynamic calculation
       icon: TrendingUp,
     },
     {
       title: "Goals Achieved",
-      value: performance?.goals?.length
+      value: filteredPerformance?.goals?.length
         ? `${Math.round(
-            (performance.goals.filter((g) => g.status === "Completed").length /
-              performance.goals.length) *
-              100
+            (filteredPerformance.goals.filter((g) => g.status === "Completed").length /
+              filteredPerformance.goals.length) * 100
           )}%`
         : "N/A",
-      change: "+7.1%",
+      change: filteredPerformance?.goals?.length ? "+7.1%" : "N/A", // Replace with dynamic calculation
       icon: Target,
     },
     {
       title: "Awards Given",
-      value:
-        performance?.reviews?.reduce(
-          (sum, r) => sum + r.achievements.length,
-          0
-        ) || 0,
-      change: "+12",
+      value: filteredPerformance?.reviews?.reduce((sum, r) => sum + (r.achievements?.length || 0), 0) || 0,
+      change: filteredPerformance?.reviews?.length ? "+12" : "N/A", // Replace with dynamic calculation
       icon: Award,
     },
     {
       title: "Avg Rating",
-      value: performance?.reviews?.length
+      value: filteredPerformance?.reviews?.length
         ? (
-            performance.reviews.reduce(
-              (sum, r) => sum + r.performance_score,
-              0
-            ) /
-            performance.reviews.length /
+            filteredPerformance.reviews.reduce((sum, r) => sum + (r.performance_score || 0), 0) /
+            filteredPerformance.reviews.length /
             20
           ).toFixed(1)
         : "N/A",
+      change: filteredPerformance?.reviews?.length ? "+0.2" : "N/A", // Replace with dynamic calculation
       icon: Star,
     },
   ];
@@ -88,7 +104,7 @@ const Performance = () => {
 
   return (
     <div className="w-full lg:w-[78%]">
-      <div className="flex justify-end">
+      <div className="flex justify-end items-center">
         <PageMeta
           title="Performance Management"
           description="Track and manage employee performance metrics."
@@ -100,61 +116,81 @@ const Performance = () => {
           ]}
         />
       </div>
-      <div className="p-6 bg-white rounded-2xl space-y-8">
-        <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
+      <div className="bg-white rounded-xl p-4 md:p-8 shadow-lg border-1 border-gray-300">
+        <div className="bg-gradient-to-r from-slate-700 to-teal-600 rounded-xl p-6 mb-6">
+          <h1 className="text-3xl font-bold text-white text-center">Employee Performance Dashboard</h1>
+          <p className="text-white text-center">Overview of employee metrics and achievements (3-Month Cycle)</p>
+        </div>
+
+        {(error || loading) && (
+          <div className="mb-4 p-4 rounded-lg">
+            {error && <p className="bg-red-100 text-red-700 p-4 rounded-lg">{error}</p>}
+            {loading && (
+              <div className="flex justify-center">
+                <svg
+                  className="animate-spin h-5 w-5 text-teal-600"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-col lg:flex-row justify-between items-center gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-              Employee Performance Dashboard
-            </h1>
-            <p className="text-gray-500">
-              Overview of employee metrics and achievements
-            </p>
+            <h2 className="text-xl font-semibold text-gray-800">Filters</h2>
           </div>
           <div className="flex gap-4">
             <select
               value={selectedEmployee}
               onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="border rounded-md p-2"
+              className="border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
+              aria-label="Select employee"
             >
               <option value="all">All Employees</option>
               {employees.map((e) => (
                 <option key={e.employee_id} value={e.employee_id}>
-                  {e.name}
+                  {e.full_name} ({e.employee_id})
                 </option>
               ))}
             </select>
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="border rounded-md p-2"
+              className="border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
+              aria-label="Select period"
             >
-              <option value="monthly">Monthly</option>
               <option value="quarterly">Quarterly</option>
+              <option value="monthly">Monthly</option>
               <option value="yearly">Yearly</option>
             </select>
           </div>
         </div>
 
-        {loading && <p className="text-gray-600">Loading...</p>}
-        {error && <p className="text-red-600">{error}</p>}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {performanceMetrics.map((metric, idx) => {
             const Icon = metric.icon;
             return (
               <div
                 key={idx}
-                className="bg-white shadow-md rounded-xl p-5 border-1 border-gray-200 hover:-translate-y-1 duration-100 translate flex flex-col items-start"
+                className="bg-white shadow-lg rounded-xl p-5 border-1 border-gray-300 hover:-translate-y-1 transition-all"
+                role="region"
+                aria-label={metric.title}
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <Icon className="text-indigo-600" size={22} />
-                  <h2 className="text-sm font-semibold text-gray-700">
-                    {metric.title}
-                  </h2>
+                  <Icon className="text-teal-600" size={22} />
+                  <h2 className="text-sm font-semibold text-gray-700">{metric.title}</h2>
                 </div>
-                <div className="text-xl font-bold text-gray-900">
-                  {metric.value}
-                </div>
+                <div className="text-xl font-bold text-gray-900">{metric.value}</div>
                 <span className="text-sm text-green-600">{metric.change}</span>
               </div>
             );
@@ -165,103 +201,93 @@ const Performance = () => {
           {filteredEmployees.map((emp) => (
             <div
               key={emp.employee_id}
-              className="bg-white shadow-md hover:-translate-y-1 duration-100 translate border-1 border-gray-200 rounded-xl p-6"
+              className="bg-white shadow-lg rounded-xl p-6 border-1 border-gray-300 hover:-translate-y-1 transition-all"
+              role="region"
+              aria-label={`Performance details for ${emp.full_name}`}
             >
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800">
-                    {emp.name}
-                  </h3>
+                  <h3 className="text-xl font-bold text-gray-800">{emp.full_name}</h3>
                   <p className="text-sm text-gray-500">
                     {emp.designation_name} | {emp.department_name}
                   </p>
                 </div>
               </div>
 
-              {performance && performance.employee.id === emp.employee_id && (
+              {performance?.employee?.id === emp.employee_id && filteredPerformance.reviews[0] && (
                 <>
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
                       <p className="text-sm text-gray-600">Performance Score</p>
                       <p
                         className={`text-lg font-bold ${getPerformanceLabel(
-                          performance.reviews[0]?.performance_score || 0
+                          filteredPerformance.reviews[0]?.performance_score || 0
                         )}`}
                       >
-                        {performance.reviews[0]?.performance_score || "N/A"}%
+                        {filteredPerformance.reviews[0]?.performance_score || "N/A"}%
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Goals Completed</p>
                       <p className="text-lg font-bold text-gray-800">
-                        {
-                          performance.goals.filter(
-                            (g) => g.status === "Completed"
-                          ).length
-                        }
-                        /{performance.goals.length}
+                        {filteredPerformance.goals.filter((g) => g.status === "Completed").length}/
+                        {filteredPerformance.goals.length}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Rating</p>
                       <p className="text-lg font-bold text-yellow-600">
-                        {performance.reviews[0]?.performance_score
-                          ? (
-                              performance.reviews[0].performance_score / 20
-                            ).toFixed(1)
+                        {filteredPerformance.reviews[0]?.performance_score
+                          ? (filteredPerformance.reviews[0].performance_score / 20).toFixed(1)
                           : "N/A"}
                       </p>
                     </div>
                   </div>
 
                   <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-gray-700">
-                      Manager Comments
-                    </h4>
+                    <h4 className="text-sm font-semibold text-gray-700">Manager Comments</h4>
                     <p className="text-sm text-gray-600 italic">
-                      "
-                      {performance.reviews[0]?.manager_comments ||
-                        "No comments"}
-                      "
+                      "{filteredPerformance.reviews[0]?.manager_comments || "No comments"}"
                     </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <p className="text-sm text-gray-600">
                       <strong>Salary Hike:</strong>{" "}
-                      {performance.reviews[0]?.salary_hike_percentage
-                        ? `${performance.reviews[0].salary_hike_percentage}%`
+                      {filteredPerformance.reviews[0]?.salary_hike_percentage
+                        ? `${filteredPerformance.reviews[0].salary_hike_percentage}%`
                         : "N/A"}
                     </p>
                     <p className="text-sm text-gray-600">
                       <strong>Bonus Eligible:</strong>{" "}
-                      {performance.reviews[0]?.bonus_eligible ? "Yes" : "No"}
+                      {filteredPerformance.reviews[0]?.bonus_eligible ? "Yes" : "No"}
                     </p>
                     <p className="text-sm text-gray-600">
                       <strong>Promotion:</strong>{" "}
-                      {performance.reviews[0]?.promotion_recommended
-                        ? "Yes"
-                        : "No"}
+                      {filteredPerformance.reviews[0]?.promotion_recommended ? "Yes" : "No"}
                     </p>
                     <p className="text-sm text-gray-600">
                       <strong>Reviewed By:</strong>{" "}
-                      {performance.reviews[0]?.reviewer_id || "N/A"}
+                      {filteredPerformance.reviews[0]?.reviewer_id || "N/A"}
                     </p>
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                      Achievements
-                    </h4>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Achievements</h4>
                     <div className="flex flex-wrap gap-2">
-                      {performance.reviews[0]?.achievements.map((ach, idx) => (
+                      {(filteredPerformance.reviews[0]?.achievements || []).map((ach, idx) => (
                         <span
-                          key={idx}
-                          className="px-2 py-1 text-xs bg-indigo-100 text-indigo-700 rounded-full inline-flex items-center gap-1"
+                          key={ach.id}
+                          className="px-2 py-1 text-xs bg-teal-100 text-teal-700 rounded-full inline-flex items-center gap-1"
+                          title={`Date: ${ach.date}, Type: ${ach.type}`}
                         >
-                          <Award size={12} /> {ach}
+                          <Award size={12} /> {ach.title}
                         </span>
                       ))}
+                      {(!filteredPerformance.reviews[0]?.achievements ||
+                        filteredPerformance.reviews[0].achievements.length === 0) && (
+                        <p className="text-sm text-gray-600">No achievements recorded</p>
+                      )}
                     </div>
                   </div>
                 </>

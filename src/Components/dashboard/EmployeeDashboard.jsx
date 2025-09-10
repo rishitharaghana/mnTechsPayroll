@@ -206,7 +206,7 @@ const EmployeeDashboard = () => {
                       <p className="text-gray-500 text-xs">Status: {request.status} | {request.details}</p>
                     </div>
                     <NavLink
-                      to={`/leave-application/${request.id}`}
+                      to={`employee/leave-application/${request.id}`}
                       className="text-teal-600 text-sm font-medium hover:text-teal-800 hover:underline transition-all duration-200"
                       aria-label={`View details for leave request ${request.id}`}
                     >

@@ -85,6 +85,12 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/employee/employee-attendance",
           allowedRoles: ["employee", "dept_head", "manager"],
         },
+         {
+          id: "attendance-overview",
+          label: "Attendance Overview",
+          path: "/employee/attendance-overview",
+          allowedRoles: ["employee", "dept_head", "manager"],
+        },
         {
           id: "admin-attendance",
           label: "Attendance",
@@ -193,7 +199,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
       children: [
         {
-          id: "view-performance",
+          id: "view-performances",
           label: "View Performance",
           path: "/admin/performance",
           allowedRoles: [

@@ -44,7 +44,6 @@ const PayslipGenerator = ({ employee = {}, selectedMonth, onClose }) => {
     address: '123 Business Street, City, Country',
   };
 
-  // Calculate totals
   const totalEarnings =
     (parseFloat(employee.basic_salary) || 0) +
     (parseFloat(employee.hra) || 0) +
@@ -69,7 +68,6 @@ const PayslipGenerator = ({ employee = {}, selectedMonth, onClose }) => {
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md max-w-4xl mx-auto font-sans text-gray-800">
-      {/* Header */}
       <div className="flex justify-between items-start mb-6">
         <div>
           <img
@@ -89,14 +87,12 @@ const PayslipGenerator = ({ employee = {}, selectedMonth, onClose }) => {
         </div>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="p-4 bg-red-50 text-red-700 rounded-lg mb-6">
           {error}
         </div>
       )}
 
-      {/* Employee Details */}
       <div className="flex justify-between mb-6 gap-6">
         <div className="flex-1">
           <div className="text-xs">
