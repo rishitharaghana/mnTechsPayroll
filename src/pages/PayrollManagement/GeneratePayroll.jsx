@@ -97,7 +97,7 @@ const GeneratePayroll = () => {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [selectedPayroll, setSelectedPayroll] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   useEffect(() => {
     dispatch(fetchEmployees());
