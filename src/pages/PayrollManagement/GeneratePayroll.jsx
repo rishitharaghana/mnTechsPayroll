@@ -343,13 +343,13 @@ const GeneratePayroll = () => {
                           onClick={() => handleViewPayslip(record)}
                           className="text-teal-600 hover:text-teal-800"
                         >
-                          View Payslip
+                          View 
                         </button>
                         <button
                           onClick={() => handleDownloadEmployeePayslip(record.employee_id)}
                           className="text-teal-600 hover:text-teal-800"
                         >
-                          Download Payslip
+                          Download 
                         </button>
                       </td>
                     </tr>

@@ -108,7 +108,6 @@ const Payslip = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Employee options for react-select
   const employeeOptions = useMemo(
     () => [
       { value: "", label: "All Employees" },
@@ -120,9 +119,8 @@ const Payslip = () => {
     [employees]
   );
 
-  // Department options for react-select
   const departmentOptions = useMemo(() => {
-    console.log("Departments in useMemo:", departments); // Debugging
+    console.log("Departments in useMemo:", departments); 
     return [
       { value: "", label: "All Departments" },
       ...(Array.isArray(departments)
@@ -138,7 +136,7 @@ const Payslip = () => {
     if (isAuthenticated) {
       dispatch(fetchEmployees());
       dispatch(fetchDepartments()).then((result) => {
-        console.log("fetchDepartments result:", result); // Debugging
+        console.log("fetchDepartments result:", result); 
       });
       dispatch(
         fetchPayslips({
@@ -253,7 +251,7 @@ const Payslip = () => {
   }
 
   return (
-    <div className="w-full lg:w-[78%]">
+    <div className="w-full ">
       <div className="flex justify-end items-center">
         <PageMeta
           title="Payslip Management"
