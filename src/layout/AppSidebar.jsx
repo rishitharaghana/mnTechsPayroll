@@ -334,7 +334,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
     <>
       <aside
         className={`
-          fixed top-16 inset-y-0 left-0 z-40 
+          fixed top-16 inset-y-0 z-40 
           w-64 sm:w-72 md:w-80 lg:w-64 
           bg-white text-gray-800 border-r border-gray-200 
           transform transition-transform duration-300 ease-in-out 
