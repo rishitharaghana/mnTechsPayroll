@@ -215,7 +215,7 @@ const GeneratePayroll = () => {
 
         <div className="bg-white rounded-lg border border-slate-200/50 sm:p-6 p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
+            <div className="lg:max-w-xs">
               <DatePicker
                 title="Select Month"
                 value={selectedMonth}
@@ -225,7 +225,7 @@ const GeneratePayroll = () => {
                 titleClassName="text-slate-500 text-sm font-medium"
               />
             </div>
-            <div>
+            <div className="lg:max-w-xs">
               <CustomSelect
                 value={selectedEmployeeId}
                 onChange={(e) => setSelectedEmployeeId(e.target.value)}
