@@ -7,6 +7,7 @@ import { getCurrentUserProfile } from '../../redux/slices/employeeSlice';
 import { fetchEmployeeAttendance } from '../../redux/slices/attendanceSlice';
 import { fetchLeaveBalances } from '../../redux/slices/leaveSlice';
 import { fetchRecentPayslip } from '../../redux/slices/payslipSlice';
+import MiniCalendar from '../common/MiniCalendar';
 
 const iconMap = {
   FileText: FileText,
@@ -78,6 +79,7 @@ const EmployeeDashboard = () => {
           });
         } catch (error) {
           console.error('Error fetching dashboard data:', error);
+          toast.error(error || 'Failed to load dashboard data', { position: 'top-right', autoClose: 3000 });
         }
         setLoading(false);
       };
@@ -93,8 +95,6 @@ const EmployeeDashboard = () => {
       });
     }
   }, [authError, employeeError, leaveError, attendanceError, payrollError]);
-
-
 
   if (authLoading || employeeLoading || loading || payrollLoading) {
     return (
@@ -131,7 +131,6 @@ const EmployeeDashboard = () => {
       <div className="min-h-screen bg-gray-100 flex justify-center items-center">
         <div className="text-center">
           <p className="text-red-600 font-semibold mb-4">Access restricted: User role is '{role || 'undefined'}', not 'employee'.</p>
-         
         </div>
       </div>
     );
@@ -151,7 +150,6 @@ const EmployeeDashboard = () => {
           >
             Retry
           </button>
-       
         </div>
       </div>
     );
@@ -168,7 +166,6 @@ const EmployeeDashboard = () => {
               </h1>
               <p className="text-gray-200 text-lg mt-1">Manage your leave, attendance, and more with ease.</p>
             </div>
-         
           </div>
         </div>
 
@@ -249,13 +246,17 @@ const EmployeeDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {dashboardData.recentPayslip && (
+          {dashboardData.recentPayslip ? (
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm hover:shadow-md transition-all duration-300">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Payslip</h2>
               <div className="space-y-2">
                 <p className="text-gray-600 text-sm">Month: {dashboardData.recentPayslip.month || 'N/A'}</p>
-                <p className="text-gray-600 text-sm">Gross Pay: ₹{parseFloat(dashboardData.recentPayslip.gross_salary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                <p className="text-gray-600 text-sm">Net Pay: ₹{parseFloat(dashboardData.recentPayslip.net_salary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className="text-gray-600 text-sm">
+                  Gross Pay: ₹{parseFloat(dashboardData.recentPayslip.gross_salary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <p className="text-gray-600 text-sm">
+                  Net Pay: ₹{parseFloat(dashboardData.recentPayslip.net_salary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
                 <NavLink
                   to="/employee-payslip"
                   className="text-teal-600 text-sm font-medium hover:text-teal-800 hover:underline mt-2 inline-block"
@@ -265,8 +266,14 @@ const EmployeeDashboard = () => {
                 </NavLink>
               </div>
             </div>
+          ) : (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Payslip</h2>
+              <p className="text-gray-500 text-sm">No payslip available for the current month.</p>
+            </div>
           )}
-          {dashboardData.workSummary && (
+
+          {dashboardData.workSummary ? (
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm hover:shadow-md transition-all duration-300">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Work Summary</h2>
               <div className="space-y-2">
@@ -277,8 +284,54 @@ const EmployeeDashboard = () => {
                 <p className="text-gray-600 text-sm">Unpaid Leave: {dashboardData.workSummary.unpaid_leave_days || 0}</p>
               </div>
             </div>
+          ) : (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Work Summary</h2>
+              <p className="text-gray-500 text-sm">No work summary available for the current month.</p>
+            </div>
           )}
         </div>
+
+        {/* New Attendance Insights with Mini Calendar */}
+        {dashboardData.workSummary ? (
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 mb-8 shadow-sm hover:shadow-md transition-all duration-300">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Attendance Insights</h2>
+            <div className="space-y-4">
+              <p className="text-gray-600 text-sm">Month: {dashboardData.workSummary.month || 'N/A'}</p>
+              <MiniCalendar month={dashboardData.workSummary.month} workSummary={dashboardData.workSummary} />
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="flex items-center">
+                  <span className="w-3 h-3 bg-teal-600 rounded-full mr-2"></span>
+                  <span>Present: {dashboardData.workSummary.present_days || 0}</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-3 h-3 bg-blue-600 rounded-full mr-2"></span>
+                  <span>Paid Leave: {dashboardData.workSummary.paid_leave_days || 0}</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-3 h-3 bg-red-600 rounded-full mr-2"></span>
+                  <span>Unpaid Leave: {dashboardData.workSummary.unpaid_leave_days || 0}</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-3 h-3 bg-yellow-600 rounded-full mr-2"></span>
+                  <span>Holidays: {dashboardData.workSummary.holidays || 0}</span>
+                </div>
+              </div>
+              <NavLink
+                to="/employee/leave-dashboard"
+                className="text-teal-600 text-sm font-medium hover:text-teal-800 hover:underline mt-2 inline-block"
+                aria-label="View leave details"
+              >
+                View Leave Details
+              </NavLink>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 mb-8 shadow-sm">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Attendance Insights</h2>
+            <p className="text-gray-500 text-sm">No attendance data available for the current month.</p>
+          </div>
+        )}
 
         {dashboardData.attendance.length > 0 ? (
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm hover:shadow-md transition-all duration-300">
