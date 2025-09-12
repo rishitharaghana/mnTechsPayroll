@@ -276,7 +276,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           label: "ID Card",
           icon: IdCardIcon,
           path: "/idcard",
-          allowedRoles: ["employee", "hr", "manager", "dept_head"],
+          allowedRoles: [ "hr", "manager", "dept_head", "super_admin"],
         },
       ],
     },

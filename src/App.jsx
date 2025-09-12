@@ -202,6 +202,10 @@ const App = () => {
                 }
               >
                 <Route
+                  path="/employee/employee-idcards"
+                  element={<EmployeeIdCards />}
+                />
+                <Route
                   path="/employee/employee-attendance"
                   element={<EmployeeAttendance />}
                 />
@@ -214,7 +218,7 @@ const App = () => {
                   element={<AnnualCalendar />}
                 />
               </Route>
-
+            
               <Route path="/userprofile" element={<UserProfile />} />
               <Route path="/profile" element={<EditProfile />} />
               <Route path="/idcard/" element={<ViewIdCard />} />
