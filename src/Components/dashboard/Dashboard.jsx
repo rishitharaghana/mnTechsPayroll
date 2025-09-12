@@ -1,246 +1,204 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { NavLink } from 'react-router-dom';
-import {
-  Users,
-  Clock,
-  CreditCard,
-  TrendingUp,
-  Calendar,
-  Award,
-  FileText,
-  DollarSign,
-  PiggyBank,
-  Shield,
-} from 'lucide-react';
-
-const statsByRole = {
-  super_admin: [
-    { title: 'Total Employees', value: '248', change: '+12%', icon: Users },
-    { title: 'Present Today', value: '198', change: '+5%', icon: Clock },
-    { title: 'Monthly Payroll', value: '$48,200', change: '+8%', icon: CreditCard },
-    { title: 'Performance Score', value: '94%', change: '+3%', icon: TrendingUp },
-  ],
-  hr: [
-    { title: 'Total Employees', value: '248', change: '+12%', icon: Users },
-    { title: 'Present Today', value: '198', change: '+5%', icon: Clock },
-    { title: 'Monthly Payroll', value: '$48,200', change: '+8%', icon: CreditCard },
-    { title: 'Pending ESI/PF Filings', value: '12', change: '+2', icon: FileText },
-  ],
-  dept_head: [
-    { title: 'Team Size', value: '25', change: '+10%', icon: Users },
-    { title: 'Present Today', value: '20', change: '+4%', icon: Clock },
-    { title: 'Team Performance', value: '92%', change: '+5%', icon: TrendingUp },
-  ],
-};
-
-const quickActionsByRole = {
-  super_admin: [
-    { title: 'Manage Employees', icon: Users, link: '/admin/employees' },
-    { title: 'Attendance', icon: Clock, link: '/admin/attendance' },
-    { title: 'Payroll', icon: CreditCard, link: '/admin/payroll' },
-    { title: 'Reports', icon: FileText, link: '/admin/reports' },
-    { title: 'Performance', icon: TrendingUp, link: '/admin/performance' },
-    { title: 'Leave Requests', icon: Calendar, link: '/admin/leave-requests' },
-    { title: 'Rewards', icon: Award, link: '/admin/rewards' },
-    { title: 'Finance', icon: DollarSign, link: '/admin/finance' },
-    { title: 'Savings', icon: PiggyBank, link: '/admin/savings' },
-    { title: 'Security', icon: Shield, link: '/admin/security' },
-  ],
-  hr: [
-    { title: 'Manage Employees', icon: Users, link: '/admin/employees' },
-    { title: 'Attendance', icon: Clock, link: '/admin/attendance' },
-    { title: 'Leave Requests', icon: Calendar, link: '/admin/leave-requests' },
-    { title: 'Payroll', icon: CreditCard, link: '/admin/payroll' },
-  ],
-  dept_head: [
-    { title: 'Team Attendance', icon: Clock, link: '/admin/team-attendance' },
-    { title: 'Team Performance', icon: TrendingUp, link: '/admin/team-performance' },
-    { title: 'Leave Approvals', icon: Calendar, link: '/admin/leave-approvals' },
-  ],
-};
-
-const recentActivitiesByRole = {
-  super_admin: [
-    { type: 'Employee Added', name: 'John Smith', time: '2 hours ago', icon: Users },
-    { type: 'Payslip Generated', name: 'Sarah Wilson', time: '4 hours ago', icon: FileText },
-    { type: 'Time Logged', name: 'Mike Johnson', time: '6 hours ago', icon: Clock },
-    { type: 'Performance Review', name: 'Emily Davis', time: '1 day ago', icon: Award },
-  ],
-  hr: [
-    { type: 'Employee Added', name: 'John Smith', time: '2 hours ago', icon: Users },
-    { type: 'Payslip Generated', name: 'Sarah Wilson', time: '4 hours ago', icon: FileText },
-    { type: 'ESI Filing', name: 'HR Team', time: '1 day ago', icon: Shield },
-    { type: 'Loan Approved', name: 'Mike Johnson', time: '2 days ago', icon: DollarSign },
-  ],
-  dept_head: [
-    { type: 'Time Logged', name: 'Mike Johnson', time: '6 hours ago', icon: Clock },
-    { type: 'Performance Review', name: 'Emily Davis', time: '1 day ago', icon: Award },
-    { type: 'Leave Approved', name: 'Sarah Wilson', time: '2 days ago', icon: Calendar },
-  ],
-};
-
-const performanceMetricsByRole = {
-  super_admin: [
-    { title: 'Organization Performance', value: 'A+', description: 'Excellent overall rating' },
-    { title: 'Attendance Rate', value: '98%', description: 'Above target this month' },
-    { title: 'Awards Given', value: '15', description: 'Recognition this quarter' },
-    { title: 'Total Payroll', value: '$2.4M', description: 'This fiscal year' },
-  ],
-  hr: [
-    { title: 'Organization Performance', value: 'A+', description: 'Excellent overall rating' },
-    { title: 'Attendance Rate', value: '98%', description: 'Above target this month' },
-    { title: 'Pending Filings', value: '12', description: 'ESI/PF pending this month' },
-    { title: 'Total Payroll', value: '$2.4M', description: 'This fiscal year' },
-  ],
-  dept_head: [
-    { title: 'Team Performance', value: 'A+', description: 'Excellent team rating' },
-    { title: 'Attendance Rate', value: '92%', description: 'Above target this month' },
-  ],
-};
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Users, Clock, CreditCard, Calendar, BarChart } from 'lucide-react';
+import { fetchDashboardData, clearState } from '../../redux/slices/dashboardSlice';
+import { getCurrentUserProfile } from '../../redux/slices/employeeSlice';
 
 const AdminDashboard = () => {
-  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user, token, isAuthenticated, loading: authLoading, error: authError } = useSelector((state) => state.auth);
+  const { dashboardData, loading, error } = useSelector((state) => state.dashboard);
   const role = user?.role || '';
 
-  const stats = statsByRole[role] || [];
-  const quickActions = quickActionsByRole[role] || [];
-  const recentActivities = recentActivitiesByRole[role] || [];
-  const performanceMetrics = performanceMetricsByRole[role] || [];
+  useEffect(() => {
+    if (!isAuthenticated && !authLoading) {
+      navigate('/login');
+    } else if (!user) {
+      dispatch(getCurrentUserProfile());
+    } else if (role && token) {
+      dispatch(fetchDashboardData({ role }));
+    }
+    return () => dispatch(clearState());
+  }, [dispatch, navigate, isAuthenticated, authLoading, user, role, token]);
 
- 
+
+
+  if (authLoading || loading) {
+    return <div className="flex justify-center items-center min-h-screen text-slate-500">Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-red-500 text-center">
+          <p>Please log in to access the dashboard.</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="bg-teal-600 text-white p-2 rounded mt-2 hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (authError || error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-red-500 text-center">
+          <p>{authError || error}</p>
+          <button
+            onClick={() => dispatch(fetchDashboardData({ role }))}
+            className="bg-teal-600 text-white p-2 rounded mt-2 hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400"
+          >
+            Retry
+          </button>
+          
+        </div>
+      </div>
+    );
+  }
+
+  const { stats = [], quickActions = [], recentActivities = [], performanceMetrics = [], leaveBalances = {} } = dashboardData || {};
+
   return (
     <div className="space-y-8 bg-white rounded-2xl min-h-screen sm:p-6 p-4">
+      {/* Header */}
       <div className="bg-gradient-to-r from-slate-700 to-teal-600 rounded-lg border border-slate-200/50 md:p-8 p-5 sm:mb-8 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="md:text-3xl sm:text-2xl text-xl font-extrabold text-white tracking-tight">
-              Welcome Back, {user?.name || role.toUpperCase()}!
+              Welcome Back, {user?.full_name || role.toUpperCase()}!
             </h1>
             <p className="text-gray-200 md:text-lg sm:text-md text-sm mt-1">
-              {user?.name && <span>{user.name}, </span>}
-              Here to access your workspace {role === 'dept_head' ? 'team' : 'organization'} today.
+              Manage your {role === 'dept_head' ? 'team' : 'organization'} with ease.
             </p>
           </div>
+        
         </div>
       </div>
 
+      {/* Stats */}
       {stats.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 sm:gap-6 gap-6 sm:mb-8 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:mb-8 mb-6">
           {stats.map((stat, index) => {
-            const Icon = stat.icon;
+            const Icon = { Users, Clock, CreditCard, Calendar }[stat.icon] || Users;
             return (
               <div
                 key={index}
-                className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
+                className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-300"
+                role="region"
+                aria-label={stat.title}
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg flex items-center justify-center w-12 h-12">
-                    <Icon className="text-white" size={24} />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg flex items-center justify-center w-10 h-10">
+                    <Icon className="text-white" size={20} aria-hidden="true" />
                   </div>
-                  <span className="text-emerald-600 text-sm font-medium">{stat.change}</span>
+                  <span className="text-emerald-600 text-xs font-medium">{stat.change}</span>
                 </div>
-                <h3 className="text-slate-500 text-sm font-medium mb-1">{stat.title}</h3>
-                <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
+                <h3 className="text-slate-500 text-xs font-medium mb-1">{stat.title}</h3>
+                <p className="text-xl font-bold text-slate-900">{stat.value}</p>
               </div>
             );
           })}
         </div>
       ) : (
-        <p className="text-gray-500 text-center">No statistics available for this role.</p>
+        <p className="text-gray-500 text-center">No statistics available.</p>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 sm:gap-8 gap-6 sm:mb-8 mb-6">
-        {recentActivities.length > 0 ? (
-          <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-  {/* Header */}
-  <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-t-lg -mx-6 -mt-6 p-4">
-    <h2 className="text-xl font-bold text-white">Recent Activities</h2>
-  </div>
-
-  {/* Content */}
-  <div className="mt-6 grid gap-4 sm:space-y-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-1">
-    {recentActivities.map((activity, index) => {
-      const Icon = activity.icon;
-      return (
-        <div
-          key={index}
-          className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 sm:gap-4 gap-1 p-3 rounded-lg hover:bg-slate-50 transition-colors duration-200 shadow sm:shadow-none border-gray-200 sm:border-0"
-        >
-          {/* Icon */}
-          <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg flex items-center justify-center w-10 h-10 mx-auto sm:mx-0 mb-2 sm:mb-0">
-            <Icon className="text-white" size={16} />
-          </div>
-
-          {/* Text */}
-          <div className="flex-1 text-center sm:text-left m-0">
-            <p className="text-slate-900 font-medium">{activity.type}</p>
-            <p className="text-slate-500 text-sm">{activity.name}</p>
-          </div>
-
-          {/* Time */}
-          <span className="text-slate-400 text-xs sm:text-sm text-center sm:text-right mt-1 sm:mt-0">
-            {activity.time}
-          </span>
-        </div>
-      );
-    })}
-  </div>
-</div>
-
-        ) : (
-          <p className="text-gray-500 text-center">No recent activities available for this role.</p>
-        )}
-
-        {/* Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:mb-8 mb-6">
         {quickActions.length > 0 ? (
-          <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-            <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-t-lg -mx-6 -mt-6 p-4">
-              <h2 className="text-xl font-bold text-white">Quick Actions</h2>
+          <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-t-lg -mx-4 -mt-4 p-3">
+              <h2 className="text-lg font-bold text-white">Quick Actions</h2>
             </div>
-            <div className="grid grid-cols-2 gap-4 mt-6">
+            <div className="grid grid-cols-2 gap-3 mt-4">
               {quickActions.map((action, index) => {
-                const Icon = action.icon;
+                const Icon = { Users, Clock, CreditCard, Calendar, BarChart }[action.icon] || Users;
                 return (
                   <NavLink
                     key={index}
                     to={action.link}
-                    className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg text-white transition-transform duration-300 transform hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-400 flex flex-col items-center p-4"
+                    className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg text-white p-3 flex flex-col items-center hover:from-teal-500 hover:to-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-transform duration-300"
+                    aria-label={`Navigate to ${action.title}`}
                   >
-                    <Icon className="mb-2" size={24} />
-                    <span className="text-sm font-medium text-center">{action.title}</span>
+                    <Icon className="mb-1" size={20} aria-hidden="true" />
+                    <span className="text-xs font-medium text-center">{action.title}</span>
                   </NavLink>
                 );
               })}
             </div>
           </div>
         ) : (
-          <p className="text-gray-500 text-center">No quick actions available for this role.</p>
+          <p className="text-gray-500 text-center">No quick actions available.</p>
+        )}
+
+        {recentActivities.length > 0 ? (
+          <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-t-lg -mx-4 -mt-4 p-3">
+              <h2 className="text-lg font-bold text-white">Recent Activities</h2>
+            </div>
+            <div className="mt-4 space-y-3">
+              {recentActivities.map((activity, index) => {
+                const Icon = { Users, Clock, Calendar }[activity.icon] || Users;
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 transition-colors duration-200"
+                    role="listitem"
+                    aria-label={`${activity.type} by ${activity.name}`}
+                  >
+                    <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg flex items-center justify-center w-8 h-8">
+                      <Icon className="text-white" size={16} aria-hidden="true" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-slate-900 text-sm font-medium">{activity.type}</p>
+                      <p className="text-slate-500 text-xs">{activity.name}</p>
+                    </div>
+                    <span className="text-slate-400 text-xs">{activity.time}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <p className="text-gray-500 text-center">No recent activities.</p>
         )}
       </div>
 
-      {/* Performance */}
-      {performanceMetrics.length > 0 ? (
-        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-          <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-t-lg -mx-6 -mt-6 p-4">
-            <h2 className="text-xl font-bold text-white">
-              {role === 'dept_head' ? 'Team Performance Overview' : 'Performance Overview'}
+      {(performanceMetrics.length > 0 || Object.keys(leaveBalances).length > 0) && (
+        <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+          <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-t-lg -mx-4 -mt-4 p-3">
+            <h2 className="text-lg font-bold text-white">
+              {role === 'dept_head' ? 'Team Insights' : 'Organization Insights'}
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             {performanceMetrics.map((metric, index) => (
               <div key={index} className="text-center">
-                <div className="sm:w-20 w-15 sm:h-20 h-15 bg-gradient-to-r from-teal-600 to-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="sm:text-xl text-sm font-bold text-white">{metric.value}</span>
+                <div className="w-16 h-16 bg-gradient-to-r from-teal-600 to-slate-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-lg font-bold text-white">{metric.value}</span>
                 </div>
-                <h3 className="font-semibold text-slate-900">{metric.title}</h3>
-                <p className="text-slate-500 text-sm">{metric.description}</p>
+                <h3 className="text-sm font-semibold text-slate-900">{metric.title}</h3>
+                <p className="text-xs text-slate-500">{metric.description}</p>
+              </div>
+            ))}
+            {Object.keys(leaveBalances).map((type, index) => (
+              <div key={`leave-${index}`} className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-teal-600 to-slate-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-lg font-bold text-white">{leaveBalances[type]}</span>
+                </div>
+                <h3 className="text-sm font-semibold text-slate-900">
+                  {type.charAt(0).toUpperCase() + type.slice(1)} Balance
+                </h3>
+                <p className="text-xs text-slate-500">Available for {new Date().getFullYear()}</p>
               </div>
             ))}
           </div>
         </div>
-      ) : (
-        <p className="text-gray-500 text-center">No performance metrics available for this role.</p>
       )}
     </div>
   );

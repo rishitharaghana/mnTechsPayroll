@@ -248,29 +248,29 @@ const EmployeeAttendance = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {submissions.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="px-4 py-3 text-sm text-gray-500 text-center">
-                    No attendance records found
-                  </td>
-                </tr>
-              ) : (
-                submissions.map(({ id, date, login_time, logout_time, location, recipient, status }) => (
-                  <tr key={id} className="hover:bg-gray-50 transition">
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {new Date(date).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{login_time}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{logout_time || 'N/A'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{location}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {recipient === 'super_admin' ? 'Super Admin' : 'HR'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{status}</td>
-                    
-                  </tr>
-                ))
-              )}
+           {!Array.isArray(submissions) || submissions.length === 0 ? (
+  <tr>
+    <td colSpan="6" className="px-4 py-3 text-sm text-gray-500 text-center">
+      No attendance records found
+    </td>
+  </tr>
+) : (
+  submissions.map(({ id, date, login_time, logout_time, location, recipient, status }) => (
+    <tr key={id} className="hover:bg-gray-50 transition">
+      <td className="px-4 py-3 text-sm text-gray-900">
+        {new Date(date).toLocaleDateString()}
+      </td>
+      <td className="px-4 py-3 text-sm text-gray-900">{login_time}</td>
+      <td className="px-4 py-3 text-sm text-gray-900">{logout_time || 'N/A'}</td>
+      <td className="px-4 py-3 text-sm text-gray-900">{location}</td>
+      <td className="px-4 py-3 text-sm text-gray-900">
+        {recipient === 'super_admin' ? 'Super Admin' : 'HR'}
+      </td>
+      <td className="px-4 py-3 text-sm text-gray-900">{status}</td>
+    </tr>
+  ))
+)}
+
             </tbody>
           </table>
         </div>

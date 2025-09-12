@@ -237,10 +237,13 @@ const attendanceSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchEmployeeAttendance.fulfilled, (state, action) => {
-        state.loading = false;
-        state.submissions = action.payload.data || [];
-      })
+     .addCase(fetchEmployeeAttendance.fulfilled, (state, action) => {
+  state.loading = false;
+  state.submissions = Array.isArray(action.payload.data.attendance)
+    ? action.payload.data.attendance
+    : [];
+})
+
       .addCase(fetchEmployeeAttendance.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;

@@ -4,7 +4,6 @@ import Select from "react-select";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 
-// Public holidays and festivals data
 const holidays = {
   2025: {
     0: {

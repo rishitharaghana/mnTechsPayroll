@@ -1,79 +1,24 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-export const fetchLeaveBalances = createAsyncThunk(
-  'dashboard/fetchLeaveBalances',
-  async ({ employeeId }, { rejectWithValue }) => {
+export const fetchDashboardData = createAsyncThunk(
+  'dashboard/fetchDashboardData',
+  async ({ role }, { rejectWithValue, getState }) => {
     try {
-      const userToken = localStorage.getItem('userToken');
-      if (!userToken) return rejectWithValue('No authentication token found. Please log in.');
-      let token;
-      try {
-        token = JSON.parse(userToken).token;
-      } catch (e) {
-        return rejectWithValue('Invalid token format');
+      const { auth } = getState();
+      const userToken = auth.token || JSON.parse(localStorage.getItem('userToken'))?.token;
+      if (!userToken) {
+        return rejectWithValue('No authentication token found. Please log in.');
       }
 
-      const response = await axios.get(`http://localhost:3007/api/leave-balances?employeeId=${employeeId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.get(`http://localhost:3007/api/dashboard/${role}`, {
+        headers: { Authorization: `Bearer ${userToken}` },
       });
-      return response.data.data;
+      console.log('Fetch dashboard data response:', response.data);
+      return response.data;
     } catch (error) {
-      console.error('Fetch leave balances error:', error.response?.data || error.message);
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch leave balances');
-    }
-  }
-);
-
-export const fetchLeaveRequests = createAsyncThunk(
-  'dashboard/fetchLeaveRequests',
-  async ({ employeeId, fromDate, toDate }, { rejectWithValue }) => {
-    try {
-      const userToken = localStorage.getItem('userToken');
-      if (!userToken) return rejectWithValue('No authentication token found. Please log in.');
-      let token;
-      try {
-        token = JSON.parse(userToken).token;
-      } catch (e) {
-        return rejectWithValue('Invalid token format');
-      }
-
-      const query = new URLSearchParams({ employeeId });
-      if (fromDate) query.append('fromDate', fromDate);
-      if (toDate) query.append('toDate', toDate);
-      const response = await axios.get(`http://localhost:3007/api/leave-requests?${query}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      return response.data.data;
-    } catch (error) {
-      console.error('Fetch leave requests error:', error.response?.data || error.message);
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch leave requests');
-    }
-  }
-);
-
-export const fetchAttendance = createAsyncThunk(
-  'dashboard/fetchAttendance',
-  async ({ employeeId, date }, { rejectWithValue }) => {
-    try {
-      const userToken = localStorage.getItem('userToken');
-      if (!userToken) return rejectWithValue('No authentication token found. Please log in.');
-      let token;
-      try {
-        token = JSON.parse(userToken).token;
-      } catch (e) {
-        return rejectWithValue('Invalid token format');
-      }
-
-      const query = new URLSearchParams({ employeeId });
-      if (date) query.append('date', date);
-      const response = await axios.get(`http://localhost:3007/api/employee/attendance?${query}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      return response.data.data;
-    } catch (error) {
-      console.error('Fetch attendance error:', error.response?.data || error.message);
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch attendance');
+      console.error('Fetch dashboard data error:', error.response?.data);
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch dashboard data');
     }
   }
 );
@@ -81,59 +26,45 @@ export const fetchAttendance = createAsyncThunk(
 const dashboardSlice = createSlice({
   name: 'dashboard',
   initialState: {
-    leaveBalances: [],
-    leaveRequests: [],
-    attendance: [],
-    attendanceStatus: { today: 'N/A', lastUpdated: 'N/A' },
+    dashboardData: {
+      stats: [],
+      quickActions: [],
+      recentActivities: [],
+      performanceMetrics: [],
+      leaveBalances: {},
+    },
     loading: false,
     error: null,
   },
   reducers: {
-    clearError: (state) => {
+    clearState: (state) => {
+      state.dashboardData = {
+        stats: [],
+        quickActions: [],
+        recentActivities: [],
+        performanceMetrics: [],
+        leaveBalances: {},
+      };
+      state.loading = false;
       state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchLeaveBalances.pending, (state) => {
+      .addCase(fetchDashboardData.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchLeaveBalances.fulfilled, (state, action) => {
+      .addCase(fetchDashboardData.fulfilled, (state, action) => {
         state.loading = false;
-        state.leaveBalances = action.payload;
+        state.dashboardData = action.payload;
       })
-      .addCase(fetchLeaveBalances.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(fetchLeaveRequests.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchLeaveRequests.fulfilled, (state, action) => {
-        state.loading = false;
-        state.leaveRequests = action.payload;
-      })
-      .addCase(fetchLeaveRequests.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(fetchAttendance.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchAttendance.fulfilled, (state, action) => {
-        state.loading = false;
-        state.attendance = action.payload.recent;
-        state.attendanceStatus = action.payload.today || { today: 'N/A', lastUpdated: 'N/A' };
-      })
-      .addCase(fetchAttendance.rejected, (state, action) => {
+      .addCase(fetchDashboardData.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
   },
 });
 
-export const { clearError } = dashboardSlice.actions;
+export const { clearState } = dashboardSlice.actions;
 export default dashboardSlice.reducer;

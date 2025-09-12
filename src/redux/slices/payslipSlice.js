@@ -66,6 +66,36 @@ export const downloadPayslip = createAsyncThunk(
   }
 );
 
+export const fetchRecentPayslip = createAsyncThunk(
+  'payslip/fetchRecentPayslip',
+  async ({ employeeId }, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem('userToken');
+      if (!userToken) return rejectWithValue('No authentication token found. Please log in.');
+      let token;
+      try {
+        token = JSON.parse(userToken).token;
+      } catch (e) {
+        return rejectWithValue('Invalid token format');
+      }
+      if (!employeeId) return rejectWithValue('Employee ID is missing');
+      const query = new URLSearchParams({ limit: 1, employeeId });
+      const response = await axios.get(`http://localhost:3007/api/employees/payslips?${query}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log('Fetch recent payslip response:', response.data);
+      if (!response.data.data || response.data.data.length === 0) {
+        return rejectWithValue('No payslip found for the employee');
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Fetch recent payslip error:', error.response?.data || error.message);
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch recent payslip');
+    }
+  }
+);
+
+
 const payslipSlice = createSlice({
   name: 'payslip',
   initialState: {
@@ -91,6 +121,18 @@ const payslipSlice = createSlice({
         state.totalRecords = action.payload.totalRecords;
       })
       .addCase(fetchPayslips.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+       .addCase(fetchRecentPayslip.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRecentPayslip.fulfilled, (state, action) => {
+        state.loading = false;
+        state.recentPayslip = action.payload.data[0] || null;
+      })
+      .addCase(fetchRecentPayslip.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
