@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react"; // Add useRef for click-outside handling
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { format, startOfMonth } from "date-fns";
 import DatePicker from "../../Components/ui/date/DatePicker";
@@ -15,13 +15,14 @@ import { fetchEmployees, fetchDepartments } from "../../redux/slices/employeeSli
 import { downloadPayslip } from "../../redux/slices/payslipSlice";
 import PayslipGenerator from "../PayslipManagement/PayslipGenerator";
 import { toast } from "react-toastify";
+// Import Lucid Icons (add these imports based on your needs)
+import { /* Add specific icons here, e.g., FileDownload, FileText, ChevronDown */ } from "lucide-react";
 
 // Custom Select Component
 const CustomSelect = ({ value, onChange, options, disabled, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (selectRef.current && !selectRef.current.contains(event.target)) {
@@ -52,17 +53,8 @@ const CustomSelect = ({ value, onChange, options, disabled, placeholder }) => {
           <span className={value ? "text-slate-900" : "text-slate-400"}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
-          <svg
-            className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${
-              isOpen ? "rotate-180" : ""
-            }`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-          </svg>
+          {/* Replace SVG with Lucid Icon */}
+          {/* Example: <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} /> */}
         </div>
       </div>
       {isOpen && !disabled && (
@@ -191,7 +183,6 @@ const GeneratePayroll = () => {
 
   const totalPages = Math.ceil(totalRecords / itemsPerPage);
 
-  // Prepare options for the custom select
   const employeeOptions = [
     { value: "", label: "Select an employee" },
     ...employees.map((employee) => ({
@@ -214,15 +205,15 @@ const GeneratePayroll = () => {
           ]}
         />
       </div>
-      <div className="space-y-8 bg-white rounded-2xl min-h-screen p-6">
-        <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">💼 Generate Payroll</h1>
-          <p className="text-gray-200 text-md sm:text-lg mt-1">
+      <div className="space-y-8 bg-white rounded-2xl min-h-screen sm:p-6 p-4">
+        <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg border border-slate-200/50 sm:p-6 p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Generate Payroll</h1>
+          <p className="text-gray-200 text-sm sm:text-lg mt-1">
             Generate payroll for all employees or a specific employee for the selected month.
           </p>
         </div>
 
-        <div className="bg-white rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+        <div className="bg-white rounded-lg border border-slate-200/50 sm:p-6 p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <DatePicker
@@ -251,35 +242,39 @@ const GeneratePayroll = () => {
               disabled={loading || employeesLoading || employees.length === 0}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
             >
-              ⚡ Generate Payroll for All
+              {/* Add Lucid Icon, e.g., <FileText className="inline-block mr-2 w-5 h-5" /> */}
+              Generate Payroll for All
             </button>
             <button
               onClick={() => handleGeneratePayrollForEmployee(selectedEmployeeId)}
               disabled={loading || employeesLoading || !selectedEmployeeId}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
             >
-              ⚡ Generate Payroll for Employee
+              {/* Add Lucid Icon, e.g., <FileText className="inline-block mr-2 w-5 h-5" /> */}
+              Generate Payroll for Employee
             </button>
             <button
               onClick={handleDownloadPDF}
               disabled={loading || employeesLoading}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
             >
-              📄 Download Payroll PDF
+              {/* Add Lucid Icon, e.g., <FileDownload className="inline-block mr-2 w-5 h-5" /> */}
+              Download Payroll PDF
             </button>
             <button
               onClick={() => handleDownloadEmployeePayslip(selectedEmployeeId)}
               disabled={loading || employeesLoading || !selectedEmployeeId}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
             >
-              📄 Download Employee Payslip
+              {/* Add Lucid Icon, e.g., <FileDownload className="inline-block mr-2 w-5 h-5" /> */}
+              Download Employee Payslip
             </button>
           </div>
         </div>
 
         {selectedPayroll && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm max-w-lg w-full max-h-[80vh] overflow-y-auto">
+            <div className="bg-white rounded-lg border border-slate-200 sm:p-6 p-4 shadow-sm max-w-lg w-full max-h-[80vh] overflow-y-auto">
               <PayslipGenerator
                 employee={selectedPayroll}
                 selectedMonth={format(selectedMonth, "yyyy-MM")}
@@ -296,7 +291,7 @@ const GeneratePayroll = () => {
           </p>
         )}
         {!loading && payrollList.length > 0 && (
-          <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+          <div className="bg-white rounded-lg border border-slate-200 sm:p-6 p-4 shadow-sm">
             <h2 className="text-xl font-bold text-slate-900 mb-4">Generated Payroll Records</h2>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm border-collapse">
@@ -343,13 +338,15 @@ const GeneratePayroll = () => {
                           onClick={() => handleViewPayslip(record)}
                           className="text-teal-600 hover:text-teal-800"
                         >
-                          View 
+                          {/* Add Lucid Icon, e.g., <Eye className="inline-block mr-2 w-4 h-4" /> */}
+                          View
                         </button>
                         <button
                           onClick={() => handleDownloadEmployeePayslip(record.employee_id)}
                           className="text-teal-600 hover:text-teal-800"
                         >
-                          Download 
+                          {/* Add Lucid Icon, e.g., <FileDownload className="inline-block mr-2 w-4 h-4" /> */}
+                          Download
                         </button>
                       </td>
                     </tr>
@@ -358,13 +355,13 @@ const GeneratePayroll = () => {
               </table>
             </div>
 
-            {/* Pagination */}
             <div className="flex sm:flex-row justify-between items-center gap-3 pt-4 sm:p-4">
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
                 className="px-3 sm:px-4 py-2 text-sm sm:text-md bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
               >
+                {/* Add Lucid Icon, e.g., <ArrowLeft className="inline-block mr-2 w-5 h-5" /> */}
                 Previous
               </button>
               <span className="text-sm sm:text-md text-slate-500">Page {currentPage} of {totalPages}</span>
@@ -373,6 +370,7 @@ const GeneratePayroll = () => {
                 onClick={() => setCurrentPage(currentPage + 1)}
                 className="px-3 sm:px-4 py-2 text-sm sm:text-md bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
               >
+                {/* Add Lucid Icon, e.g., <ArrowRight className="inline-block mr-2 w-5 h-5" /> */}
                 Next
               </button>
             </div>
