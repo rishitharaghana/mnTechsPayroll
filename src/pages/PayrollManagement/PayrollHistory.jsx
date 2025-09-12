@@ -121,8 +121,8 @@ const PayrollHistory = () => {
   };
 
   return (
-    <div className="w-full lg:w-[78%]">
-      <div className="flex justify-end">
+    <div className="w-full">
+      <div className="hidden sm:flex sm:justify-end">
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/admin/dashboard" },
@@ -132,34 +132,35 @@ const PayrollHistory = () => {
         <PageMeta title="Payroll History" description="View and manage payroll history." />
       </div>
       <div className="min-h-screen bg-white rounded-2xl p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
-        <div className="flex justify-between items-start sm:items-center">
-          <div className="w-7/12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
-              Payroll Management
-            </h2>
-            <p className="text-slate-500 text-base sm:text-lg">
-              Automate and manage monthly payroll processing
-            </p>
-          </div>
-          <div className="w-5/12 flex place-items-end-safe gap-3 mt-4">
-            <div className="w-full gap-2">
-              <DatePicker
-                title="Select Month"
-                value={selectedMonth}
-                onChange={handleDateChange}
-                maxDate={new Date()}
-                showOnlyMonthYear
-              />
-            </div>
-            <button
-              onClick={() => handleDownloadReport(format(selectedMonth, "yyyy-MM"))}
-              className="flex items-center px-3 py-[10px] border border-slate-200 text-slate-900 rounded-lg hover:bg-slate-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-teal-400 text-sm"
-            >
-              <Download className="w-3 h-3 mr-1" />
-              Export
-            </button>
-          </div>
-        </div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6">
+  <div className="w-full sm:w-5/12">
+    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900">
+      Payroll Management
+    </h2>
+    <p className="text-slate-500 text-sm sm:text-base md:text-lg mt-1 sm:mt-2">
+      Automate and manage monthly payroll processing
+    </p>
+  </div>
+  <div className="w-full sm:w-7/12 flex flex-col sm:flex-row sm:items-end-safe justify-end gap-3 mt-3 sm:mt-0">
+    <div className="w-full sm:w-[70%]">
+      <DatePicker
+        title="Select Month"
+        value={selectedMonth}
+        onChange={handleDateChange}
+        maxDate={new Date()}
+        showOnlyMonthYear
+        className="w-full sm:w-auto"
+      />
+    </div>
+    <button
+      onClick={() => handleDownloadReport(format(selectedMonth, "yyyy-MM"))}
+      className="w-full sm:w-[30%] sm:h-[41px] flex items-center justify-center px-3 py-2 border border-slate-200 text-slate-900 rounded-lg hover:bg-slate-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-teal-400 text-sm "
+    >
+      <Download className="w-3 h-3 mr-1" />
+      Export
+    </button>
+  </div>
+</div>
 
         {/* {(error || successMessage) && (
           <div
