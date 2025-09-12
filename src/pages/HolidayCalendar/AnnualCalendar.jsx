@@ -69,7 +69,6 @@ const monthNames = [
 
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-// Options for react-select
 const monthOptions = monthNames.map((month, index) => ({
   value: index,
   label: month,
@@ -80,43 +79,42 @@ const yearOptions = Array.from({ length: 2051 - 1970 }, (_, i) => ({
   label: `${1970 + i}`,
 }));
 
-// Custom styles for react-select
 const customSelectStyles = {
   control: (provided) => ({
     ...provided,
-    minHeight: "38px",
-    borderColor: "#334155", // slate-700
+    minHeight: "32px", // Reduced height for mobile
+    borderColor: "#334155",
     boxShadow: "none",
     "&:hover": {
-      borderColor: "#2dd4bf", // teal-700
+      borderColor: "#2dd4bf",
     },
   }),
   singleValue: (provided) => ({
     ...provided,
-    color: "#334155", // slate-700
-    fontSize: "0.875rem", // text-sm
-    fontWeight: 500, // font-medium
+    color: "#334155",
+    fontSize: "0.75rem", // Smaller font for mobile
+    fontWeight: 500,
   }),
   option: (provided, state) => ({
     ...provided,
     backgroundColor: state.isSelected
-      ? "#2dd4bf" // teal-700
+      ? "#2dd4bf"
       : state.isFocused
-      ? "#e0f2fe" // light teal hover
+      ? "#e0f2fe"
       : "white",
-    color: state.isSelected ? "white" : "#334155", // slate-700
-    fontSize: "0.875rem", // text-sm
-    fontWeight: 500, // font-medium
-    padding: "8px 12px",
+    color: state.isSelected ? "white" : "#334155",
+    fontSize: "0.75rem", // Smaller font for mobile
+    fontWeight: 500,
+    padding: "6px 10px", // Reduced padding
   }),
   menu: (provided) => ({
     ...provided,
-    minHeight: "200px",
+    minHeight: "150px", // Smaller menu height for mobile
     zIndex: 20,
   }),
   menuList: (provided) => ({
     ...provided,
-    maxHeight: "200px",
+    maxHeight: "150px", // Smaller menu list height
   }),
 };
 
@@ -193,8 +191,8 @@ const AnnualCalendar = () => {
   const upcomingHolidays = getUpcomingHolidays();
 
   return (
-    <div className="w-full lg:w-[78%]">
-      <div className="flex justify-end">
+    <div className="w-full mt-4 sm:mt-0">
+      <div className="hidden sm:flex sm:justify-end sm:items-center">
         <PageMeta title="Annual Calendar" />
         <PageBreadcrumb
           items={[
@@ -204,32 +202,32 @@ const AnnualCalendar = () => {
         />
       </div>
 
-      <div className="space-y-8 bg-white rounded-2xl p-6">
+      <div className="space-y-6 bg-white rounded-2xl p-4 sm:p-6">
         {/* Header */}
-        <div className="text-left mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-start justify-start gap-3">
-            <Calendar className="h-7 w-7 text-indigo-600" />
+        <div className="text-left mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-start justify-start gap-2 sm:gap-3">
+            <Calendar className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-600" />
             Festival Calendar {selectedYear}
           </h1>
-          <p className="text-gray-500">
+          <p className="text-sm sm:text-base text-gray-500">
             Track all public holidays and festivals throughout the year
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
           {/* Calendar */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl shadow-md border-1 border-gray-200 p-6">
+            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-4 sm:p-6">
               {/* Calendar Header */}
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
                 <button
                   onClick={goToPreviousMonth}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <ChevronLeft className="h-6 w-6 text-gray-600" />
+                  <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600" />
                 </button>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-4">
                   <Select
                     options={monthOptions}
                     value={monthOptions.find(
@@ -237,7 +235,7 @@ const AnnualCalendar = () => {
                     )}
                     onChange={(option) => setSelectedMonth(option.value)}
                     styles={customSelectStyles}
-                    className="w-40"
+                    className="w-32 sm:w-40"
                   />
                   <Select
                     options={yearOptions}
@@ -246,7 +244,7 @@ const AnnualCalendar = () => {
                     )}
                     onChange={(option) => setSelectedYear(option.value)}
                     styles={customSelectStyles}
-                    className="w-28"
+                    className="w-24 sm:w-28"
                   />
                 </div>
 
@@ -254,7 +252,7 @@ const AnnualCalendar = () => {
                   onClick={goToNextMonth}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <ChevronRight className="h-6 w-6 text-gray-600" />
+                  <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600" />
                 </button>
               </div>
 
@@ -263,7 +261,7 @@ const AnnualCalendar = () => {
                 {dayNames.map((day) => (
                   <div
                     key={day}
-                    className="p-3 text-center font-semibold text-gray-600 text-sm"
+                    className="p-2 sm:p-3 text-center font-semibold text-gray-600 text-xs sm:text-sm"
                   >
                     {day}
                   </div>
@@ -273,7 +271,7 @@ const AnnualCalendar = () => {
               {/* Calendar Grid */}
               <div className="grid grid-cols-7 gap-1">
                 {calendarDays.map((day, index) => {
-                  if (!day) return <div key={index} className="p-3 h-10"></div>;
+                  if (!day) return <div key={index} className="p-2 h-8 sm:h-10"></div>;
 
                   const holiday = getHolidayInfo(day);
                   const isCurrentDay = isToday(day);
@@ -281,7 +279,7 @@ const AnnualCalendar = () => {
                   return (
                     <div
                       key={day}
-                      className={`relative p-2 h-15 border-2 rounded-lg cursor-pointer transition-all
+                      className={`relative p-2 h-12 sm:h-15 border-2 rounded-lg cursor-pointer transition-all
                         ${
                           isCurrentDay
                             ? "bg-indigo-600 text-white border-indigo-600 shadow-lg"
@@ -291,24 +289,25 @@ const AnnualCalendar = () => {
                         }`}
                       onMouseEnter={() => setHoveredDay(day)}
                       onMouseLeave={() => setHoveredDay(null)}
+                      onClick={() => setHoveredDay(day)} // Added click for mobile
                     >
-                      <div className="text-lg font-semibold">{day}</div>
+                      <div className="text-sm sm:text-lg font-semibold">{day}</div>
 
                       {holiday && (
-                        <div className="absolute bottom-1 left-1 right-1">
+                        <div className="absolute bottom-0.5 left-1 right-1">
                           <div
-                            className={`text-xs font-medium truncate ${
+                            className={`text-xs truncate ${
                               isCurrentDay ? "text-white" : ""
-                            }`}
+                            } hidden sm:block`} // Hide holiday name on mobile
                           >
                             {holiday.name}
                           </div>
                         </div>
                       )}
 
-                      {/* Tooltip */}
+                      {/* Tooltip - Adjusted for mobile */}
                       {hoveredDay === day && holiday && (
-                        <div className="absolute z-10 bottom-full left-1/2 transform -translate-x-1/2 mb-2 p-2 bg-black text-white text-xs rounded shadow-lg whitespace-nowrap">
+                        <div className="absolute z-10 bottom-full left-1/2 transform -translate-x-1/2 mb-2 p-2 bg-black text-white text-xs rounded shadow-lg whitespace-nowrap sm:whitespace-normal max-w-[150px] sm:max-w-none">
                           <div className="font-semibold">{holiday.name}</div>
                           <div className="text-gray-300">{holiday.type}</div>
                         </div>
@@ -319,28 +318,28 @@ const AnnualCalendar = () => {
               </div>
             </div>
             {/* Today Button */}
-            {/* <div className="mt-6 text-center">
+            <div className="mt-4 sm:mt-6 text-center">
               <button
                 onClick={goToToday}
-                className="inline-flex items-center px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-teal-700 text-sm font-medium transition-colors"
+                className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 bg-slate-700 text-white rounded-lg hover:bg-teal-700 text-sm font-medium transition-colors"
               >
-                <Calendar className="h-5 w-5 mr-2" />
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 Go to Today
               </button>
-            </div> */}
+            </div>
           </div>
 
           {/* Sidebar - Holiday List */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-md border-1 border-gray-200 p-6 sticky top-4">
+            <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
-                <h3 className="text-lg font-semibold underline text-gray-800">
+                <h3 className="text-md sm:text-lg font-bold text-slate-700">
                   Holidays This Month
                 </h3>
               </div>
 
               {upcomingHolidays.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {upcomingHolidays.map((holiday) => (
                     <div
                       key={holiday.day}
@@ -350,10 +349,10 @@ const AnnualCalendar = () => {
                           .split(" ")[1]
                       }`}
                     >
-                      <div className="font-semibold text-sm text-gray-800">
+                      <div className="font-semibold text-xs sm:text-sm text-gray-800">
                         {monthNames[selectedMonth]} {holiday.day}
                       </div>
-                      <div className="font-medium text-gray-700 text-sm">
+                      <div className="font-medium text-gray-700 text-xs sm:text-sm">
                         {holiday.name}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
@@ -363,15 +362,15 @@ const AnnualCalendar = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center text-gray-500 py-8">
-                  <Calendar className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">No holidays this month</p>
+                <div className="text-center text-gray-500 py-6 sm:py-8">
+                  <Calendar className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-xs sm:text-sm">No holidays this month</p>
                 </div>
               )}
 
               {/* Legend */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h4 className="text-sm font-semibold text-gray-800 mb-3">
+              <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+                <h4 className="text-xs sm:text-sm font-semibold text-gray-800 mb-2 sm:mb-3">
                   Legend
                 </h4>
                 <div className="space-y-2 text-xs">

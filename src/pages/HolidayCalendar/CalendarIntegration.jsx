@@ -109,8 +109,8 @@ const CalendarIntegration = () => {
   ];
 
   return (
-    <div className="w-full lg:w-[78%]">
-      <div className="flex justify-end">
+    <div className="w-full mt-4 sm:mt-0">
+      <div className="hidden sm:flex sm:justify-end sm:items-center">
         <PageBreadcrumb
         items={[
           {label:'Dashboard', link:'/'},
@@ -119,16 +119,16 @@ const CalendarIntegration = () => {
         />
         <PageMeta title="Calendar Integration" />
       </div>
-    <div className="space-y-8 bg-white rounded-2xl p-6">
+    <div className="space-y-8 bg-white rounded-2xl sm:p-6 p-4">
       {/* Header */}
-      <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="bg-white rounded-lg border mb-6 sm:mb-8 border-slate-200 p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 flex items-center">
+            <h1 className="sm:text-3xl text-xl font-bold text-slate-800 flex items-center">
               <CalendarIcon size={24} className="text-slate-400 mr-2" />
               Holiday Calendar
             </h1>
-            <p className="text-slate-500 text-lg mt-1">
+            <p className="text-slate-500 sm:text-lg text-sm mt-1">
               View Google Calendar events and holidays
             </p>
           </div>
@@ -141,7 +141,7 @@ const CalendarIntegration = () => {
       </div>
 
       {/* Main Content */}
-      <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="bg-white rounded-lg border border-slate-200 p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
         {error && (
           <div className="mb-4 p-4 bg-red-100 text-red-600 rounded-lg">
             <p className="text-sm font-medium">{error}</p>

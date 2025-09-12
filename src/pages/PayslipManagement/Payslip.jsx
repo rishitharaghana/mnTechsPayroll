@@ -251,8 +251,8 @@ const Payslip = () => {
   }
 
   return (
-    <div className="w-full ">
-      <div className="flex justify-end items-center">
+    <div className="w-full mt-4 sm:mt-0">
+      <div className="hidden sm:flex sm:justify-end sm:items-center">
         <PageMeta
           title="Payslip Management"
           description="View, generate, and download employee payslips."
@@ -264,9 +264,9 @@ const Payslip = () => {
           ]}
         />
       </div>
-      <div className="bg-white rounded-xl shadow-md p-6">
+      <div className="bg-white rounded-xl shadow-md sm:p-6 p-4">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 sm:p-6 p-5 mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
             Payslip Management
           </h1>
@@ -283,9 +283,9 @@ const Payslip = () => {
         )}
 
         {/* Filters Section */}
-        <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 sm:p-6 p-4 mb-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Filters</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 md:grid-cols-3 gap-4">
             {role !== "employee" && (
               <div>
                 <label className="block text-sm font-medium text-gray-700">
@@ -355,7 +355,7 @@ const Payslip = () => {
 
         {/* Actions Section */}
         {["hr", "super_admin"].includes(role) && (
-          <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 p-6 mb-6">
+          <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 sm:p-6 p-4 mb-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
               Actions
             </h2>
@@ -380,100 +380,109 @@ const Payslip = () => {
         )}
 
         {/* Payslip Records */}
-        <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Payslip Records
-          </h2>
-          {loading && <p className="text-gray-500">Loading payslips...</p>}
-          {!loading && filteredPayslips.length === 0 && (
-            <p className="text-gray-500">
-              No payslips found for {selectedMonth}.{" "}
-              {["hr", "super_admin"].includes(role) &&
-                "Try generating payroll."}
-            </p>
-          )}
-          {!loading && filteredPayslips.length > 0 && (
-            <>
-              <div className="rounded-xl overflow-hidden">
-                <table className="w-full text-sm text-left text-gray-700">
-                  <thead className="bg-teal-600 text-white">
-                    <tr>
-                      <th className="px-4 py-3 font-medium">Employee</th>
-                      <th className="px-4 py-3 font-medium">Department</th>
-                      <th className="px-4 py-3 font-medium">Total Earnings</th>
-                      <th className="px-4 py-3 font-medium">Total Deductions</th>
-                      <th className="px-4 py-3 font-medium">Net Pay</th>
-                      <th className="px-4 py-3 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {filteredPayslips.map((slip) => (
-                      <tr
-                        key={`${slip.employee_id}-${slip.month}`}
-                        className="hover:bg-gray-50"
-                      >
-                        <td className="px-4 py-3">
-                          {slip.employee_name} ({slip.employee_id})
-                        </td>
-                        <td className="px-4 py-3">
-                          {slip.department_name || slip.department || "HR"}
-                        </td>
-                        <td className="px-4 py-3">
-                          ₹{(slip.totalEarnings || 0).toLocaleString("en-IN")}
-                        </td>
-                        <td className="px-4 py-3">
-                          ₹{(slip.totalDeductions || 0).toLocaleString("en-IN")}
-                        </td>
-                        <td className="px-4 py-3">
-                          ₹{(slip.netPay || 0).toLocaleString("en-IN")}
-                        </td>
-                        <td className="px-4 py-3 flex gap-2 whitespace-nowrap">
-                          <button
-                            onClick={() => handleViewPayslip(slip)}
-                            className="text-teal-600 hover:text-teal-800 flex items-center"
-                          >
-                            <Eye size={18} className="mr-1" /> View
-                          </button>
-                          {["hr", "super_admin"].includes(role) && (
-                            <button
-                              onClick={() =>
-                                handleDownloadPayslip(slip.employee_id)
-                              }
-                              className="text-teal-600 hover:text-teal-800 flex items-center"
-                            >
-                              Download
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {totalPages > 1 && (
-                <div className="flex justify-between items-center mt-4">
+        <div className="bg-white rounded-xl shadow-md border border-gray-300 p-4 sm:p-6">
+  <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
+    Payslip Records
+  </h2>
+  {loading && <p className="text-gray-500">Loading payslips...</p>}
+  {!loading && filteredPayslips.length === 0 && (
+    <p className="text-gray-500">
+      No payslips found for {selectedMonth}.{" "}
+      {["hr", "super_admin"].includes(role) && "Try generating payroll."}
+    </p>
+  )}
+  {!loading && filteredPayslips.length > 0 && (
+    <>
+      <div className="relative overflow-x-auto rounded-xl">
+        <table className="w-full text-sm text-left text-gray-700 min-w-[600px]">
+          <thead className="bg-teal-600 text-white">
+            <tr>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 font-medium truncate">
+                Employee
+              </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 font-medium truncate">
+                Department
+              </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 font-medium truncate">
+                Total Earnings
+              </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 font-medium truncate">
+                Total Deductions
+              </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 font-medium truncate">
+                Net Pay
+              </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 font-medium truncate">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {filteredPayslips.map((slip) => (
+              <tr
+                key={`${slip.employee_id}-${slip.month}`}
+                className="hover:bg-gray-50"
+              >
+                <td className="px-2 py-2 sm:px-4 sm:py-3 truncate">
+                  {slip.employee_name} ({slip.employee_id})
+                </td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 truncate">
+                  {slip.department_name || slip.department || "HR"}
+                </td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 truncate">
+                  ₹{(slip.totalEarnings || 0).toLocaleString("en-IN")}
+                </td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 truncate">
+                  ₹{(slip.totalDeductions || 0).toLocaleString("en-IN")}
+                </td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 truncate">
+                  ₹{(slip.netPay || 0).toLocaleString("en-IN")}
+                </td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 flex gap-2 whitespace-nowrap">
                   <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    className="py-2 px-4 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    onClick={() => handleViewPayslip(slip)}
+                    className="text-teal-600 hover:text-teal-800 flex items-center text-xs sm:text-sm"
                   >
-                    Previous
+                    <Eye size={16} className="mr-1" /> View
                   </button>
-                  <span className="text-gray-600">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    className="py-2 px-4 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+                  {["hr", "super_admin"].includes(role) && (
+                    <button
+                      onClick={() => handleDownloadPayslip(slip.employee_id)}
+                      className="text-teal-600 hover:text-teal-800 flex items-center text-xs sm:text-sm"
+                    >
+                      Download
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {totalPages > 1 && (
+        <div className="flex sm:flex-row justify-between items-center mt-4 gap-2">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(currentPage - 1)}
+            className="py-1 px-3 sm:py-2 sm:px-4 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-xs sm:text-sm"
+          >
+            Previous
+          </button>
+          <span className="text-gray-600 text-xs sm:text-sm">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(currentPage + 1)}
+            className="py-1 px-3 sm:py-2 sm:px-4 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-xs sm:text-sm"
+          >
+            Next
+          </button>
         </div>
+      )}
+    </>
+  )}
+</div>
 
         {/* Payslip Preview */}
         {showPreview && (
