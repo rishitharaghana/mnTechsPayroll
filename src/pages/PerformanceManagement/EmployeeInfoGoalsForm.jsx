@@ -1,12 +1,137 @@
 import { useSelector } from "react-redux";
+import Select from "react-select"; // Import react-select
 import DatePicker from "../../Components/ui/date/DatePicker";
+
+// Custom styles for each Select component
+const employeeSelectStyles = {
+  control: (provided) => ({
+    ...provided,
+    borderColor: "#d1d5db",
+    borderRadius: "0.5rem",
+    padding: "0.1rem",
+    boxShadow: "none",
+    "&:hover": {
+      borderColor: "#14b8a6",
+    },
+    backgroundColor: "#f9fafb",
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected ? "#14b8a6" : state.isFocused ? "#e0f2fe" : "#fff",
+    color: state.isSelected ? "#fff" : "#374151",
+    padding: "0.5rem",
+    "&:hover": {
+      backgroundColor: "#e0f2fe",
+      color: "#374151",
+    },
+  }),
+  menu: (provided) => ({
+    ...provided,
+    borderRadius: "0.5rem",
+    marginTop: "0.25rem",
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "#374151",
+  }),
+};
+
+const goalTemplateSelectStyles = {
+  control: (provided) => ({
+    ...provided,
+    borderColor: "#d1d5db",
+    borderRadius: "0.5rem",
+    padding: "0.1rem",
+    boxShadow: "none",
+    "&:hover": {
+      borderColor: "#14b8a6",
+    },
+    backgroundColor: "#f3f4f6",
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected ? "#14b8a6" : state.isFocused ? "#ccfbf1" : "#fff",
+    color: state.isSelected ? "#fff" : "#374151",
+    padding: "0.5rem",
+    fontWeight: "500",
+    "&:hover": {
+      backgroundColor: "#ccfbf1",
+      color: "#374151",
+    },
+  }),
+  menu: (provided) => ({
+    ...provided,
+    borderRadius: "0.5rem",
+    marginTop: "0.25rem",
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "#374151",
+  }),
+};
+
+const taskPrioritySelectStyles = {
+  control: (provided) => ({
+    ...provided,
+    borderColor: "#d1d5db",
+    borderRadius: "0.5rem",
+    padding: "0.25rem",
+    boxShadow: "none",
+    "&:hover": {
+      borderColor: "#14b8a6",
+    },
+    backgroundColor: "#fef2f2",
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected
+      ? "#14b8a6"
+      : state.isFocused
+      ? "#fee2e2"
+      : "#fff",
+    color: state.isSelected ? "#fff" : "#374151",
+    padding: "0.5rem",
+    fontSize: "0.875rem",
+    "&:hover": {
+      backgroundColor: "#fee2e2",
+      color: "#374151",
+    },
+  }),
+  menu: (provided) => ({
+    ...provided,
+    borderRadius: "0.5rem",
+    marginTop: "0.25rem",
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "#374151",
+  }),
+};
 
 const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange, handleDateChange, addItem, addTask, employees, performance }) => {
   const goalTemplates = [
     { id: "1", title: "Increase Sales by 10%", description: "Achieve a 10% increase in quarterly sales.", due_date: "" },
     { id: "2", title: "Complete Project X", description: "Deliver project X by end of quarter.", due_date: "" },
-    {id: "3", title:"Complete Course", description:"Complete any 2 courses by the end of quarter", due_date:""},
-    
+    { id: "3", title: "Complete Course", description: "Complete any 2 courses by the end of quarter", due_date: "" },
+  ];
+
+  // Transform employees for react-select
+  const employeeOptions = employees.map((emp) => ({
+    value: emp.employee_id,
+    label: `${emp.employee_id} - ${emp.full_name}`,
+  }));
+
+  // Transform goal templates for react-select
+  const goalTemplateOptions = goalTemplates.map((t) => ({
+    value: t.id,
+    label: t.title,
+  }));
+
+  // Task priority options for react-select
+  const priorityOptions = [
+    { value: "Low", label: "Low" },
+    { value: "Medium", label: "Medium" },
+    { value: "High", label: "High" },
   ];
 
   return (
@@ -16,19 +141,24 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Employee</label>
-            <select
+            <Select
               name="employee_id"
-              value={formData.employeeDetails.employee_id}
-              onChange={(e) => handleChange(e, "employeeDetails", "employee_id")}
-              className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
-            >
-              <option value="">Select Employee</option>
-              {employees.map((emp) => (
-                <option key={emp.employee_id} value={emp.employee_id}>
-                  {emp.employee_id} - {emp.full_name}
-                </option>
-              ))}
-            </select>
+              value={employeeOptions.find(
+                (option) => option.value === formData.employeeDetails.employee_id
+              )}
+              onChange={(selectedOption) =>
+                handleChange(
+                  { target: { name: "employee_id", value: selectedOption ? selectedOption.value : "" } },
+                  "employeeDetails",
+                  "employee_id"
+                )
+              }
+              options={employeeOptions}
+              styles={employeeSelectStyles}
+              placeholder="Select Employee"
+              isClearable
+              className="mt-1"
+            />
             {formErrors.employee_id && (
               <p className="text-red-600 text-xs mt-1">{formErrors.employee_id}</p>
             )}
@@ -85,40 +215,39 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
       </div>
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Goals & Tasks</h3>
-        <select
-          onChange={(e) => {
-            const template = goalTemplates.find(t => t.id === e.target.value);
+        <Select
+          onChange={(selectedOption) => {
+            const template = goalTemplates.find((t) => t.id === selectedOption?.value);
             if (template) {
-              setFormData(prev => ({
+              setFormData((prev) => ({
                 ...prev,
                 goals: [...prev.goals, { ...template, id: Date.now() + Math.random(), tasks: [] }],
               }));
             }
           }}
-          className="mt-1 block w-full border border-gray-300 rounded-lg p-2 mb-4"
-        >
-          <option value="">Select Goal Template</option>
-          {goalTemplates.map(t => (
-            <option key={t.id} value={t.id}>{t.title}</option>
-          ))}
-        </select>
+          options={goalTemplateOptions}
+          styles={goalTemplateSelectStyles}
+          placeholder="Select Goal Template"
+          isClearable
+          className="mt-1 mb-4"
+        />
         {(Array.isArray(formData.goals) ? formData.goals : []).map((goal, index) => (
           <div key={goal.id} className="mb-6 p-4 border rounded-lg bg-gray-50">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700">Goal Title</label>
                 <input
                   type="text"
                   name={`goal_title_${index}`}
                   value={goal.title}
                   onChange={(e) => handleChange(e, "goals", null, index, "title")}
-                  className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
+                  className="mt-1 w-full block border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
                 />
                 {formErrors[`goal_title_${index}`] && (
                   <p className="text-red-600 text-xs mt-1">{formErrors[`goal_title_${index}`]}</p>
                 )}
               </div>
-              <div>
+              <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700">Due Date</label>
                 <DatePicker
                   name={`goal_due_date_${index}`}
@@ -140,17 +269,20 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
                   rows="3"
                 />
               </div>
-              {performance?.goals?.find(g => g.id === goal.id) && (
+              {performance?.goals?.find((g) => g.id === goal.id) && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Progress</label>
-                  <p>Progress: {performance.goals.find(g => g.id === goal.id).progress}% ({performance.goals.find(g => g.id === goal.id).status})</p>
+                  <p>
+                    Progress: {performance.goals.find((g) => g.id === goal.id).progress}% (
+                    {performance.goals.find((g) => g.id === goal.id).status})
+                  </p>
                 </div>
               )}
             </div>
             <h4 className="text-md font-semibold text-gray-800 mt-4">Tasks</h4>
             {(Array.isArray(goal.tasks) ? goal.tasks : []).map((task, taskIndex) => (
               <div key={task.id} className="mt-2 p-3 bg-gray-100 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Task Title</label>
                     <input
@@ -161,7 +293,9 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
                       className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
                     />
                     {formErrors[`task_title_${index}_${taskIndex}`] && (
-                      <p className="text-red-600 text-xs mt-1">{formErrors[`task_title_${index}_${taskIndex}`]}</p>
+                      <p className="text-red-600 text-xs mt-1">
+                        {formErrors[`task_title_${index}_${taskIndex}`]}
+                      </p>
                     )}
                   </div>
                   <div>
@@ -173,21 +307,37 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
                       className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
                     />
                     {formErrors[`task_due_date_${index}_${taskIndex}`] && (
-                      <p className="text-red-600 text-xs mt-1">{formErrors[`task_due_date_${index}_${taskIndex}`]}</p>
+                      <p className="text-red-600 text-xs mt-1">
+                        {formErrors[`task_due_date_${index}_${taskIndex}`]}
+                      </p>
                     )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Priority</label>
-                    <select
+                    <Select
                       name={`task_priority_${index}_${taskIndex}`}
-                      value={task.priority}
-                      onChange={(e) => handleChange(e, "goals", "tasks", index, "priority", taskIndex)}
-                      className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
-                    >
-                      <option value="Low">Low</option>
-                      <option value="Medium">Medium</option>
-                      <option value="High">High</option>
-                    </select>
+                      value={priorityOptions.find((option) => option.value === task.priority)}
+                      onChange={(selectedOption) =>
+                        handleChange(
+                          {
+                            target: {
+                              name: `task_priority_${index}_${taskIndex}`,
+                              value: selectedOption ? selectedOption.value : "",
+                            },
+                          },
+                          "goals",
+                          "tasks",
+                          index,
+                          "priority",
+                          taskIndex
+                        )
+                      }
+                      options={priorityOptions}
+                      styles={taskPrioritySelectStyles}
+                      placeholder="Select Priority"
+                      isClearable
+                      className="mt-1"
+                    />
                   </div>
                 </div>
               </div>

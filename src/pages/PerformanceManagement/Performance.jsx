@@ -1,22 +1,123 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import Select from "react-select"; // Import react-select
 import { TrendingUp, Award, Target, Star } from "lucide-react";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 import { fetchEmployeePerformance } from "../../redux/slices/performanceSlice";
 import { fetchEmployees } from "../../redux/slices/employeeSlice";
 
+// Custom styles for employee select
+const employeeSelectStyles = {
+  control: (provided) => ({
+    ...provided,
+    borderColor: '#e2e8f0',
+    borderRadius: '0.5rem',
+    padding: '0.25rem',
+    boxShadow: 'none',
+    '&:hover': {
+      borderColor: '#14b8a6',
+    },
+    backgroundColor: '#fff',
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected ? '#14b8a6' : state.isFocused ? '#f0fdfa' : '#fff',
+    color: state.isSelected ? '#fff' : '#1f2937',
+    padding: '0.5rem 1rem',
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: '#f0fdfa',
+      color: '#1f2937',
+    },
+  }),
+  menu: (provided) => ({
+    ...provided,
+    borderRadius: '0.5rem',
+    border: '1px solid #e2e8f0',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    zIndex: 10,
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: '#1f2937',
+    fontWeight: '500',
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: '#6b7280',
+  }),
+};
+
+// Custom styles for period select
+const periodSelectStyles = {
+  control: (provided) => ({
+    ...provided,
+    borderColor: '#e2e8f0',
+    borderRadius: '0.5rem',
+    padding: '0.25rem',
+    boxShadow: 'none',
+    '&:hover': {
+      borderColor: '#0ea5e9',
+    },
+    backgroundColor: '#f8fafc',
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected ? '#0ea5e9' : state.isFocused ? '#e0f2fe' : '#fff',
+    color: state.isSelected ? '#fff' : '#1f2937',
+    padding: '0.5rem 1rem',
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: '#e0f2fe',
+      color: '#1f2937',
+    },
+  }),
+  menu: (provided) => ({
+    ...provided,
+    borderRadius: '0.5rem',
+    border: '1px solid #e2e8f0',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    zIndex: 10,
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: '#1f2937',
+    fontWeight: '500',
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: '#6b7280',
+  }),
+};
+
 const Performance = () => {
   const dispatch = useDispatch();
   const { employees } = useSelector((state) => state.employee);
   const { performance, loading, error } = useSelector((state) => state.performance);
-  const [selectedEmployee, setSelectedEmployee] = useState("all");
-  const [selectedPeriod, setSelectedPeriod] = useState("quarterly");
+  const [selectedEmployee, setSelectedEmployee] = useState(null); // Changed to null for react-select
+  const [selectedPeriod, setSelectedPeriod] = useState({ value: "quarterly", label: "Quarterly" });
+
+  // Employee options for react-select
+  const employeeOptions = [
+    { value: "all", label: "All Employees" },
+    ...employees.map((e) => ({
+      value: e.employee_id,
+      label: `${e.full_name} (${e.employee_id})`,
+    })),
+  ];
+
+  // Period options for react-select
+  const periodOptions = [
+    { value: "quarterly", label: "Quarterly" },
+    { value: "monthly", label: "Monthly" },
+    { value: "yearly", label: "Yearly" },
+  ];
 
   useEffect(() => {
     dispatch(fetchEmployees());
-    if (selectedEmployee !== "all") {
-      dispatch(fetchEmployeePerformance(selectedEmployee)).catch((err) =>
+    if (selectedEmployee?.value !== "all") {
+      dispatch(fetchEmployeePerformance(selectedEmployee?.value)).catch((err) =>
         console.error("Failed to fetch performance:", err)
       );
     }
@@ -34,13 +135,13 @@ const Performance = () => {
   const filteredPerformance = {
     ...performance,
     reviews: (performance?.reviews || []).filter((review) => {
-      if (selectedPeriod !== "quarterly") return true; // Adjust for other periods if needed
+      if (selectedPeriod.value !== "quarterly") return true;
       const reviewDate = new Date(review.reviewDate);
       const { start, end } = getDateRange();
       return reviewDate >= start && reviewDate <= end;
     }),
     goals: (performance?.goals || []).filter((goal) => {
-      if (selectedPeriod !== "quarterly") return true;
+      if (selectedPeriod.value !== "quarterly") return true;
       const dueDate = new Date(goal.due_date);
       const { start, end } = getDateRange();
       return dueDate >= start && dueDate <= end;
@@ -56,7 +157,7 @@ const Performance = () => {
               filteredPerformance.reviews.length
           )}%`
         : "N/A",
-      change: filteredPerformance?.reviews?.length ? "+4.2%" : "N/A", // Replace with dynamic calculation
+      change: filteredPerformance?.reviews?.length ? "+4.2%" : "N/A",
       icon: TrendingUp,
     },
     {
@@ -67,13 +168,13 @@ const Performance = () => {
               filteredPerformance.goals.length) * 100
           )}%`
         : "N/A",
-      change: filteredPerformance?.goals?.length ? "+7.1%" : "N/A", // Replace with dynamic calculation
+      change: filteredPerformance?.goals?.length ? "+7.1%" : "N/A",
       icon: Target,
     },
     {
       title: "Awards Given",
       value: filteredPerformance?.reviews?.reduce((sum, r) => sum + (r.achievements?.length || 0), 0) || 0,
-      change: filteredPerformance?.reviews?.length ? "+12" : "N/A", // Replace with dynamic calculation
+      change: filteredPerformance?.reviews?.length ? "+12" : "N/A",
       icon: Award,
     },
     {
@@ -85,7 +186,7 @@ const Performance = () => {
             20
           ).toFixed(1)
         : "N/A",
-      change: filteredPerformance?.reviews?.length ? "+0.2" : "N/A", // Replace with dynamic calculation
+      change: filteredPerformance?.reviews?.length ? "+0.2" : "N/A",
       icon: Star,
     },
   ];
@@ -98,13 +199,13 @@ const Performance = () => {
   };
 
   const filteredEmployees =
-    selectedEmployee === "all"
+    selectedEmployee?.value === "all"
       ? employees
-      : employees.filter((e) => e.employee_id === selectedEmployee);
+      : employees.filter((e) => e.employee_id === selectedEmployee?.value);
 
   return (
-    <div className="w-full lg:w-[78%]">
-      <div className="flex justify-end items-center">
+    <div className="w-full mt-4 sm:mt-0">
+      <div className="hidden sm:flex sm:justify-end sm:items-center">
         <PageMeta
           title="Performance Management"
           description="Track and manage employee performance metrics."
@@ -118,8 +219,8 @@ const Performance = () => {
       </div>
       <div className="bg-white rounded-xl p-4 md:p-8 shadow-lg border-1 border-gray-300">
         <div className="bg-gradient-to-r from-slate-700 to-teal-600 rounded-xl p-6 mb-6">
-          <h1 className="text-3xl font-bold text-white text-center">Employee Performance Dashboard</h1>
-          <p className="text-white text-center">Overview of employee metrics and achievements (3-Month Cycle)</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Employee Performance Dashboard</h1>
+          <p className="text-gray-200">Overview of employee metrics and achievements (3-Month Cycle)</p>
         </div>
 
         {(error || loading) && (
@@ -149,30 +250,25 @@ const Performance = () => {
           <div>
             <h2 className="text-xl font-semibold text-gray-800">Filters</h2>
           </div>
-          <div className="flex gap-4">
-            <select
+          <div className="flex gap-4 w-full lg:w-auto">
+            <Select
               value={selectedEmployee}
-              onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
+              onChange={setSelectedEmployee}
+              options={employeeOptions}
+              styles={employeeSelectStyles}
+              placeholder="Select Employee"
+              className="w-full lg:w-64"
               aria-label="Select employee"
-            >
-              <option value="all">All Employees</option>
-              {employees.map((e) => (
-                <option key={e.employee_id} value={e.employee_id}>
-                  {e.full_name} ({e.employee_id})
-                </option>
-              ))}
-            </select>
-            <select
+            />
+            <Select
               value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
+              onChange={setSelectedPeriod}
+              options={periodOptions}
+              styles={periodSelectStyles}
+              placeholder="Select Period"
+              className="w-full lg:w-40"
               aria-label="Select period"
-            >
-              <option value="quarterly">Quarterly</option>
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly</option>
-            </select>
+            />
           </div>
         </div>
 
@@ -201,13 +297,13 @@ const Performance = () => {
           {filteredEmployees.map((emp) => (
             <div
               key={emp.employee_id}
-              className="bg-white shadow-lg rounded-xl p-6 border-1 border-gray-300 hover:-translate-y-1 transition-all"
+              className="bg-white shadow-lg rounded-xl sm:p-6 p-5 border-1 border-gray-300 hover:-translate-y-1 transition-all"
               role="region"
               aria-label={`Performance details for ${emp.full_name}`}
             >
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800">{emp.full_name}</h3>
+                  <h3 className="text-xl font-bold text-gray-800 mb-1">{emp.full_name}</h3>
                   <p className="text-sm text-gray-500">
                     {emp.designation_name} | {emp.department_name}
                   </p>
