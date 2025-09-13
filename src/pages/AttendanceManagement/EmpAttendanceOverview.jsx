@@ -26,42 +26,40 @@ const EmpAttendanceOverview = () => {
     loading: userLoading,
     error: userError,
     successMessage: userSuccess,
-  } = useSelector((state) => state.user);
+  } = useSelector((state) => state.employee);
   const [isLoading, setIsLoading] = useState(true);
+  const [isValidSession, setIsValidSession] = useState(true);
+  const [userRole, setUserRole] = useState(null);
 
-  let stored, parsed, userRole;
-  try {
-    stored = localStorage.getItem("userToken");
-    parsed = stored ? JSON.parse(stored) : null;
-    userRole = parsed?.role || null;
-    console.log("Parsed userToken:", parsed);
-  } catch (error) {
-    console.error("Error parsing userToken:", error.message);
-    toast.error("Invalid session data. Please log in again.");
-    window.location.href = "/login";
-    return null;
-  }
-
-  const employeeName = profile
-    ? `${profile.full_name} (${profile.employee_id})`
-    : "No profile data available. Please contact HR.";
-
+  // Validate user session and parse userToken
   useEffect(() => {
-    console.log("useEffect triggered", { stored, userRole, profile });
-    if (!stored || !parsed) {
-      console.error("No valid userToken found");
-      toast.error("Session expired. Please log in again.");
-      window.location.href = "/login";
-      return;
-    }
-    if (["employee", "dept_head", "hr", "super_admin"].includes(userRole)) {
-      if (profile?.employee_id) {
-        console.log("Fetching data for employee_id:", profile.employee_id);
-        dispatch(
-          fetchEmployeeAverageHours({ employee_id: profile.employee_id })
-        );
+    let stored, parsed;
+    try {
+      stored = localStorage.getItem("userToken");
+      parsed = stored ? JSON.parse(stored) : null;
+      if (!parsed || !stored) {
+        console.error("No valid userToken found");
+        toast.error("Session expired. Please log in again.");
+        window.location.href = "/login";
+        setIsValidSession(false);
+        return;
       }
-      if (!profile) {
+      setUserRole(parsed?.role || null);
+      console.log("Parsed userToken:", parsed);
+    } catch (error) {
+      console.error("Error parsing userToken:", error.message);
+      toast.error("Invalid session data. Please log in again.");
+      window.location.href = "/login";
+      setIsValidSession(false);
+    }
+  }, []);
+
+  // Fetch user profile
+  useEffect(() => {
+    if (!isValidSession || !userRole) return;
+
+    if (["employee", "dept_head", "hr", "super_admin"].includes(userRole)) {
+      if (!profile && !userLoading) {
         console.log("Fetching user profile");
         dispatch(getCurrentUserProfile());
       }
@@ -70,15 +68,24 @@ const EmpAttendanceOverview = () => {
       toast.error(
         "Invalid user credentials. Please log in with appropriate permissions."
       );
+      setIsValidSession(false);
     }
-    setIsLoading(false);
-    return () => {
-      console.log("Cleaning up state");
-      dispatch(clearAttendanceState());
-      dispatch(clearState());
-    };
-  }, [dispatch, userRole, profile]);
+  }, [dispatch, isValidSession, userRole, profile, userLoading]);
 
+  // Fetch attendance data
+  useEffect(() => {
+    if (!isValidSession || !profile?.employee_id || attendanceLoading) return;
+
+    console.log("Fetching data for employee_id:", profile.employee_id);
+    dispatch(fetchEmployeeAverageHours({ employee_id: profile.employee_id }));
+  }, [dispatch, isValidSession, profile]);
+
+  // Handle loading state
+  useEffect(() => {
+    setIsLoading(userLoading || attendanceLoading || !userRole);
+  }, [userLoading, attendanceLoading, userRole]);
+
+  // Handle success and error messages
   useEffect(() => {
     if (attendanceSuccess || userSuccess) {
       console.log("Success message:", attendanceSuccess || userSuccess);
@@ -121,7 +128,25 @@ const EmpAttendanceOverview = () => {
 
   const monthlyAverage = averageHours?.average_working_hours ?? 0;
 
-  if (isLoading || !stored || !parsed) return null;
+  const employeeName = profile
+    ? `${profile.full_name} (${profile.employee_id})`
+    : "No profile data available. Please contact HR.";
+
+  if (!isValidSession || isLoading) {
+    return (
+      <div className="w-11/12 max-w-7xl mx-auto flex justify-center items-center min-h-screen">
+        <svg
+          className="w-12 h-12 animate-spin text-teal-500"
+          viewBox="0 0 24 24"
+        >
+          <path
+            fill="currentColor"
+            d="M12 4V2A10 10 0 0 0 2 12h2a8 8 0 0 1 8-8z"
+          />
+        </svg>
+      </div>
+    );
+  }
 
   return (
     <div className="w-11/12 max-w-7xl mx-auto">
@@ -403,7 +428,7 @@ const EmpAttendanceOverview = () => {
             to="/emp-dashboard"
             className="px-5 py-3 rounded-lg text-sm font-medium bg-gradient-to-r from-teal-500 to-teal-700 text-white hover:scale-105 hover:shadow-md hover:shadow-teal-500/20 transition-all duration-300"
           >
-            Back 
+            Back
           </Link>
         </div>
       </div>

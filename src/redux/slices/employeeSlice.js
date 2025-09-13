@@ -205,7 +205,6 @@ export const updateEmployee = createAsyncThunk(
     }
   }
 );
-
 export const deleteEmployee = createAsyncThunk(
   "employee/deleteEmployee",
   async ({ id, role }, { rejectWithValue }) => {
@@ -235,7 +234,6 @@ export const deleteEmployee = createAsyncThunk(
     }
   }
 );
-
 export const fetchEmployees = createAsyncThunk(
   "employee/fetchEmployees",
   async (_, { rejectWithValue }) => {
@@ -558,6 +556,7 @@ const employeeSlice = createSlice({
     bankDetails: null,
     loading: false,
     error: null,
+    profile:null,
     successMessage: null,
     employeeId: null,
     progress: null,
@@ -573,6 +572,7 @@ const employeeSlice = createSlice({
       state.educationDetails= null;
       state.employeeId = null;
       state.currentEmployee = null;
+      state.profile = null;
     },
   },
   extraReducers: (builder) => {
@@ -711,18 +711,14 @@ const employeeSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(getCurrentUserProfile.pending, (state) => {
+   .addCase(getCurrentUserProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(getCurrentUserProfile.fulfilled, (state, action) => {
         state.loading = false;
+        state.profile = action.payload.data; 
         state.employeeId = action.payload.data.employee_id;
-        state.employees = [{
-          ...action.payload.data,
-          blood_group: action.payload.data.blood_group,
-          photo_url: action.payload.data.photo_url,
-        }];
         state.successMessage = action.payload.message;
       })
       .addCase(getCurrentUserProfile.rejected, (state, action) => {

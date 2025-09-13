@@ -322,7 +322,6 @@ const leaveSlice = createSlice({
       .addCase(fetchMyLeaves.fulfilled, (state, action) => {
         state.loading = false;
         state.leaves = action.payload;
-        state.successMessage = "Leaves fetched successfully";
         console.log("fetchMyLeaves fulfilled, leaves:", action.payload);
       })
       .addCase(fetchMyLeaves.rejected, (state, action) => {
@@ -409,7 +408,6 @@ const leaveSlice = createSlice({
       .addCase(fetchRecipientOptions.fulfilled, (state, action) => {
         state.loading = false;
         state.recipients = action.payload;
-        state.successMessage = "Recipient options fetched successfully";
         console.log("fetchRecipientOptions fulfilled, recipients:", action.payload);
       })
       .addCase(fetchRecipientOptions.rejected, (state, action) => {
@@ -424,7 +422,6 @@ const leaveSlice = createSlice({
       .addCase(fetchLeaveBalances.fulfilled, (state, action) => {
         state.loading = false;
         state.leaveBalances = { paid: action.payload.paid || 0 }; 
-        state.successMessage = "Leave balances fetched successfully";
         console.log("fetchLeaveBalances fulfilled, leaveBalances:", action.payload);
       })
       .addCase(fetchLeaveBalances.rejected, (state, action) => {
