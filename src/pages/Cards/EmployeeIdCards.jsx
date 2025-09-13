@@ -34,8 +34,8 @@ const EmployeeIdCards = () => {
   }
 
   return (
-    <div className="w-78/100">
-      <div className="flex justify-end">
+    <div className="w-full mt-4 sm:mt-0">
+      <div className="hidden sm:flex sm:justify-end smitems-center">
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/" },

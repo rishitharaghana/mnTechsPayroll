@@ -33,8 +33,8 @@ const EditProfile = () => {
   });
 
   return (
-    <div className="w-full lg:w-[78%]">
-      <div className="flex justify-end">
+    <div className="w-full mt-4 sm:mt-0">
+      <div className="hidden sm:flex sm:justify-end sm:items-center">
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/admin/dashboard" },

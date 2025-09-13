@@ -199,9 +199,9 @@ const SettingsProfile = ({ settings, setSettings }) => {
         <div className="flex justify-end mt-6">
           <button
             type="submit"
-            className="px-6 py-2 bg-teal-700 text-white rounded-lg transition-colors duration-200"
+            className="px-6 py-2 bg-slate-700 hover:bg-teal-700 text-white rounded-lg transition-colors duration-200"
           >
-            Save Changes
+            Save
           </button>
         </div>
       </form>

@@ -42,17 +42,17 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="w-full lg:w-[78%] mt-10 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300">
+    <div className="w-full mt-5 sm:p-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300">
       <div className="flex justify-between items-center mb-6">
         <div>
           {profile.profileImage ? (
             <img
               src={profile.profileImage}
               alt="Profile"
-              className="w-32 h-32 rounded-full border-4 border-slate-700 object-cover shadow-md hover:scale-105 transition-transform duration-300"
+              className="sm:w-30 w-20 sm:h-30 h-20 rounded-full border-4 border-slate-700 object-cover shadow-md hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-4xl text-gray-600 border-4 border-blue-500 shadow-md hover:scale-105 transition-transform duration-300">
+            <div className="sm:w-30 w-20 sm:h-30 h-20 rounded-full bg-gray-200 flex items-center justify-center text-4xl text-gray-600 border-4 border-blue-500 shadow-md hover:scale-105 transition-transform duration-300">
               {profile.name?.charAt(0)}
             </div>
           )}
