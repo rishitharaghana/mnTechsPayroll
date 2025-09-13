@@ -44,6 +44,7 @@ const EmployeeDashboard = () => {
     workSummary: null,
   });
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('payslip'); // State for tabbed interface
 
   useEffect(() => {
     if (!isAuthenticated && !authLoading) {
@@ -157,37 +158,99 @@ const EmployeeDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-gradient-to-r from-slate-700 to-teal-600 rounded-2xl border border-teal-700/50 p-6 sm:p-8 mb-8 shadow-sm hover:shadow-md transition-all duration-300">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
+      <div className="max-w-5xl mx-auto">
+        {/* Hero Section for Profile */}
+        <div className="bg-gradient-to-r from-slate-700 to-teal-600 rounded-2xl border border-teal-700/50 p-8 mb-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="relative">
+              <div className="w-24 h-24 bg-white/90 rounded-full flex items-center justify-center shadow-md animate-pulse-subtle">
+                <User className="text-teal-600" size={40} aria-hidden="true" />
+              </div>
+              <div className="absolute -bottom-2 -right-2 bg-teal-600 text-white text-xs font-semibold rounded-full px-2 py-1 shadow-md">
+                 {dashboardData.profile?.employee_id || 'N/A'}
+              </div>
+            </div>
+            <div className="text-center sm:text-left">
               <h1 className="text-3xl font-extrabold text-white tracking-tight">
-                Hello, {user?.full_name || 'Employee'}!
+                Welcome, {dashboardData.profile?.full_name || user?.full_name || 'Employee'}!
               </h1>
-              <p className="text-gray-200 text-lg mt-1">Manage your leave, attendance, and more with ease.</p>
+              <p className="text-gray-200 text-sm mt-1">
+                {dashboardData.profile?.designation_name || 'Employee'} | {dashboardData.profile?.department_name || 'N/A'}
+              </p>
+              <NavLink
+                to="/profile"
+                className="text-white text-sm font-medium hover:underline mt-2 inline-block"
+                aria-label="View full profile"
+              >
+                View Full Profile
+              </NavLink>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Quick Actions Bar */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex bg-white/90 backdrop-blur-sm rounded-full border border-teal-200/50 p-2 shadow-sm">
+            {quickActions.map((action, index) => {
+              const Icon = iconMap[action.icon] || FileText;
+              return (
+                <NavLink
+                  key={index}
+                  to={action.to}
+                  className={`p-3 ${action.color} rounded-full mx-1 text-white font-medium transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-1 ${action.focusRing} shadow-sm`}
+                  aria-label={action.label}
+                >
+                  <Icon size={20} aria-hidden="true" />
+                </NavLink>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Leave Balances with Circular Progress */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
           {dashboardData.leaveBalances.map((leave, index) => {
             const Icon = iconMap[leave.icon] || FileText;
+            const percentage = (leave.remaining / leave.total) * 100;
             return (
               <div
                 key={index}
-                className={`${leave.bgColor} rounded-2xl border border-teal-200/50 p-6 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300 group relative`}
+                className={`${leave.bgColor} rounded-2xl border border-teal-200/50 p-6 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 group relative`}
                 role="region"
                 aria-label={`${leave.type} leave balance`}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`w-10 h-10 ${leave.color} rounded-lg flex items-center justify-center shadow-md`}>
-                    <Icon className="text-white" size={20} aria-hidden="true" />
+                  <div className="relative w-16 h-16">
+                    <svg className="w-full h-full" viewBox="0 0 36 36">
+                      <path
+                        className="text-gray-200"
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                      />
+                      <path
+                        className="text-teal-600"
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeDasharray={`${percentage}, 100`}
+                      />
+                    </svg>
+                    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                      <Icon className="text-teal-600" size={24} aria-hidden="true" />
+                    </div>
                   </div>
                   <span className={`text-xs font-semibold ${leave.textColor}`}>
                     {leave.remaining}/{leave.total}
                   </span>
                 </div>
-                <h3 className="text-gray-600 text-xs font-medium mb-1">{leave.type}</h3>
+                <h3 className="text-gray-600 text-sm font-medium mb-1">{leave.type}</h3>
                 <p className="text-xl font-bold text-gray-900">{leave.remaining} days</p>
                 <div className="absolute invisible group-hover:visible bg-gradient-to-r from-teal-600 to-slate-700 text-white text-xs rounded-lg py-1 px-2 bottom-full mb-2 shadow-sm">
                   Remaining {leave.type.toLowerCase()} days
@@ -198,180 +261,166 @@ const EmployeeDashboard = () => {
               </div>
             );
           })}
-          {dashboardData.profile && (
-            <div
-              className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300 group relative"
-              role="region"
-              aria-label="Profile snapshot"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg flex items-center justify-center shadow-md">
-                  <User className="text-white" size={20} aria-hidden="true" />
-                </div>
-                <span className="text-xs font-semibold text-gray-600">Employee Profile</span>
-              </div>
-              <h3 className="text-gray-600 text-xs font-medium mb-1">{dashboardData.profile.full_name}</h3>
-              <p className="text-sm text-gray-900">ID: {dashboardData.profile.employee_id}</p>
-              <p className="text-sm text-gray-900">Dept: {dashboardData.profile.department_name || 'N/A'}</p>
-              <p className="text-sm text-gray-900">Role: {dashboardData.profile.designation_name || 'Employee'}</p>
-              <NavLink
-                to="/employee/profile"
-                className="text-teal-600 text-xs font-medium hover:text-teal-800 hover:underline mt-2 inline-block"
-                aria-label="View full profile"
-              >
-                View Profile
-              </NavLink>
-            </div>
-          )}
         </div>
 
+        {/* Tabbed Interface for Payslip, Work Summary, and Attendance */}
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 mb-8 shadow-sm hover:shadow-md transition-all duration-300">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-            {quickActions.map((action, index) => {
-              const Icon = iconMap[action.icon] || FileText;
-              return (
-                <NavLink
-                  key={index}
-                  to={action.to}
-                  className={`p-2 ${action.color} rounded-lg text-white font-medium transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-1 ${action.focusRing} shadow-sm text-center`}
-                  aria-label={action.label}
-                >
-                  <Icon className="mx-auto mb-1" size={20} aria-hidden="true" />
-                  <span className="text-xs">{action.label}</span>
-                </NavLink>
-              );
-            })}
+          <div className="flex border-b border-teal-200/50 mb-4">
+            <button
+              className={`px-4 py-2 text-sm font-medium ${activeTab === 'payslip' ? 'text-teal-600 border-b-2 border-teal-600' : 'text-gray-600 hover:text-teal-600'}`}
+              onClick={() => setActiveTab('payslip')}
+              aria-label="View payslip"
+            >
+              Payslip
+            </button>
+            <button
+              className={`px-4 py-2 text-sm font-medium ${activeTab === 'workSummary' ? 'text-teal-600 border-b-2 border-teal-600' : 'text-gray-600 hover:text-teal-600'}`}
+              onClick={() => setActiveTab('workSummary')}
+              aria-label="View work summary"
+            >
+              Work Summary
+            </button>
+            <button
+              className={`px-4 py-2 text-sm font-medium ${activeTab === 'attendance' ? 'text-teal-600 border-b-2 border-teal-600' : 'text-gray-600 hover:text-teal-600'}`}
+              onClick={() => setActiveTab('attendance')}
+              aria-label="View attendance"
+            >
+              Attendance
+            </button>
           </div>
+
+          {activeTab === 'payslip' && (
+            <div>
+              {dashboardData.recentPayslip ? (
+                <div className="space-y-2">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Payslip</h2>
+                  <p className="text-gray-600 text-sm">Month: {dashboardData.recentPayslip.month || 'N/A'}</p>
+                  <p className="text-gray-600 text-sm">
+                    Gross Pay: ₹{parseFloat(dashboardData.recentPayslip.gross_salary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    Net Pay: ₹{parseFloat(dashboardData.recentPayslip.net_salary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <NavLink
+                    to="/employee-payslip"
+                    className="text-teal-600 text-sm font-medium hover:text-teal-800 hover:underline mt-2 inline-block"
+                    aria-label="View full payslip"
+                  >
+                    View Full Payslip
+                  </NavLink>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">No payslip available for the current month.</p>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'workSummary' && (
+            <div>
+              {dashboardData.workSummary ? (
+                <div className="space-y-2">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Work Summary</h2>
+                  <p className="text-gray-600 text-sm">Month: {dashboardData.workSummary.month || 'N/A'}</p>
+                  <p className="text-gray-600 text-sm">Total Working Days: {dashboardData.workSummary.total_working_days || 0}</p>
+                  <p className="text-gray-600 text-sm">Days Present: {dashboardData.workSummary.present_days || 0}</p>
+                  <p className="text-gray-600 text-sm">Paid Leave: {dashboardData.workSummary.paid_leave_days || 0}</p>
+                  <p className="text-gray-600 text-sm">Unpaid Leave: {dashboardData.workSummary.unpaid_leave_days || 0}</p>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">No work summary available for the current month.</p>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'attendance' && (
+            <div>
+              {dashboardData.attendance.length > 0 ? (
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">Attendance Status</h2>
+                  <div className="mb-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                        <p className="text-gray-600 text-sm">Today's Status</p>
+                        <p className="text-xl font-bold text-gray-900">{dashboardData.attendanceStatus.today}</p>
+                      </div>
+                      <div className="text-right mt-4 sm:mt-0">
+                        <p className="text-gray-600 text-sm">Last Updated</p>
+                        <p className="text-gray-900 font-medium">{dashboardData.attendanceStatus.lastUpdated}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-4 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-teal-400 scrollbar-track-gray-100">
+                    {dashboardData.attendance.map((record, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-100/80 transition-all duration-200"
+                        role="listitem"
+                        aria-label={`Attendance record for ${record.date}`}
+                      >
+                        <div className="w-8 h-8 bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg flex items-center justify-center shadow-sm">
+                          <Clock className="text-white" size={16} aria-hidden="true" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-gray-900 font-semibold text-sm">{record.date}</p>
+                          <p className="text-gray-600 text-xs">Status: {record.status}</p>
+                          <p className="text-gray-500 text-xs">
+                            Time In: {record.timeIn} | Time Out: {record.timeOut}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">No attendance records available.</p>
+              )}
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {dashboardData.recentPayslip ? (
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm hover:shadow-md transition-all duration-300">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Payslip</h2>
-              <div className="space-y-2">
-                <p className="text-gray-600 text-sm">Month: {dashboardData.recentPayslip.month || 'N/A'}</p>
-                <p className="text-gray-600 text-sm">
-                  Gross Pay: ₹{parseFloat(dashboardData.recentPayslip.gross_salary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-                <p className="text-gray-600 text-sm">
-                  Net Pay: ₹{parseFloat(dashboardData.recentPayslip.net_salary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
+        {/* Attendance Insights with Mini Calendar */}
+        {dashboardData.workSummary ? (
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Attendance Insights</h2>
+            <div className="flex flex-col lg:flex-row gap-6">
+              <div className="flex-1">
+                <p className="text-gray-600 text-sm mb-4">Month: {dashboardData.workSummary.month || 'N/A'}</p>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center">
+                    <span className="w-3 h-3 bg-teal-600 rounded-full mr-2"></span>
+                    <span>Present: {dashboardData.workSummary.present_days || 0}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-3 h-3 bg-blue-600 rounded-full mr-2"></span>
+                    <span>Paid Leave: {dashboardData.workSummary.paid_leave_days || 0}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-3 h-3 bg-red-600 rounded-full mr-2"></span>
+                    <span>Unpaid Leave: {dashboardData.workSummary.unpaid_leave_days || 0}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-3 h-3 bg-yellow-600 rounded-full mr-2"></span>
+                    <span>Holidays: {dashboardData.workSummary.holidays || 0}</span>
+                  </div>
+                </div>
                 <NavLink
-                  to="/employee-payslip"
-                  className="text-teal-600 text-sm font-medium hover:text-teal-800 hover:underline mt-2 inline-block"
-                  aria-label="View full payslip"
+                  to="/employee/leave-dashboard"
+                  className="text-teal-600 text-sm font-medium hover:text-teal-800 hover:underline mt-4 inline-block"
+                  aria-label="View leave details"
                 >
-                  View Full Payslip
+                  View Leave Details
                 </NavLink>
               </div>
-            </div>
-          ) : (
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Payslip</h2>
-              <p className="text-gray-500 text-sm">No payslip available for the current month.</p>
-            </div>
-          )}
-
-          {dashboardData.workSummary ? (
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm hover:shadow-md transition-all duration-300">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Work Summary</h2>
-              <div className="space-y-2">
-                <p className="text-gray-600 text-sm">Month: {dashboardData.workSummary.month || 'N/A'}</p>
-                <p className="text-gray-600 text-sm">Total Working Days: {dashboardData.workSummary.total_working_days || 0}</p>
-                <p className="text-gray-600 text-sm">Days Present: {dashboardData.workSummary.present_days || 0}</p>
-                <p className="text-gray-600 text-sm">Paid Leave: {dashboardData.workSummary.paid_leave_days || 0}</p>
-                <p className="text-gray-600 text-sm">Unpaid Leave: {dashboardData.workSummary.unpaid_leave_days || 0}</p>
+              <div className="flex-1">
+                <MiniCalendar month={dashboardData.workSummary.month} workSummary={dashboardData.workSummary} />
               </div>
-            </div>
-          ) : (
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Work Summary</h2>
-              <p className="text-gray-500 text-sm">No work summary available for the current month.</p>
-            </div>
-          )}
-        </div>
-
-        {/* New Attendance Insights with Mini Calendar */}
-        {dashboardData.workSummary ? (
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 mb-8 shadow-sm hover:shadow-md transition-all duration-300">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Attendance Insights</h2>
-            <div className="space-y-4">
-              <p className="text-gray-600 text-sm">Month: {dashboardData.workSummary.month || 'N/A'}</p>
-              <MiniCalendar month={dashboardData.workSummary.month} workSummary={dashboardData.workSummary} />
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex items-center">
-                  <span className="w-3 h-3 bg-teal-600 rounded-full mr-2"></span>
-                  <span>Present: {dashboardData.workSummary.present_days || 0}</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="w-3 h-3 bg-blue-600 rounded-full mr-2"></span>
-                  <span>Paid Leave: {dashboardData.workSummary.paid_leave_days || 0}</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="w-3 h-3 bg-red-600 rounded-full mr-2"></span>
-                  <span>Unpaid Leave: {dashboardData.workSummary.unpaid_leave_days || 0}</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="w-3 h-3 bg-yellow-600 rounded-full mr-2"></span>
-                  <span>Holidays: {dashboardData.workSummary.holidays || 0}</span>
-                </div>
-              </div>
-              <NavLink
-                to="/employee/leave-dashboard"
-                className="text-teal-600 text-sm font-medium hover:text-teal-800 hover:underline mt-2 inline-block"
-                aria-label="View leave details"
-              >
-                View Leave Details
-              </NavLink>
             </div>
           </div>
         ) : (
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 mb-8 shadow-sm">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Attendance Insights</h2>
             <p className="text-gray-500 text-sm">No attendance data available for the current month.</p>
           </div>
-        )}
-
-        {dashboardData.attendance.length > 0 ? (
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm hover:shadow-md transition-all duration-300">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Attendance Status</h2>
-            <div className="mb-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <p className="text-gray-600 text-sm">Today's Status</p>
-                  <p className="text-xl font-bold text-gray-900">{dashboardData.attendanceStatus.today}</p>
-                </div>
-                <div className="text-right mt-4 sm:mt-0">
-                  <p className="text-gray-600 text-sm">Last Updated</p>
-                  <p className="text-gray-900 font-medium">{dashboardData.attendanceStatus.lastUpdated}</p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-4 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-teal-400 scrollbar-track-gray-100">
-              {dashboardData.attendance.map((record, index) => (
-                <div
-                  key={index}
-                  className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-100/80 transition-all duration-200"
-                  role="listitem"
-                  aria-label={`Attendance record for ${record.date}`}
-                >
-                  <div className="w-8 h-8 bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg flex items-center justify-center shadow-sm">
-                    <Clock className="text-white" size={16} aria-hidden="true" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-gray-900 font-semibold text-sm">{record.date}</p>
-                    <p className="text-gray-600 text-xs">Status: {record.status}</p>
-                    <p className="text-gray-500 text-xs">
-                      Time In: {record.timeIn} | Time Out: {record.timeOut}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <p className="text-gray-500 text-center mt-6">No attendance records available.</p>
         )}
       </div>
     </div>
