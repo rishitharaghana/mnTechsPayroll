@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { MapPin, Clock, Download, ChevronDown, ChevronUp, Navigation, X } from 'lucide-react';
 import { fetchActiveSiteVisits } from '../../redux/slices/siteVisitSlice';
 
-// Load Google Maps script
+// Load Google Maps script (unchanged)
 const loadGoogleMapsScript = (apiKey) => {
   return new Promise((resolve, reject) => {
     if (window.google && window.google.maps) {
@@ -37,12 +37,12 @@ const LiveTrackingTable = ({ searchTerm, filterStatus }) => {
   const mapRef = useRef(null);
   const googleMapRef = useRef(null);
 
-  // Fetch active site visits on mount
+  // Fetch active site visits on mount (unchanged)
   useEffect(() => {
     dispatch(fetchActiveSiteVisits());
   }, [dispatch]);
 
-  // Initialize Google Maps when modal opens
+  // Initialize Google Maps when modal opens (unchanged)
   useEffect(() => {
     if (showLiveMap && selectedEmployee && mapRef.current) {
       if (selectedEmployee.coordinates.lat === 0 && selectedEmployee.coordinates.lng === 0) {
@@ -73,7 +73,6 @@ const LiveTrackingTable = ({ searchTerm, filterStatus }) => {
 
           googleMapRef.current = map;
 
-          // Update map with latest location
           const latestLocation = locations.find(
             (loc) => loc.employeeId === selectedEmployee.employee_id && loc.visitId === selectedEmployee.visit_id
           );
@@ -93,7 +92,7 @@ const LiveTrackingTable = ({ searchTerm, filterStatus }) => {
     }
   }, [showLiveMap, selectedEmployee, locations]);
 
-  // Filter and sort data
+  // Filter and sort data (unchanged)
   const filteredData = activeVisits.filter((data) => {
     const matchesSearch =
       data.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -151,7 +150,7 @@ const LiveTrackingTable = ({ searchTerm, filterStatus }) => {
     return sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />;
   };
 
-  // Export to CSV
+  // Export to CSV (unchanged)
   const exportToCSV = () => {
     const headers = 'Employee ID,Full Name,Site Name,Date,Start Time,End Time,Duration,Status\n';
     const csv = headers + sortedData.map((data) =>
@@ -168,7 +167,36 @@ const LiveTrackingTable = ({ searchTerm, filterStatus }) => {
 
   return (
     <>
-      <div className="w-full bg-white/80 backdrop-blur-xl rounded-xl shadow-md border border-white/20 overflow-hidden text-sm">
+      <style>
+        {`
+          .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          th, td {
+            padding: 0.75rem;
+            text-align: left;
+            white-space: nowrap; /* Prevent text wrapping */
+          }
+          @media (max-width: 640px) {
+            th, td {
+              font-size: 0.75rem;
+              padding: 0.5rem;
+            }
+            /* Hide less critical columns on mobile */
+            th:nth-child(4), td:nth-child(4), /* Start Time */
+            th:nth-child(5), td:nth-child(5) /* End Time */ {
+              display: none;
+            }
+          }
+        `}
+      </style>
+      <div className="w-full bg-white/80 backdrop-blur-xl rounded-xl shadow-lg border border-white/20 overflow-hidden text-sm">
         {loading && <p className="p-4 text-gray-600">Loading...</p>}
         {error && <p className="p-4 text-red-600">Error: {error}</p>}
         <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
@@ -181,15 +209,15 @@ const LiveTrackingTable = ({ searchTerm, filterStatus }) => {
             <span>Export</span>
           </button>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="table-container">
+          <table className="w-full table-auto">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 {['Employee', 'Project & Location', 'Date', 'Start Time', 'End Time', 'Duration', 'Status', 'Actions'].map(
                   (header) => (
                     <th
                       key={header}
-                      className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase cursor-pointer hover:bg-gray-100 transition"
+                      className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase cursor-pointer hover:bg-gray-100 transition min-w-[120px] whitespace-nowrap"
                       onClick={() => handleSort(header.toLowerCase().replace(' & ', '').replace(' ', '_'))}
                     >
                       <div className="flex items-center space-x-1">
@@ -204,39 +232,39 @@ const LiveTrackingTable = ({ searchTerm, filterStatus }) => {
             <tbody className="divide-y divide-gray-100">
               {sortedData.map((data) => (
                 <tr key={data.visit_id} className="hover:bg-gray-50 transition">
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap min-w-[200px]">
                     <div className="flex items-center">
                       <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-teal-600 text-white rounded-lg flex items-center justify-center text-xs font-bold">
                         {data.full_name.split(' ').map((n) => n[0]).join('')}
                       </div>
                       <div className="ml-3">
-                        <div className="font-semibold text-gray-800">{data.full_name}</div>
-                        <div className="text-gray-500 text-xs">{data.employee_id}</div>
+                        <div className="font-semibold text-gray-800 truncate max-w-[150px]">{data.full_name}</div>
+                        <div className="text-gray-500 text-xs truncate max-w-[150px]">{data.employee_id}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 truncate max-w-xs">
-                    <div className="font-medium text-gray-800">{data.site_name}</div>
-                    <div className="text-gray-500 text-xs truncate flex items-center">
+                  <td className="px-4 py-3 whitespace-nowrap min-w-[200px]">
+                    <div className="font-medium text-gray-800 truncate max-w-[150px]">{data.site_name}</div>
+                    <div className="text-gray-500 text-xs truncate max-w-[150px] flex items-center">
                       <MapPin className="w-3 h-3 mr-1" />
                       {data.site_name}
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 whitespace-nowrap min-w-[100px]">
                     {new Date(data.start_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 whitespace-nowrap min-w-[100px]">
                     {new Date(data.start_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 whitespace-nowrap min-w-[100px]">
                     {data.end_time ? (
                       new Date(data.end_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
                     ) : (
                       <span className="text-teal-700 font-medium text-xs">Active</span>
                     )}
                   </td>
-                  <td className="px-4 py-3">{formatDuration(data.start_time)}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 whitespace-nowrap min-w-[100px]">{formatDuration(data.start_time)}</td>
+                  <td className="px-4 py-3 whitespace-nowrap min-w-[100px]">
                     <span
                       className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                         locations.some((loc) => loc.employeeId === data.employee_id && loc.visitId === data.visit_id)
@@ -249,7 +277,7 @@ const LiveTrackingTable = ({ searchTerm, filterStatus }) => {
                         : 'OFFLINE'}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 whitespace-nowrap min-w-[100px]">
                     <button
                       onClick={() => handleViewMap(data)}
                       className={`text-xs font-medium ${
@@ -270,7 +298,7 @@ const LiveTrackingTable = ({ searchTerm, filterStatus }) => {
         </div>
       </div>
 
-      {/* Live Map Modal */}
+      {/* Live Map Modal (unchanged) */}
       {showLiveMap && selectedEmployee && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
@@ -317,26 +345,19 @@ const LiveTrackingTable = ({ searchTerm, filterStatus }) => {
                   </div>
                   <div className="h-64 w-full rounded-lg overflow-hidden border border-gray-200 shadow">
                     {selectedEmployee.coordinates.lat !== 0 && selectedEmployee.coordinates.lng !== 0 ? (
-<div className="h-64 w-full rounded-lg overflow-hidden border border-gray-200 shadow">
-  {selectedEmployee.coordinates.lat !== 0 && selectedEmployee.coordinates.lng !== 0 ? (
-    <iframe
-      src={`https://www.openstreetmap.org/export/embed.html?bbox=${
-        selectedEmployee.coordinates.lng - 0.01
-      },${selectedEmployee.coordinates.lat - 0.01},${
-        selectedEmployee.coordinates.lng + 0.01
-      },${selectedEmployee.coordinates.lat + 0.01}&layer=mapnik&marker=${
-        selectedEmployee.coordinates.lat
-      },${selectedEmployee.coordinates.lng}`}
-      width="100%"
-      height="100%"
-      style={{ border: 'none' }}
-    />
-  ) : (
-    <p className="h-full w-full flex items-center justify-center text-gray-500">
-      No location data available
-    </p>
-  )}
-</div>                    ) : (
+                      <iframe
+                        src={`https://www.openstreetmap.org/export/embed.html?bbox=${
+                          selectedEmployee.coordinates.lng - 0.01
+                        },${selectedEmployee.coordinates.lat - 0.01},${
+                          selectedEmployee.coordinates.lng + 0.01
+                        },${selectedEmployee.coordinates.lat + 0.01}&layer=mapnik&marker=${
+                          selectedEmployee.coordinates.lat
+                        },${selectedEmployee.coordinates.lng}`}
+                        width="100%"
+                        height="100%"
+                        style={{ border: 'none' }}
+                      />
+                    ) : (
                       <p className="h-full w-full flex items-center justify-center text-gray-500">
                         No location data available
                       </p>
