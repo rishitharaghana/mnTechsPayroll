@@ -50,6 +50,45 @@ export const changePassword = createAsyncThunk(
   }
 );
 
+export const checkMobileAndRoleExists = createAsyncThunk(
+  "auth/checkMobileAndRoleExists",
+  async ({ mobile, role }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post("http://localhost:3007/api/check-mobile", {
+        mobile,
+        role,
+      });
+      console.log("Check mobile and role response:", response.data);
+      return response.data.exists;
+    } catch (error) {
+      console.error("Check mobile and role error:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.error || "Mobile and role verification failed"
+      );
+    }
+  }
+);
+
+export const forgotPassword = createAsyncThunk(
+  "auth/forgotPassword",
+  async ({ mobileNumber, newPassword, role }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post("http://localhost:3007/api/forgot-password", {
+        mobile: mobileNumber,
+        newPassword,
+        role,
+      });
+      console.log("Forgot password response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Forgot password error:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.error || "Password reset failed"
+      );
+    }
+  }
+);
+
 const storedUser = JSON.parse(localStorage.getItem("userToken"));
 
 const authSlice = createSlice({
@@ -106,7 +145,7 @@ const authSlice = createSlice({
             role: action.payload.role,
             email: action.payload.email || null,
             id: action.payload.id,
-            employee_id: action.payload.employee_id, // Add employee_id
+            employee_id: action.payload.employee_id, 
             isTemporaryPassword: action.payload.isTemporaryPassword || false,
           })
         );
@@ -134,6 +173,32 @@ const authSlice = createSlice({
         }
       })
       .addCase(changePassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+       .addCase(checkMobileAndRoleExists.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.mobileExists = false;
+      })
+      .addCase(checkMobileAndRoleExists.fulfilled, (state, action) => {
+        state.loading = false;
+        state.mobileExists = action.payload;
+      })
+      .addCase(checkMobileAndRoleExists.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.mobileExists = false;
+      })
+      .addCase(forgotPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.loading = false;
+        state.mobileExists = false;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

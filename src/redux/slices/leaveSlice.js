@@ -12,7 +12,7 @@ export const applyLeave = createAsyncThunk(
       const { token } = JSON.parse(userToken);
       const response = await axios.post(
         "http://localhost:3007/api/leaves",
-        leaveData,
+        { ...leaveData, leave_status: leaveData.leave_status || "Paid" }, // Ensure leave_status is sent
         {
           headers: {
             "Content-Type": "application/json",
@@ -82,6 +82,7 @@ export const fetchPendingLeaves = createAsyncThunk(
     }
   }
 );
+
 export const fetchAllLeaves = createAsyncThunk(
   "leaves/fetchAllLeaves",
   async (_, { rejectWithValue }) => {
@@ -203,7 +204,7 @@ export const fetchLeaveBalances = createAsyncThunk(
         }
       );
       console.log("fetchLeaveBalances response:", response.data);
-      return response.data;
+      return response.data; // Expect { paid: X }
     } catch (error) {
       console.error(
         "fetchLeaveBalances error:",
@@ -248,7 +249,7 @@ export const allocateMonthlyLeaves = createAsyncThunk(
 
 export const allocateSpecialLeave = createAsyncThunk(
   "leaves/allocateSpecialLeave",
-  async ({ leave_type, days } = {}, { rejectWithValue }) => {
+  async ({ employee_id, days }, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
       if (!userToken) {
@@ -257,7 +258,7 @@ export const allocateSpecialLeave = createAsyncThunk(
       const { token } = JSON.parse(userToken);
       const response = await axios.post(
         "http://localhost:3007/api/leaves/special-leaves",
-        { leave_type, days },
+        { leave_type: "paid", employee_id, days }, // Force leave_type to 'paid'
         {
           headers: {
             "Content-Type": "application/json",
@@ -285,7 +286,7 @@ const leaveSlice = createSlice({
     leaves: [],
     pendingLeaves: [],
     recipients: [],
-    leaveBalances: { vacation: 0, sick: 0, casual: 0, maternity: 0, paternity: 0 },
+    leaveBalances: { paid: 0 }, 
     loading: false,
     error: null,
     successMessage: null,
@@ -422,7 +423,7 @@ const leaveSlice = createSlice({
       })
       .addCase(fetchLeaveBalances.fulfilled, (state, action) => {
         state.loading = false;
-        state.leaveBalances = action.payload;
+        state.leaveBalances = { paid: action.payload.paid || 0 }; 
         state.successMessage = "Leave balances fetched successfully";
         console.log("fetchLeaveBalances fulfilled, leaveBalances:", action.payload);
       })

@@ -13,6 +13,8 @@ import { Calendar, List, Send, RefreshCw } from 'lucide-react';
 import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
 import PageMeta from '../../Components/common/PageMeta';
 import DatePicker from '../../Components/ui/date/DatePicker';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const LeaveApplication = () => {
   const dispatch = useDispatch();
@@ -20,7 +22,7 @@ const LeaveApplication = () => {
   const {
     leaves = [],
     recipients = [],
-    leaveBalances = { vacation: 0, sick: 0, casual: 0, maternity: 0, paternity: 0 },
+    leaveBalances = { paid: 0 },
     loading,
     error,
     successMessage,
@@ -30,9 +32,19 @@ const LeaveApplication = () => {
     start_date: '',
     end_date: '',
     reason: '',
-    leave_type: '',
+    leave_status: 'Paid',
+    leave_category: 'casual',
     recipient_id: '',
   });
+
+  const leaveCategories = [
+    { value: 'casual', label: 'Casual Leave' },
+    { value: 'sick', label: 'Sick Leave' },
+    { value: 'vacation', label: 'Vacation Leave' },
+    { value: 'emergency', label: 'Emergency Leave' },
+    { value: 'maternity', label: 'Maternity Leave' },
+    { value: 'paternity', label: 'Paternity Leave' },
+  ];
 
   useEffect(() => {
     if (!token || !localStorage.getItem('userToken')) {
@@ -60,12 +72,19 @@ const LeaveApplication = () => {
       console.log('Polling fetchMyLeaves and fetchLeaveBalances');
       dispatch(fetchMyLeaves());
       dispatch(fetchLeaveBalances());
-    }, 30000);
+    }, 60000);
 
     return () => clearInterval(interval);
   }, [dispatch, navigate, token]);
 
+  // Log recipients when they change
   useEffect(() => {
+    console.log('Updated recipients:', recipients);
+  }, [recipients]);
+
+  useEffect(() => {
+    if (error) toast.error(error);
+    if (successMessage) toast.success(successMessage);
     if (successMessage || error) {
       const timer = setTimeout(() => dispatch(clearState()), 3000);
       return () => clearTimeout(timer);
@@ -78,16 +97,22 @@ const LeaveApplication = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.leave_type || leaveBalances[formData.leave_type] <= 0) {
-      dispatch({
-        type: 'leaves/clearState',
-        payload: { error: `No ${formData.leave_type || 'selected'} leave balance available` },
-      });
+    if (formData.leave_status === 'Paid' && leaveBalances.paid <= 0) {
+      toast.error('No paid leave balance available');
+      return;
+    }
+    if (new Date(formData.end_date) < new Date(formData.start_date)) {
+      toast.error('End date cannot be before start date');
+      return;
+    }
+    if (!formData.recipient_id) {
+      toast.error('Please select a recipient');
       return;
     }
     dispatch(applyLeave({ ...formData, employee_id })).then((result) => {
       if (result.error) {
         console.error('applyLeave error:', result.error.message);
+        toast.error(result.error.message);
         if (result.error.message.includes('No authentication token')) {
           navigate('/login');
         }
@@ -96,7 +121,8 @@ const LeaveApplication = () => {
           start_date: '',
           end_date: '',
           reason: '',
-          leave_type: '',
+          leave_status: 'Paid',
+          leave_category: 'casual',
           recipient_id: '',
         });
         dispatch(fetchMyLeaves());
@@ -161,6 +187,10 @@ const LeaveApplication = () => {
           {successMessage && <p className="text-teal-700">{successMessage}</p>}
         </div>
 
+        <div className="text-slate-700 mb-4">
+          <p>Available Paid Leave: {leaveBalances.paid} days</p>
+        </div>
+
         {role === 'super_admin' ? (
           <p className="text-red-500">Super admins cannot apply for leaves.</p>
         ) : (
@@ -188,18 +218,33 @@ const LeaveApplication = () => {
                 />
               </div>
               <div className="col-span-1">
-                <label className="block text-sm font-medium text-slate-700 mb-1">Leave Type</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Leave Status</label>
                 <select
-                  name="leave_type"
-                  value={formData.leave_type}
-                  onChange={(e) => handleInputChange('leave_type', e.target.value)}
+                  name="leave_status"
+                  value={formData.leave_status}
+                  onChange={(e) => handleInputChange('leave_status', e.target.value)}
                   className="mt-1 block w-full rounded-lg border border-teal-700 bg-white py-2.5 px-3 text-slate-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition duration-150 ease-in-out"
                   required
                 >
-                  <option value="" disabled>Select Leave Type</option>
-                  {Object.entries(leaveBalances).map(([type, balance]) => (
-                    <option key={type} value={type} disabled={balance <= 0}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)} ({balance} days)
+                  <option value="Paid" disabled={leaveBalances.paid <= 0}>
+                    Paid ({leaveBalances.paid} days)
+                  </option>
+                  <option value="Unpaid">Unpaid</option>
+                </select>
+              </div>
+              <div className="col-span-1">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Leave Category</label>
+                <select
+                  name="leave_category"
+                  value={formData.leave_category}
+                  onChange={(e) => handleInputChange('leave_category', e.target.value)}
+                  className="mt-1 block w-full rounded-lg border border-teal-700 bg-white py-2.5 px-3 text-slate-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition duration-150 ease-in-out"
+                  required
+                >
+                  <option value="" disabled>Select Leave Category</option>
+                  {leaveCategories.map((category) => (
+                    <option key={category.value} value={category.value}>
+                      {category.label}
                     </option>
                   ))}
                 </select>
@@ -214,16 +259,15 @@ const LeaveApplication = () => {
                   required
                 >
                   <option value="" disabled>Select Recipient</option>
-                  {recipients.map((recipient, index) => (
-  <option
-    key={recipient.employee_id || `recipient-${index}`}
-    value={recipient.employee_id || ""}
-    disabled={!recipient.employee_id}
-  >
-    {recipient.full_name || "Unnamed Recipient"}
-  </option>
-))}
-
+                  {recipients.length > 0 ? (
+                    recipients.map((recipient) => (
+                      <option key={recipient.employee_id} value={recipient.employee_id}>
+                        {recipient.full_name}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>No recipients available</option>
+                  )}
                 </select>
               </div>
               <div className="col-span-1 md:col-span-2">
@@ -258,7 +302,7 @@ const LeaveApplication = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || !formData.recipient_id || !formData.leave_type || leaveBalances[formData.leave_type] <= 0}
+                  disabled={loading || !formData.recipient_id || !formData.leave_category || (formData.leave_status === 'Paid' && leaveBalances.paid <= 0)}
                   className="flex items-center gap-2 bg-teal-700 text-white px-3 py-2 rounded-lg hover:bg-slate-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-700 transition duration-150 ease-in-out"
                 >
                   <Send size={16} />
@@ -284,10 +328,11 @@ const LeaveApplication = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Start Date</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">End Date</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Days</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Reason</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Recipients</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Approval Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase">Approved At</th>
                   </tr>
                 </thead>
@@ -304,13 +349,24 @@ const LeaveApplication = () => {
                         {leave.total_days || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
-                        {leave.leave_type || 'N/A'}
+                        {leaveCategories.find((cat) => cat.value === leave.leave_category)?.label ||
+                          leave.leave_category ||
+                          'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">
+                        {leave.leave_status || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-700">
                         {leave.reason || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-700">
-                        {leave.recipients?.join(', ') || 'Pending'}
+                        {Array.isArray(leave.recipients)
+                          ? leave.recipients
+                              .map((r) => (typeof r === 'string' ? r : r.full_name || r.name || 'Unknown'))
+                              .join(', ')
+                          : typeof leave.recipients === 'string'
+                          ? leave.recipients.split(',').join(', ')
+                          : 'Pending'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span
@@ -338,8 +394,9 @@ const LeaveApplication = () => {
           )}
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };
 
-export default LeaveApplication;
+export default LeaveApplication;  

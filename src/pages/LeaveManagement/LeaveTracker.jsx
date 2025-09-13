@@ -17,7 +17,6 @@ import {
   XCircle,
   UserCheck,
   Calendar,
-  PlusCircle,
 } from "lucide-react";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
@@ -55,33 +54,51 @@ const LeaveTracker = () => {
     error,
     successMessage,
   } = useSelector((state) => state.leaves);
-  const { role, token } = useSelector((state) => state.auth);
+  const { role, token, employee_id } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const userToken = localStorage.getItem("userToken");
     if (!token || !userToken) {
+      console.log("No token found, redirecting to login", { token, userToken });
       navigate("/login");
       return;
     }
+
+    let storedToken;
     try {
-      const { token: parsedToken } = JSON.parse(userToken);
-      if (parsedToken !== token) {
-        navigate("/login");
-        return;
-      }
+      const parsed = JSON.parse(userToken);
+      storedToken = parsed.token || userToken;
     } catch (error) {
+      storedToken = userToken;
+    }
+
+    if (storedToken !== token) {
+      console.log("Token mismatch, redirecting to login", { storedToken, token });
       navigate("/login");
       return;
     }
 
     if (role !== "hr" && role !== "super_admin") {
+      console.log(`Unauthorized role: ${role}, redirecting to /unauthorized`);
       navigate("/unauthorized");
       return;
     }
 
-    dispatch(fetchAllLeaves());
-    dispatch(fetchPendingLeaves());
-    dispatch(fetchLeaveBalances());
+    dispatch(fetchAllLeaves()).unwrap().catch((err) => {
+      console.error("Failed to fetch all leaves:", err);
+      if (err?.message?.includes("No authentication token")) {
+        navigate("/login");
+      }
+    });
+    dispatch(fetchPendingLeaves()).unwrap().catch((err) => {
+      console.error("Failed to fetch pending leaves:", err);
+      if (err?.message?.includes("No authentication token")) {
+        navigate("/login");
+      }
+    });
+    dispatch(fetchLeaveBalances()).unwrap().catch((err) => {
+      console.error("Failed to fetch leave balances:", err);
+    });
   }, [dispatch, navigate, token, role]);
 
   useEffect(() => {
@@ -96,7 +113,10 @@ const LeaveTracker = () => {
   const calculateDays = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    if (isNaN(start) || isNaN(end)) return 0;
+    if (isNaN(start) || isNaN(end)) {
+      console.warn(`Invalid dates: start=${startDate}, end=${endDate}`);
+      return 0;
+    }
     const diffTime = Math.abs(end - start);
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   };
@@ -104,32 +124,42 @@ const LeaveTracker = () => {
   const filteredLeaveData = useMemo(() => {
     const sourceLeaves = filterStatus === "pending" ? pendingLeaves : leaves;
     const leavesArray = Array.isArray(sourceLeaves) ? sourceLeaves : [];
-    return leavesArray
+    const filtered = leavesArray
       .map((req) => ({
         ...req,
         days: req.days || calculateDays(req.start_date, req.end_date),
+        employee_name: req.employee_name || "Unknown",
+        employee_role: req.employee_role || "unknown",
+        recipient_id: req.recipient_id || null,
+        recipients: req.recipients || [],
       }))
       .filter((req) => {
         const reqStartDate = new Date(req.start_date);
         const reqEndDate = new Date(req.end_date);
-        if (isNaN(reqStartDate) || isNaN(reqEndDate)) return false;
+        if (isNaN(reqStartDate) || isNaN(reqEndDate)) {
+          console.warn(`Invalid dates for leave ID ${req.id}:`, {
+            start_date: req.start_date,
+            end_date: req.end_date,
+          });
+          return false;
+        }
 
         if (!selectDate) {
           return filterStatus === "all" || req.status?.toLowerCase() === filterStatus;
         }
 
-        // Normalize dates to remove time component
         const selected = new Date(selectDate.setHours(0, 0, 0, 0));
         const start = new Date(reqStartDate.setHours(0, 0, 0, 0));
         const end = new Date(reqEndDate.setHours(0, 0, 0, 0));
 
-        // Check if selected date falls within the leave period
         return (
           (filterStatus === "all" || req.status?.toLowerCase() === filterStatus) &&
           selected >= start &&
           selected <= end
         );
       });
+    console.log("Filtered leave data:", filtered);
+    return filtered;
   }, [leaves, pendingLeaves, filterStatus, selectDate]);
 
   const summary = useMemo(() => {
@@ -179,12 +209,13 @@ const LeaveTracker = () => {
 
   const handleApprove = useCallback(
     (id) => {
-      dispatch(approveLeave(id)).then((result) => {
-        if (!result.error) {
-          dispatch(fetchAllLeaves());
-          dispatch(fetchPendingLeaves());
-          dispatch(fetchLeaveBalances());
-        } else if (result.error?.message?.includes("No authentication token")) {
+      dispatch(approveLeave(id)).unwrap().then(() => {
+        dispatch(fetchAllLeaves());
+        dispatch(fetchPendingLeaves());
+        dispatch(fetchLeaveBalances());
+      }).catch((err) => {
+        console.error(`Approve error for leave ID ${id}:`, err);
+        if (err?.message?.includes("No authentication token")) {
           navigate("/login");
         }
       });
@@ -194,12 +225,13 @@ const LeaveTracker = () => {
 
   const handleReject = useCallback(
     (id) => {
-      dispatch(rejectLeave(id)).then((result) => {
-        if (!result.error) {
-          dispatch(fetchAllLeaves());
-          dispatch(fetchPendingLeaves());
-          dispatch(fetchLeaveBalances());
-        } else if (result.error?.message?.includes("No authentication token")) {
+      dispatch(rejectLeave(id)).unwrap().then(() => {
+        dispatch(fetchAllLeaves());
+        dispatch(fetchPendingLeaves());
+        dispatch(fetchLeaveBalances());
+      }).catch((err) => {
+        console.error(`Reject error for leave ID ${id}:`, err);
+        if (err?.message?.includes("No authentication token")) {
           navigate("/login");
         }
       });
@@ -216,10 +248,10 @@ const LeaveTracker = () => {
   };
 
   const handleAllocateMonthlyLeaves = () => {
-    dispatch(allocateMonthlyLeaves()).then((result) => {
-      if (result.meta.requestStatus === "fulfilled") {
-        dispatch(fetchLeaveBalances());
-      }
+    dispatch(allocateMonthlyLeaves()).unwrap().then(() => {
+      dispatch(fetchLeaveBalances());
+    }).catch((err) => {
+      console.error("Allocate monthly leaves error:", err);
     });
   };
 
@@ -236,19 +268,46 @@ const LeaveTracker = () => {
     }
     dispatch(
       allocateSpecialLeave({ employee_id, leave_type, days: daysNum })
-    ).then((result) => {
-      if (result.meta.requestStatus === "fulfilled") {
-        setSpecialLeaveData({
-          employee_id: "",
-          leave_type: "maternity",
-          days: "",
-        });
-        dispatch(fetchLeaveBalances());
-      }
+    ).unwrap().then(() => {
+      setSpecialLeaveData({
+        employee_id: "",
+        leave_type: "maternity",
+        days: "",
+      });
+      dispatch(fetchLeaveBalances());
+    }).catch((err) => {
+      console.error("Allocate special leave error:", err);
     });
   };
 
   const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "?");
+
+  const canApproveReject = (req) => {
+    if (!req.employee_id) {
+      console.warn(`Missing employee_id for leave ID ${req.id}`);
+      return false;
+    }
+    if (role === "hr") {
+      const canApprove = req.recipient_id === employee_id;
+      console.log("HR canApproveReject:", {
+        leaveId: req.id,
+        recipient_id: req.recipient_id,
+        employee_id,
+        canApprove,
+      });
+      return canApprove;
+    }
+    if (role === "super_admin") {
+      const canApprove = req.employee_role === "hr";
+      console.log("Super Admin canApproveReject:", {
+        leaveId: req.id,
+        employee_role: req.employee_role,
+        canApprove,
+      });
+      return canApprove;
+    }
+    return false;
+  };
 
   return (
     <div className="w-full">
@@ -440,7 +499,7 @@ const LeaveTracker = () => {
                           {req.status || "Unknown"}
                         </p>
                       </div>
-                      {req.status?.toLowerCase() === "pending" && (
+                      {req.status?.toLowerCase() === "pending" && canApproveReject(req) && (
                         <div className="flex sm:flex-col md:flex-row gap-2">
                           <button
                             onClick={() => handleApprove(req.id)}
@@ -469,7 +528,6 @@ const LeaveTracker = () => {
             )}
           </div>
         </div>
-        
       </div>
     </div>
   );

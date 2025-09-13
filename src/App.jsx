@@ -50,6 +50,7 @@ import AnnualCalendar from "./pages/HolidayCalendar/AnnualCalendar";
 import EmployeeAvgHours from "./pages/AttendanceManagement/EmployeeAvgHours";
 import EmpAttendanceOverview from "./pages/AttendanceManagement/EmpAttendanceOverview";
 import DetailedAttendanceReport from "./pages/AttendanceManagement/DetailedAttendanceReport";
+import ForgotPassword from "./pages/Login/ForgotPassword";
 
 const App = () => {
   return (
@@ -59,8 +60,8 @@ const App = () => {
 
         <Routes>
           <Route path="/login" element={<Login />} />
-          {/* <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} /> */}
+           <Route path="/forgot-password" element={<ForgotPassword />} />
+          {/* <Route path="/reset-password" element={<ResetPassword />} />  */}
           <Route path="/change-password" element={<ChangePassword />} />
 
           <Route

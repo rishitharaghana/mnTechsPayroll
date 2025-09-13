@@ -25,13 +25,7 @@ const LeaveDashboard = () => {
   const navigate = useNavigate();
   const {
     leaves = [],
-    leaveBalances = {
-      vacation: 0,
-      sick: 0,
-      casual: 0,
-      maternity: 0,
-      paternity: 0,
-    },
+    leaveBalances = { paid: 0 },
     loading,
     error,
     successMessage,
@@ -42,6 +36,15 @@ const LeaveDashboard = () => {
     direction: "desc",
   });
   const [filterStatus, setFilterStatus] = useState("All");
+
+  const leaveCategories = {
+    casual: 'Casual Leave',
+    sick: 'Sick Leave',
+    vacation: 'Vacation Leave',
+    emergency: 'Emergency Leave',
+    maternity: 'Maternity Leave',
+    paternity: 'Paternity Leave',
+  };
 
   useEffect(() => {
     const userToken = localStorage.getItem("userToken");
@@ -76,47 +79,19 @@ const LeaveDashboard = () => {
     }
   }, [successMessage, error, dispatch]);
 
-  // Map backend leave types to dashboard display
+  // Map backend leave status to dashboard display
   const leaveBalance = useMemo(
     () => [
       {
-        type: "Casual Leave (CL)",
-        backendType: "casual",
-        allocated: leaveBalances.casual,
-        taken: 0,
-        isPaid: true,
-      },
-      {
-        type: "Sick Leave (SL)",
-        backendType: "sick",
-        allocated: leaveBalances.sick,
-        taken: 0,
-        isPaid: true,
-      },
-      {
-        type: "Earned Leave (EL)",
-        backendType: "vacation",
-        allocated: leaveBalances.vacation,
-        taken: 0,
-        isPaid: true,
-      },
-      {
-        type: "Maternity Leave",
-        backendType: "maternity",
-        allocated: leaveBalances.maternity,
-        taken: 0,
-        isPaid: true,
-      },
-      {
-        type: "Paternity Leave",
-        backendType: "paternity",
-        allocated: leaveBalances.paternity,
+        type: "Paid Leave",
+        backendStatus: "Paid",
+        allocated: leaveBalances.paid,
         taken: 0,
         isPaid: true,
       },
       {
         type: "Unpaid Leave",
-        backendType: "unpaid",
+        backendStatus: "Unpaid",
         allocated: 0,
         taken: 0,
         isPaid: false,
@@ -130,20 +105,9 @@ const LeaveDashboard = () => {
     return leaves.map((leave) => ({
       from: leave.start_date,
       to: leave.end_date,
-      type:
-        leave.leave_type === "casual"
-          ? "Casual Leave (CL)"
-          : leave.leave_type === "sick"
-          ? "Sick Leave (SL)"
-          : leave.leave_type === "vacation"
-          ? "Earned Leave (EL)"
-          : leave.leave_type === "maternity"
-          ? "Maternity Leave"
-          : leave.leave_type === "paternity"
-          ? "Paternity Leave"
-          : "Unpaid Leave",
+      type: leaveCategories[leave.leave_category] || leave.leave_category || 'N/A',
       status: leave.status || "Pending",
-      isPaid: leave.leave_type !== "unpaid",
+      isPaid: leave.leave_status === "Paid",
       reason: leave.reason || "N/A",
     }));
   }, [leaves]);
@@ -151,7 +115,7 @@ const LeaveDashboard = () => {
   const updatedLeaveBalance = useMemo(() => {
     return leaveBalance.map((balance) => {
       const taken = leaveHistory
-        .filter((l) => l.type === balance.type && l.status === "Approved")
+        .filter((l) => l.isPaid === balance.isPaid && l.status === "Approved")
         .reduce((sum, l) => sum + calculateDays(l.from, l.to), 0);
       return { ...balance, taken };
     });
@@ -184,22 +148,22 @@ const LeaveDashboard = () => {
   const totalUsed = paidUsed + unpaidUsed;
   const deductionAmount = unpaidUsed * 500;
 
- const sortData = (data, key, direction) => {
-  return [...data].sort((a, b) => {
-    if (key === "from" || key === "to") {
+  const sortData = (data, key, direction) => {
+    return [...data].sort((a, b) => {
+      if (key === "from" || key === "to") {
+        return direction === "asc"
+          ? new Date(a[key] || 0) - new Date(b[key] || 0)
+          : new Date(b[key] || 0) - new Date(a[key] || 0);
+      }
+
+      const valA = (a[key] || "").toString();
+      const valB = (b[key] || "").toString();
+
       return direction === "asc"
-        ? new Date(a[key] || 0) - new Date(b[key] || 0)
-        : new Date(b[key] || 0) - new Date(a[key] || 0);
-    }
-
-    const valA = (a[key] || "").toString();
-    const valB = (b[key] || "").toString();
-
-    return direction === "asc"
-      ? valA.localeCompare(valB)
-      : valB.localeCompare(valA);
-  });
-};
+        ? valA.localeCompare(valB)
+        : valB.localeCompare(valA);
+    });
+  };
 
   const handleSort = (key) => {
     setSortConfig({
@@ -405,7 +369,7 @@ const LeaveDashboard = () => {
             >
               <thead className="bg-teal-50 text-slate-700">
                 <tr>
-                  {["From", "To", "Type", "Paid?", "Status", "Reason"].map(
+                  {["From", "To", "Category", "Paid?", "Status", "Reason"].map(
                     (header, index) => (
                       <th
                         key={header}
@@ -419,11 +383,11 @@ const LeaveDashboard = () => {
                         onClick={() =>
                           ["from", "to", "type", "status"].includes(
                             header.toLowerCase()
-                          ) && handleSort(header.toLowerCase())
+                          ) && handleSort(header.toLowerCase() === "category" ? "type" : header.toLowerCase())
                         }
                       >
                         {header}
-                        {sortConfig.key === header.toLowerCase() && (
+                        {sortConfig.key === (header.toLowerCase() === "category" ? "type" : header.toLowerCase()) && (
                           <span className="ml-1">
                             {sortConfig.direction === "asc" ? "↑" : "↓"}
                           </span>
