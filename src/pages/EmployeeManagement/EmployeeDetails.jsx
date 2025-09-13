@@ -435,7 +435,7 @@ const EmployeeDetails = () => {
   const closePreview = () => setIsPreviewOpen(false);
 
   return (
-    <div className="w-78/100">
+    <div className="w-full mt-4 sm:mt-0">
       <style>
         {`
           .react-datepicker-wrapper {
@@ -471,7 +471,7 @@ const EmployeeDetails = () => {
           }
         `}
       </style>
-      <div className="flex justify-end">
+      <div className="hidden sm:flex sm:justify-end sm:items-center">
         <PageMeta title="Employee Details" description="Add new employee details" />
         <PageBreadcrumb
           items={[
