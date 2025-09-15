@@ -85,8 +85,8 @@ const EmployeeTimeTracking = () => {
   };
 
   return (
-    <div className="w-78/100">
-      <div className="flex justify-end">
+    <div className="w-full mt-4 sm:mt-0">
+      <div className="hidden sm:flex sm:justify-end sm:items-center ">
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/" },
@@ -117,7 +117,7 @@ const EmployeeTimeTracking = () => {
       {/* Employee Profile Card */}
       <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-md border-1 border-gray-200 p-4">
         <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-3 sm:space-y-0 sm:space-x-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-slate-700 to-slate-700 rounded-xl flex items-center justify-center text-white font-semibold text-lg shadow-md">
+          <div className="w-13 sm:w-16 h-13 sm:h-16 bg-gradient-to-br from-slate-700 to-slate-700 rounded-xl flex items-center justify-center text-white font-semibold text-lg shadow-md">
             {employee.avatar}
           </div>
           <div className="flex-1 text-center sm:text-left">

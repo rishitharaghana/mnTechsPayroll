@@ -1,36 +1,49 @@
 import React, { useState, useEffect } from "react";
 import { Eye, User, Building, Archive } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
+import Select from "react-select"; // Import react-select
 import { getCurrentUserProfile } from "../../redux/slices/employeeSlice.js";
-import VisitCardPreview from "./VisitCardPreview"; // Assuming this component exists
+import VisitCardPreview from "./VisitCardPreview";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 
-// Card styles (same as in VisitingCard)
+// Card styles
 const cardStyles = [
   {
     id: "modern",
     name: "Modern Template",
     image: "/assets/ModernTempFront.png",
+    description: "Gradient with clean typography",
+    color: "#3B82F6", // Blue for modern
+    hoverColor: "#2563EB",
   },
   {
     id: "classic",
     name: "Classic Template",
     image: "/assets/ClassicTempFront.png",
+    description: "Traditional business card design",
+    color: "#10B981", // Green for classic
+    hoverColor: "#059669",
   },
   {
     id: "minimal",
     name: "Minimal Template",
     image: "/assets/MinimalTempFront.png",
+    description: "Clean and simple layout",
+    color: "#6B7280", // Gray for minimal
+    hoverColor: "#4B5563",
   },
   {
     id: "corporate",
     name: "Corporate Template",
     image: "/assets/CorporateTempFront.png",
+    description: "Professional business theme",
+    color: "#8B5CF6", // Purple for corporate
+    hoverColor: "#7C3AED",
   },
 ];
 
-// CardStylePopup Component (reused from VisitingCard)
+// CardStylePopup Component (unchanged)
 const CardStylePopup = ({ style, onClose }) => {
   const cardImages = {
     modern: {
@@ -64,38 +77,53 @@ const CardStylePopup = ({ style, onClose }) => {
   if (!selectedCard) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
-        <div className="flex justify-between items-center mb-1">
-          <h2 className="text-xl font-semibold text-slate-700">
+    <div className="fixed inset-0 bg-black bg-opacity-50 p-6 sm:p-10 flex items-center justify-center z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-2 sm:mx-4 my-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-2 sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-slate-700">
             {selectedCard.name} Template
           </h2>
-        </div>
-        <p className="text-sm text-slate-500 mb-6">
-          {selectedCard.description}
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Front</h3>
-            <img
-              src={selectedCard.front}
-              alt={`${selectedCard.name} front`}
-              className="w-full h-auto rounded-lg shadow-sm transform transition-transform duration-300 hover:scale-105 hover:shadow-lg"
-            />
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Back</h3>
-            <img
-              src={selectedCard.back}
-              alt={`${selectedCard.name} back`}
-              className="w-full h-auto rounded-lg shadow-sm transform transition-transform duration-300 hover:scale-105 hover:shadow-lg"
-            />
-          </div>
-        </div>
-        <div className="flex justify-end">
           <button
             onClick={onClose}
-            className="mt-6 max-w-max bg-slate-700 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg"
+            className="text-slate-500 hover:text-slate-700 text-xl sm:text-2xl"
+            aria-label="Close modal"
+          >
+            &times;
+          </button>
+        </div>
+        <p className="text-xs sm:text-sm text-slate-500 mb-4 sm:mb-6">
+          {selectedCard.description}
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div>
+            <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
+              Front
+            </h3>
+            <div className="relative overflow-hidden rounded-lg">
+              <img
+                src={selectedCard.front}
+                alt={`${selectedCard.name} front`}
+                className="w-full h-auto object-contain rounded-lg bg-white shadow-lg transform transition-transform duration-300 hover:scale-105 hover:shadow-lg"
+              />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
+              Back
+            </h3>
+            <div className="relative overflow-hidden rounded-lg">
+              <img
+                src={selectedCard.back}
+                alt={`${selectedCard.name} back`}
+                className="w-full h-auto object-contain rounded-lg shadow-sm transform transition-transform duration-300 hover:scale-105 hover:shadow-lg"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-end mt-5 sm:mt-6">
+          <button
+            onClick={onClose}
+            className="w-full sm:w-auto bg-slate-700 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
           >
             Close
           </button>
@@ -107,7 +135,6 @@ const CardStylePopup = ({ style, onClose }) => {
 
 const EmployeeVisitingCard = () => {
   const dispatch = useDispatch();
-  // Fix: Select 'profile' instead of 'employees'
   const { profile, loading, error } = useSelector((state) => state.employee);
 
   const [selectedStyle, setSelectedStyle] = useState("modern");
@@ -124,7 +151,6 @@ const EmployeeVisitingCard = () => {
   // Debug log to confirm Redux state
   console.log("Redux state in component:", { profile, loading, error });
 
-  // Use profile directly as currentEmployee
   const currentEmployee = profile;
 
   const handleGenerateSingle = () => {
@@ -147,8 +173,77 @@ const EmployeeVisitingCard = () => {
     setShowPopup(true);
   };
 
+  // Custom styles for react-select
+  const customSelectStyles = {
+    control: (provided) => ({
+      ...provided,
+      borderColor: "#E5E7EB",
+      boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+      "&:hover": {
+        borderColor: "#94A3B8",
+      },
+      padding: "2px",
+      borderRadius: "0.5rem",
+      backgroundColor: "#FFFFFF",
+    }),
+    menu: (provided) => ({
+      ...provided,
+      borderRadius: "0.5rem",
+      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+      zIndex: 100,
+    }),
+    option: (provided, state) => {
+      const style = cardStyles.find((s) => s.id === state.data.value);
+      return {
+        ...provided,
+        display: "flex",
+        alignItems: "center",
+        padding: "10px 12px",
+        backgroundColor: state.isSelected
+          ? style?.color || "#3B82F6"
+          : state.isFocused
+          ? style?.hoverColor || "#E5E7EB"
+          : "#FFFFFF",
+        color: state.isSelected ? "#FFFFFF" : "#1F2937",
+        "&:hover": {
+          backgroundColor: style?.hoverColor || "#E5E7EB",
+          color: "#FFFFFF",
+        },
+        transition: "all 0.2s ease",
+        cursor: "pointer",
+      };
+    },
+    singleValue: (provided) => ({
+      ...provided,
+      color: "#1F2937",
+      fontWeight: 500,
+    }),
+    dropdownIndicator: (provided) => ({
+      ...provided,
+      color: "#6B7280",
+      "&:hover": {
+        color: "#4B5563",
+      },
+    }),
+  };
+
+  // Options for react-select
+  const selectOptions = cardStyles.map((style) => ({
+    value: style.id,
+    label: (
+      <div className="flex items-center space-x-3">
+        <img
+          src={style.image}
+          alt={style.name}
+          className="w-10 h-6 object-contain rounded"
+        />
+        <span>{style.name}</span>
+      </div>
+    ),
+  }));
+
   return (
-    <div className="w-full px-4 sm:px-0">
+    <div className="w-full mt-4 sm:mt-0">
       <div className="min-h-screen">
         {showPreview ? (
           <VisitCardPreview
@@ -164,7 +259,7 @@ const EmployeeVisitingCard = () => {
         ) : (
           <>
             {/* Header */}
-            <div className="flex justify-end">
+            <div className="hidden sm:flex sm:justify-end sm:items-center">
               <PageBreadcrumb
                 items={[
                   { label: "Home", link: "/dashboard" },
@@ -179,7 +274,7 @@ const EmployeeVisitingCard = () => {
 
             <div className="w-full bg-white rounded-2xl px-4 sm:px-6 lg:px-8 py-8">
               {/* Controls */}
-              <div className="bg-white border rounded-2xl shadow-md p-6 mb-8">
+              <div className="bg-white border rounded-2xl shadow-md p-5 mb-8">
                 <div className="mb-9">
                   <h1 className="text-2xl font-bold text-slate-700 mb-1">
                     My Visiting Card
@@ -232,29 +327,27 @@ const EmployeeVisitingCard = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Your Details
                       </label>
-                      <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100">
-                        {currentEmployee.full_name} -{" "}
-                        {currentEmployee.designation_name} (
+                      <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 truncate">
+                        {currentEmployee.full_name} (
                         {currentEmployee.department_name})
                       </div>
                     </div>
 
-                    {/* Style Dropdown */}
+                    {/* Custom Select for Card Style */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Select Card Style
                       </label>
-                      <select
-                        value={selectedStyle}
-                        onChange={(e) => setSelectedStyle(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 bg-white shadow-sm"
-                      >
-                        {cardStyles.map((style) => (
-                          <option key={style.id} value={style.id}>
-                            {style.name}
-                          </option>
-                        ))}
-                      </select>
+                      <Select
+                        options={selectOptions}
+                        value={selectOptions.find(
+                          (option) => option.value === selectedStyle
+                        )}
+                        onChange={(selected) => setSelectedStyle(selected.value)}
+                        styles={customSelectStyles}
+                        isSearchable={false}
+                        placeholder="Select a card style"
+                      />
                     </div>
 
                     {/* Preview Button */}
@@ -272,7 +365,7 @@ const EmployeeVisitingCard = () => {
               </div>
 
               {/* Card Styles Grid */}
-              <div className="bg-white rounded-2xl shadow-md border p-6 mb-8">
+              <div className="bg-white rounded-2xl shadow-md border p-4 mb-8">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">
                   Card Styles
                 </h2>

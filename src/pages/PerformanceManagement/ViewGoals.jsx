@@ -102,8 +102,8 @@ const ViewGoals = () => {
   const isHrOrSuperAdmin = ["hr", "super_admin"].includes(role);
 
   return (
-    <div className="w-full lg:w-[78%]">
-      <div className="flex justify-end items-center">
+    <div className="w-full mt-4 sm:mt-0">
+      <div className="hidden sm:flex sm:justify-end sm:items-center">
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/emp-dashboard" },
@@ -114,8 +114,8 @@ const ViewGoals = () => {
       </div>
       <div className="bg-white rounded-xl p-4 md:p-8 shadow-lg border-1 border-gray-300">
         <div className="bg-gradient-to-r from-slate-700 to-teal-600 rounded-xl p-6 mb-6">
-          <h1 className="text-3xl font-bold text-white text-center">My Performance Dashboard</h1>
-          <p className="text-white text-center">View your goals, competencies, and achievements (3-Month Cycle)</p>
+          <h1 className="sm:text-3xl text-2xl font-bold text-white mb-1">My Performance Dashboard</h1>
+          <p className="text-sm sm:text-lg md:text-md text-white">View your goals, competencies, and achievements (3-Month Cycle)</p>
         </div>
 
         {(userError || perfError) && (

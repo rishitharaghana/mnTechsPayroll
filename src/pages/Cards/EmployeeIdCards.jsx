@@ -45,7 +45,7 @@ const EmployeeIdCards = () => {
         <PageMeta title="My ID Card" description="View Your ID Card" />
       </div>
       <div className="p-8 bg-white shadow-md rounded-2xl min-h-screen">
-        <h2 className="text-2xl font-bold text-center text-gray-900 mb-10 tracking-tight">
+        <h2 className="text-2xl font-bold text-center text-gray-900 mb-8 sm:mb-10 tracking-tight">
           My ID Card
         </h2>
 
@@ -59,11 +59,11 @@ const EmployeeIdCards = () => {
           <div className="flex flex-col items-center">
             <div
               id="id-card"
-              className="w-96 h-[600px] rounded-sm shadow-2xl overflow-hidden relative border border-gray-200 bg-cover bg-center"
+              className="shadow-2xl bg-white relative sm:w-[340px] w-[256px] sm:h-[530px] h-[400px] bg-center bg-contain bg-no-repeat"
               style={{ backgroundImage: "url(/assets/IDCardTemplate.png)" }}
             >
-              <div className="absolute top-[130px] left-1/2 transform -translate-x-1/2 z-30">
-                <div className="w-36 h-36 rounded-full overflow-hidden relative flex items-center justify-center">
+              <div className="absolute sm:top-[22%] top-[19%] left-1/2 -translate-x-1/2">
+                <div className="w-[120px] h-[120px] rounded-full overflow-hidden relative flex items-center justify-center">
                   {card.photo_url ? (
                     <img
                       src={card.photo_url}
@@ -84,51 +84,51 @@ const EmployeeIdCards = () => {
                 </div>
               </div>
 
-              <div className="absolute top-74 left-0 right-0 z-20 px-8">
-                <div className="text-center mb-7">
-                  <h2 className="text-xl font-bold text-blue-900 mb-1 tracking-wider">
+              <div className="absolute sm:top-[51%] top-[50%] left-0 right-0 sm:px-8 px-5">
+                <div className="text-center sm:mb-4 mb-3">
+                  <h2 className="sm:text-lg md:text-xl text-md font-bold text-blue-900 mb-1">
                     {card.full_name || "Unknown"}
                   </h2>
-                  <p className="text-gray-600 text-sm font-medium">
+                  <p className="text-gray-600 text-xs sm:text-md font-medium">
                     {card.designation_name || "N/A"}
                   </p>
                 </div>
 
-                <div className="space-y-4 text-left">
+                <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="w-1/2 text-gray-700 font-medium text-sm">
+                    <span className="w-1/2 text-gray-700 sm:text-md text-xs font-medium">
                       ID No
                     </span>
-                    <span className="w-1/2 text-blue-900 font-medium text-sm">
+                    <span className="w-1/2 text-blue-900 sm:text-md text-xs font-medium">
                       : {card.employee_id || "N/A"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="w-1/2 text-gray-700 font-medium text-sm">
+                    <span className="w-1/2 text-gray-700 sm:text-md text-xs font-medium">
                       Blood Group
                     </span>
-                    <span className="w-1/2 text-blue-900 font-medium text-sm">
+                    <span className="w-1/2 text-blue-900 sm:text-md text-xs font-medium">
                       : {card.blood_group || "N/A"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="w-1/2 text-gray-700 font-medium text-sm">
-                      Emergency Contact
+                    <span className="w-1/2 text-gray-700 sm:text-md text-xs font-medium">
+                      Mobile Number
                     </span>
-                    <span className="w-1/2 text-blue-900 font-medium text-sm">
+                    <span className="w-1/2 text-blue-900 sm:text-md text-xs font-medium">
                       : {card.emergency_phone || "N/A"}
                     </span>
                   </div>
                 </div>
 
-                <div className="mt-5 flex justify-center">
-                  <div className="bg-white p-2 rounded">
+                <div className="sm:mt-5 mt-3 flex justify-center">
+                  <div>
                     <img
                       src="/assets/barcode.png"
                       alt="Barcode"
-                      className="h-6 w-40 object-contain"
+                      className="sm:h-6 h-5 sm:w-40 w-30 object-contain"
                     />
-                    <p className="text-center text-[8px] text-gray-600">
+                    <p className="text-center text-[8px] sm:text-[10px] text-gray-600">
                       {card.employee_id || "N/A"}
                     </p>
                   </div>

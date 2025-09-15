@@ -146,7 +146,7 @@ const EmployeeLiveTrack = ({
             <button
               onClick={handleStartTracking}
               disabled={!siteName.trim() || !localStorage.getItem('locationConsent')}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 px-6 rounded-xl font-semibold text-sm hover:from-green-600 hover:to-emerald-700 transition-all transform hover:scale-105 shadow-md disabled:bg-gray-400"
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 sm:py-4 px-5 rounded-xl font-semibold text-sm hover:from-green-600 hover:to-emerald-700 transition-all transform hover:scale-105 shadow-md disabled:bg-gray-400"
             >
               <Play className="w-4 h-4 inline mr-2" />
               Start Live Tracking
@@ -180,7 +180,7 @@ const EmployeeLiveTrack = ({
               {isTracking ? 'Live' : 'Inactive'}
             </div>
           </div>
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-3 sm:p-4 border border-blue-100">
             <div className="flex items-start space-x-3">
               <div className="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center">
                 <MapPin className="w-4 h-4 text-white" />

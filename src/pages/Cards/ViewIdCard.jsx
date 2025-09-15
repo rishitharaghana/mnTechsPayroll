@@ -102,7 +102,7 @@ const ViewIdCard = () => {
         <PageMeta title="View ID Card" description="View ID Card" />
       </div>
       <div className="p-8 bg-white shadow-md rounded-2xl max-h-screen overflow-y-auto">
-        <h2 className="text-2xl font-bold text-center text-gray-900 mb-10 tracking-tight">
+        <h2 className="text-2xl font-bold text-center text-gray-900 sm:mb-8 mb-6  tracking-tight">
           {role === "employee" ? "My ID Card" : "Select Employee ID Card"}
         </h2>
 
@@ -224,7 +224,7 @@ const ViewIdCard = () => {
                       </p>
                     </div>
 
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="w-1/2 text-gray-700 sm:text-md text-xs font-medium">
                           ID No
