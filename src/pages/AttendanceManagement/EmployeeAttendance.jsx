@@ -1,36 +1,102 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Calendar, Clock, FileText, MapPin } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { markAttendance, fetchEmployeeAttendance, clearState } from '../../redux/slices/attendanceSlice';
-import { fetchUserProfile } from '../../redux/slices/userSlice';
-import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
-import PageMeta from '../../Components/common/PageMeta';
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Calendar, Clock, FileText, MapPin } from "lucide-react";
+import { toast } from "react-toastify";
+import {
+  markAttendance,
+  fetchEmployeeAttendance,
+  clearState,
+} from "../../redux/slices/attendanceSlice";
+import { fetchUserProfile } from "../../redux/slices/userSlice";
+import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
+import PageMeta from "../../Components/common/PageMeta";
+import Select from "react-select";
 
 const EmployeeAttendance = () => {
   const dispatch = useDispatch();
-  const { submissions, loading, error, successMessage } = useSelector((state) => state.attendance);
+  const { submissions, loading, error, successMessage } = useSelector(
+    (state) => state.attendance
+  );
   const { profile, error: userError } = useSelector((state) => state.user);
 
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [loginTime, setLoginTime] = useState('');
-  const [logoutTime, setLogoutTime] = useState('');
-  const [recipient, setRecipient] = useState('hr');
-  const [location, setLocation] = useState('Office');
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [loginTime, setLoginTime] = useState("");
+  const [logoutTime, setLogoutTime] = useState("");
+  const [recipient, setRecipient] = useState("hr");
+  const [location, setLocation] = useState("Office");
 
-  const recipients = ['super_admin', 'hr'];
-  const locations = ['Office', 'Remote'];
+  const recipients = [
+    { value: "super_admin", label: "Super Admin" },
+    { value: "hr", label: "HR" },
+  ];
+  const locations = [
+    { value: "Office", label: "Office" },
+    { value: "Remote", label: "Remote" },
+  ];
 
-  const stored = localStorage.getItem('userToken');
+  const stored = localStorage.getItem("userToken");
   const parsed = stored ? JSON.parse(stored) : null;
   const userRole = parsed?.role || null;
   const employeeId = parsed?.id || null;
 
   const employee = profile;
-  const employeeName = employee ? `${employee.full_name} (${employee.employee_id})` : 'Unknown';
+  const employeeName = employee
+    ? `${employee.full_name} (${employee.employee_id})`
+    : "Unknown";
+
+  // Custom styles for React Select
+  const selectStyles = {
+    control: (provided) => ({
+      ...provided,
+      backgroundColor: "#fff",
+      border: "1px solid #e5e7eb",
+      borderRadius: "0.5rem",
+      padding: "0.1rem",
+      boxShadow: "none",
+      "&:hover": {
+        borderColor: "#000",
+      },
+    }),
+    menu: (provided) => ({
+      ...provided,
+      borderRadius: "0.5rem",
+      border: "1px solid #e5e7eb",
+      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected ? "#328E6E" : "#fff",
+      color: state.isSelected ? "#fff" : "#111827",
+      padding: "0.75rem 1rem",
+      "&:hover": {
+        backgroundColor: state.isSelected ? "#328E6E" : "#f3f4f6",
+      },
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: "#111827",
+    }),
+    input: (provided) => ({
+      ...provided,
+      color: "#111827",
+    }),
+  };
+
+  // Location-specific styles (optional slight variation)
+  const locationSelectStyles = {
+    ...selectStyles,
+    control: (provided) => ({
+      ...selectStyles.control(provided),
+      borderColor: "#d1d5db",
+    }),
+    option: (provided, state) => ({
+      ...selectStyles.option(provided, state),
+      backgroundColor: state.isSelected ? "#1f2937" : "#fff",
+    }),
+  };
 
   useEffect(() => {
-    if (['employee', 'dept_head', 'hr', 'super_admin'].includes(userRole)) {
+    if (["employee", "dept_head", "hr", "super_admin"].includes(userRole)) {
       dispatch(fetchEmployeeAttendance());
       if (!profile) {
         dispatch(fetchUserProfile());
@@ -59,14 +125,14 @@ const EmployeeAttendance = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!date || !loginTime || !recipient || !location) {
-      toast.error('Please fill in all required fields.');
+      toast.error("Please fill in all required fields.");
       return;
     }
     if (logoutTime) {
       const login = new Date(`1970-01-01T${loginTime}:00`);
       const logout = new Date(`1970-01-01T${logoutTime}:00`);
       if (logout <= login) {
-        toast.error('Logout time must be after login time.');
+        toast.error("Logout time must be after login time.");
         return;
       }
     }
@@ -82,199 +148,230 @@ const EmployeeAttendance = () => {
       })
     );
 
-    setLoginTime('');
-    setLogoutTime('');
-    setRecipient('hr');
-    setLocation('Office');
+    setLoginTime("");
+    setLogoutTime("");
+    setRecipient("hr");
+    setLocation("Office");
   };
 
   return (
-    <div className="w-78/100">
-      <div className="flex justify-end">
-        <PageBreadcrumb 
-        items={[
-          { label: "Home", link: "/emp-dashboard" },
-          { label: "Mark Attendance", link: "/employee/employee-attendance" },
-        ]}
+    <div className="w-full mt-4 md:mt-0">
+      <div className="hidden sm:flex sm:justify-end sm:items-center">
+        <PageBreadcrumb
+          items={[
+            { label: "Home", link: "/emp-dashboard" },
+            { label: "Mark Attendance", link: "/employee/employee-attendance" },
+          ]}
         />
-        <PageMeta 
-        title="Mark Attendance"
-        description="Submit your daily attendance for review"
+        <PageMeta
+          title="Mark Attendance"
+          description="Submit your daily attendance for review"
         />
       </div>
-    <div className="p-6 space-y-6 bg-white rounded-2xl min-h-screen">
-      <div>
-        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2 tracking-tight">
-          Mark Attendance
-        </h1>
-        <p className="text-gray-600 text-center">Submit your daily attendance for review</p>
-      </div>
 
-      <div className="bg-white rounded-2xl shadow-md border-1 border-gray-200 p-6">
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex flex-col">
-            <label className="mb-1 text-sm font-bold text-black tracking-tight">Employee</label>
-            <div className="flex items-center space-x-2">
-              <FileText size={20} className="text-black" />
-              <input
-                type="text"
-                value={employeeName}
-                className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 cursor-not-allowed"
-                disabled
-                aria-label="Employee"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <label className="mb-1 text-sm font-bold text-black tracking-tight">Date</label>
-            <div className="flex items-center space-x-2">
-              <Calendar size={20} className="text-black" />
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 transition-all duration-300"
-                required
-                aria-label="Date"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <label className="mb-1 text-sm font-bold text-black tracking-tight">Login Time</label>
-            <div className="flex items-center space-x-2">
-              <Clock size={20} className="text-black" />
-              <input
-                type="time"
-                value={loginTime}
-                onChange={(e) => setLoginTime(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 transition-all duration-300"
-                required
-                aria-label="Login Time"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <label className="mb-1 text-sm font-bold text-black tracking-tight">Logout Time</label>
-            <div className="flex items-center space-x-2">
-              <Clock size={20} className="text-black" />
-              <input
-                type="time"
-                value={logoutTime}
-                onChange={(e) => setLogoutTime(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 transition-all duration-300"
-                aria-label="Logout Time"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <label className="mb-1 text-sm font-bold text-black tracking-tight">Location</label>
-            <div className="flex items-center space-x-2">
-              <MapPin size={20} className="text-black" />
-              <select
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 transition-all duration-300"
-                required
-                aria-label="Location"
-              >
-                {locations.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <label className="mb-1 text-sm font-bold text-black tracking-tight">Submit To</label>
-            <div className="flex items-center space-x-2">
-              <FileText size={20} className="text-black" />
-              <select
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 transition-all duration-300"
-                required
-                aria-label="Submit To"
-              >
-                {recipients.map((rec) => (
-                  <option key={rec} value={rec}>
-                    {rec === 'super_admin' ? 'Super Admin' : 'HR'}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="md:col-span-2 flex justify-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className={`flex items-center space-x-2 px-5 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-                loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800 hover:scale-105'
-              }`}
-              aria-label="Submit Attendance"
-            >
-              <FileText size={20} />
-              <span>Submit</span>
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-md border-1 border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Attendance Submissions</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full table-fixed border-collapse">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
-                  Date
-                </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
-                  Login Time
-                </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
-                  Logout Time
-                </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
-                  Location
-                </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
-                  Submitted To
-                </th>
-                <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-tight border-b border-gray-200">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-           {!Array.isArray(submissions) || submissions.length === 0 ? (
-  <tr>
-    <td colSpan="6" className="px-4 py-3 text-sm text-gray-500 text-center">
-      No attendance records found
-    </td>
-  </tr>
-) : (
-  submissions.map(({ id, date, login_time, logout_time, location, recipient, status }) => (
-    <tr key={id} className="hover:bg-gray-50 transition">
-      <td className="px-4 py-3 text-sm text-gray-900">
-        {new Date(date).toLocaleDateString()}
-      </td>
-      <td className="px-4 py-3 text-sm text-gray-900">{login_time}</td>
-      <td className="px-4 py-3 text-sm text-gray-900">{logout_time || 'N/A'}</td>
-      <td className="px-4 py-3 text-sm text-gray-900">{location}</td>
-      <td className="px-4 py-3 text-sm text-gray-900">
-        {recipient === 'super_admin' ? 'Super Admin' : 'HR'}
-      </td>
-      <td className="px-4 py-3 text-sm text-gray-900">{status}</td>
-    </tr>
-  ))
-)}
-
-            </tbody>
-          </table>
+      <div className="space-y-6 bg-white rounded-2xl shadow-md p-4 sm:p-6 min-h-screen">
+        <div className="text-center">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 tracking-tight">
+            Mark Attendance
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600">
+            Submit your daily attendance for review
+          </p>
         </div>
-      </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            <div className="flex flex-col">
+              <label className="mb-1 text-sm font-bold text-black tracking-tight">
+                Employee
+              </label>
+              <div className="flex items-center space-x-2">
+                <FileText size={16} className="text-black" />
+                <input
+                  type="text"
+                  value={employeeName}
+                  className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 cursor-not-allowed text-sm"
+                  disabled
+                  aria-label="Employee"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <label className="mb-1 text-sm font-bold text-black tracking-tight">
+                Date
+              </label>
+              <div className="flex items-center space-x-2">
+                <Calendar size={16} className="text-black" />
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  max={new Date().toISOString().split("T")[0]}
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 text-sm"
+                  required
+                  aria-label="Date"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <label className="mb-1 text-sm font-bold text-black tracking-tight">
+                Login Time
+              </label>
+              <div className="flex items-center space-x-2">
+                <Clock size={16} className="text-black" />
+                <input
+                  type="time"
+                  value={loginTime}
+                  onChange={(e) => setLoginTime(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 text-sm"
+                  required
+                  aria-label="Login Time"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <label className="mb-1 text-sm font-bold text-black tracking-tight">
+                Logout Time
+              </label>
+              <div className="flex items-center space-x-2">
+                <Clock size={16} className="text-black" />
+                <input
+                  type="time"
+                  value={logoutTime}
+                  onChange={(e) => setLogoutTime(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 text-sm"
+                  aria-label="Logout Time"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <label className="mb-1 text-sm font-bold text-black tracking-tight">
+                Location
+              </label>
+              <div className="flex items-center space-x-2">
+                <MapPin size={16} className="text-black" />
+                <Select
+                  options={locations}
+                  value={locations.find((loc) => loc.value === location)}
+                  onChange={(option) => setLocation(option.value)}
+                  styles={locationSelectStyles}
+                  className="w-full"
+                  required
+                  aria-label="Location"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <label className="mb-1 text-sm font-bold text-black tracking-tight">
+                Submit To
+              </label>
+              <div className="flex items-center space-x-2">
+                <FileText size={16} className="text-black" />
+                <Select
+                  options={recipients}
+                  value={recipients.find((rec) => rec.value === recipient)}
+                  onChange={(option) => setRecipient(option.value)}
+                  styles={selectStyles}
+                  className="w-full"
+                  required
+                  aria-label="Submit To"
+                />
+              </div>
+            </div>
+            <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                  loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-black text-white hover:bg-gray-800 hover:scale-105"
+                }`}
+                aria-label="Submit Attendance"
+              >
+                <FileText size={16} />
+                <span>Submit</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Your Attendance Submissions
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-xs sm:text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  {[
+                    "Date",
+                    "Login Time",
+                    "Logout Time",
+                    "Location",
+                    "Submitted To",
+                    "Status",
+                  ].map((header) => (
+                    <th
+                      key={header}
+                      className="px-2 sm:px-4 py-2 sm:py-3 text-left font-bold text-black uppercase tracking-tight border-b border-gray-200 whitespace-nowrap"
+                    >
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {!Array.isArray(submissions) || submissions.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="px-2 sm:px-4 py-3 text-gray-500 text-center"
+                    >
+                      No attendance records found
+                    </td>
+                  </tr>
+                ) : (
+                  submissions.map(
+                    ({
+                      id,
+                      date,
+                      login_time,
+                      logout_time,
+                      location,
+                      recipient,
+                      status,
+                    }) => (
+                      <tr key={id} className="hover:bg-gray-50 transition">
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-900 whitespace-nowrap">
+                          {new Date(date).toLocaleDateString()}
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-900 whitespace-nowrap">
+                          {login_time}
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-900 whitespace-nowrap">
+                          {logout_time || "N/A"}
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-900 whitespace-nowrap">
+                          {location}
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-900 whitespace-nowrap">
+                          {recipient === "super_admin" ? "Super Admin" : "HR"}
+                        </td>
+                        <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-900 whitespace-nowrap">
+                          {status}
+                        </td>
+                      </tr>
+                    )
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );

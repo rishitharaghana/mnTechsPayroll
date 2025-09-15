@@ -149,8 +149,8 @@ const EmpAttendanceOverview = () => {
   }
 
   return (
-    <div className="w-11/12 max-w-7xl mx-auto">
-      <div className="flex justify-end">
+    <div className="w-full mt-4 sm:mt-0">
+      <div className="hidden sm:flex sm:items-center sm:justify-end">
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/emp-dashboard" },
@@ -165,12 +165,12 @@ const EmpAttendanceOverview = () => {
           description="View your daily and monthly working hours"
         />
       </div>
-      <div className="p-8 space-y-8 bg-gradient-to-br from-white/95 to-slate-50/90 backdrop-blur-xl rounded-3xl min-h-screen">
+      <div className="sm:p-8 p-6 space-y-8 bg-gradient-to-br from-white/95 to-slate-50/90 backdrop-blur-xl rounded-3xl min-h-screen">
         <div>
-          <h1 className="text-3xl font-extrabold text-center text-slate-900 mb-2 tracking-tight">
+          <h1 className="sm:text-3xl text-2xl font-extrabold text-center text-slate-900 mb-2 tracking-tight">
             Attendance Overview
           </h1>
-          <p className="text-slate-500 text-center">
+          <p className="text-sm sm:text-md text-slate-500 text-center">
             Track your daily and monthly working hours
           </p>
         </div>

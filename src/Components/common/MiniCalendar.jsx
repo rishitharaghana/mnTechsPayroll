@@ -30,26 +30,29 @@ const MiniCalendar = ({ month, workSummary }) => {
   }
 
   return (
-    <div className="w-full bg-white rounded-2xl shadow-lg border border-gray-100 p-6 flex flex-col">
+    <div className="w-full max-w-full bg-white rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 flex flex-col">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-gray-900">
+      <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
           {date.toLocaleString("en-IN", { month: "long", year: "numeric" })}
         </h3>
       </div>
 
       {/* Calendar */}
-      <div className="grid grid-cols-7 gap-2 text-center flex-1">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center flex-1">
         {/* Weekday headers */}
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
-          <div key={index} className="text-xs font-semibold text-gray-400 tracking-wide uppercase">
+          <div
+            key={index}
+            className="text-xs sm:text-sm font-semibold text-gray-400 tracking-wide uppercase"
+          >
             {day}
           </div>
         ))}
 
         {/* Empty blanks */}
         {blanks.map((_, index) => (
-          <div key={`blank-${index}`} className="h-10 sm:h-12"></div>
+          <div key={`blank-${index}`} className="h-8 sm:h-10 md:h-12"></div>
         ))}
 
         {/* Days */}
@@ -58,7 +61,7 @@ const MiniCalendar = ({ month, workSummary }) => {
           return (
             <div
               key={day}
-              className={`h-10 sm:h-12 flex items-center justify-center rounded-full text-sm font-medium cursor-pointer transition-all duration-200
+              className={`h-8 sm:h-10 md:h-12 flex items-center justify-center rounded-full text-xs sm:text-sm font-medium cursor-pointer transition-all duration-200
                 ${status === "present" ? "bg-teal-500/10 text-teal-600 hover:bg-teal-500/20" : ""}
                 ${status === "paid_leave" ? "bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20" : ""}
                 ${status === "unpaid_leave" ? "bg-rose-500/10 text-rose-600 hover:bg-rose-500/20" : ""}
@@ -75,7 +78,7 @@ const MiniCalendar = ({ month, workSummary }) => {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap justify-center gap-4 mt-6 text-xs text-gray-500">
+      <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mt-4 sm:mt-6 text-xs sm:text-sm text-gray-500">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-teal-500"></span> Present
         </div>

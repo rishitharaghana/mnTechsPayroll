@@ -481,8 +481,8 @@ const EmployeeDetails = () => {
         />
       </div>
       <div className="w-full flex items-center justify-center">
-        <div className="w-full bg-white rounded-2xl shadow-md border border-gray-100 p-8">
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-8 tracking-tight">
+        <div className="w-full bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-center text-gray-900 mb-8 tracking-tight">
             Employee Details Form
           </h2>
           {error && (
