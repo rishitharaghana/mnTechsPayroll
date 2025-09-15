@@ -295,22 +295,23 @@ const Performance = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredEmployees.map((emp) => (
-            <div
-              key={emp.employee_id}
-              className="bg-white shadow-lg rounded-xl sm:p-6 p-5 border-1 border-gray-300 hover:-translate-y-1 transition-all"
-              role="region"
-              aria-label={`Performance details for ${emp.full_name}`}
-            >
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-1">{emp.full_name}</h3>
-                  <p className="text-sm text-gray-500">
-                    {emp.designation_name} | {emp.department_name}
-                  </p>
-                </div>
-              </div>
+  <div
+    key={emp.employee_id}
+    className="bg-white shadow-lg rounded-xl sm:p-6 p-5 border-1 border-gray-300"
+  >
+    <div className="flex justify-between items-center mb-4">
+      <div>
+        <h3 className="text-xl font-bold text-gray-800 mb-1">{emp.full_name}</h3>
+        <p className="text-sm text-gray-500">
+          {emp.email} {emp.mobile ? `| ${emp.mobile}` : ""}
+        </p>
+      </div>
+    </div>
+ 
 
-              {performance?.employee?.id === emp.employee_id && filteredPerformance.reviews[0] && (
+
+
+{performance?.employee?.employee_id === emp.employee_id && filteredPerformance.reviews[0] && (
                 <>
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>

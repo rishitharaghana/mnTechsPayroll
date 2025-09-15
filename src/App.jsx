@@ -51,6 +51,8 @@ import EmployeeAvgHours from "./pages/AttendanceManagement/EmployeeAvgHours";
 import EmpAttendanceOverview from "./pages/AttendanceManagement/EmpAttendanceOverview";
 import DetailedAttendanceReport from "./pages/AttendanceManagement/DetailedAttendanceReport";
 import ForgotPassword from "./pages/Login/ForgotPassword";
+import AddEmployeeRoles from "./pages/EmployeeManagement/AddEmployeeRoles";
+import TerminateEmployee from "./pages/EmployeeManagement/TerminateEmployee";
 
 const App = () => {
   return (
@@ -87,8 +89,16 @@ const App = () => {
                 }
               >
                 <Route
+                  path="/admin/addrole"
+                  element={<AddEmployeeRoles />}
+                />
+                <Route
                   path="/admin/view-employees"
                   element={<ViewEmployeeDetails />}
+                />
+                 <Route
+                  path="/admin/employees/terminate"
+                  element={<TerminateEmployee />}
                 />
                 <Route
                   path="/admin/working-hours"

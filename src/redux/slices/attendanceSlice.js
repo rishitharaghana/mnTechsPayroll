@@ -226,7 +226,7 @@ const attendanceSlice = createSlice({
       })
       .addCase(markAttendance.fulfilled, (state, action) => {
         state.loading = false;
-        state.successMessage = action.payload.message;
+  state.successMessage = action.payload.message || 'Attendance marked successfully';
         state.submissions.push(action.payload.data);
       })
       .addCase(markAttendance.rejected, (state, action) => {

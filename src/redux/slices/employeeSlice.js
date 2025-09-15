@@ -205,35 +205,36 @@ export const updateEmployee = createAsyncThunk(
     }
   }
 );
+
 export const deleteEmployee = createAsyncThunk(
-  "employee/deleteEmployee",
-  async ({ id, role }, { rejectWithValue }) => {
+  'employee/deleteEmployee',
+  async ({ id, role, exitType, reason, noticeStartDate, lastWorkingDate, restrictLeaves, exitChecklist }, { rejectWithValue }) => {
     try {
-      const userToken = localStorage.getItem("userToken");
+      const userToken = localStorage.getItem('userToken');
       if (!userToken) {
-        return rejectWithValue("No authentication token found. Please log in.");
+        return rejectWithValue('No authentication token found. Please log in.');
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.delete(
-        `http://localhost:3007/api/employees/${id}`,
+      const response = await axios.post(
+        `http://localhost:3007/api/employees/${id}/terminate`,
+        { role, exitType, reason, noticeStartDate, lastWorkingDate, restrictLeaves, exitChecklist },
         {
           headers: {
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          data: { role },
         }
       );
-      console.log("Delete employee response:", response.data);
-      return { id, role, message: response.data.message };
+      console.log('Terminate employee response:', response.data);
+      return { id, role, message: response.data.message, status: response.data.status };
     } catch (error) {
-      console.error("Delete employee error:", error.response?.data);
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to delete employee"
-      );
+      console.error('Terminate employee error:', error.response?.data);
+      return rejectWithValue(error.response?.data?.error || 'Failed to terminate employee');
     }
   }
 );
+
 export const fetchEmployees = createAsyncThunk(
   "employee/fetchEmployees",
   async (_, { rejectWithValue }) => {
@@ -666,19 +667,22 @@ const employeeSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(deleteEmployee.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(deleteEmployee.fulfilled, (state, action) => {
-        state.loading = false;
-        state.successMessage = action.payload.message;
-        const { id } = action.meta.arg;
-        state.employees = state.employees.filter((emp) => emp.id !== id);
-      })
-      .addCase(deleteEmployee.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(deleteEmployee.fulfilled, (state, action) => {
+      state.loading = false;
+      state.successMessage = action.payload.message;
+      const { id, status } = action.payload;
+      const index = state.employees.findIndex((emp) => emp.id === id);
+      if (index !== -1) {
+        state.employees[index].status = status; 
+      }
+    })
+    .addCase(deleteEmployee.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    })
       .addCase(fetchEmployeeById.pending, (state) => {
         state.loading = true;
         state.error = null;
