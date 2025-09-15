@@ -8,10 +8,26 @@ import PageMeta from "../../Components/common/PageMeta";
 
 // Card styles (same as in VisitingCard)
 const cardStyles = [
-  { id: "modern", name: "Modern Template", image: "/assets/ModernTempFront.png" },
-  { id: "classic", name: "Classic Template", image: "/assets/ClassicTempFront.png" },
-  { id: "minimal", name: "Minimal Template", image: "/assets/MinimalTempFront.png" },
-  { id: "corporate", name: "Corporate Template", image: "/assets/CorporateTempFront.png" },
+  {
+    id: "modern",
+    name: "Modern Template",
+    image: "/assets/ModernTempFront.png",
+  },
+  {
+    id: "classic",
+    name: "Classic Template",
+    image: "/assets/ClassicTempFront.png",
+  },
+  {
+    id: "minimal",
+    name: "Minimal Template",
+    image: "/assets/MinimalTempFront.png",
+  },
+  {
+    id: "corporate",
+    name: "Corporate Template",
+    image: "/assets/CorporateTempFront.png",
+  },
 ];
 
 // CardStylePopup Component (reused from VisitingCard)
@@ -55,7 +71,9 @@ const CardStylePopup = ({ style, onClose }) => {
             {selectedCard.name} Template
           </h2>
         </div>
-        <p className="text-sm text-slate-500 mb-6">{selectedCard.description}</p>
+        <p className="text-sm text-slate-500 mb-6">
+          {selectedCard.description}
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <h3 className="text-sm font-medium text-gray-700 mb-2">Front</h3>
@@ -89,7 +107,8 @@ const CardStylePopup = ({ style, onClose }) => {
 
 const EmployeeVisitingCard = () => {
   const dispatch = useDispatch();
-  const { employees, loading, error } = useSelector((state) => state.employee);
+  // Fix: Select 'profile' instead of 'employees'
+  const { profile, loading, error } = useSelector((state) => state.employee);
 
   const [selectedStyle, setSelectedStyle] = useState("modern");
   const [showPreview, setShowPreview] = useState(false);
@@ -98,11 +117,15 @@ const EmployeeVisitingCard = () => {
 
   // Fetch current user profile on mount
   useEffect(() => {
+    console.log("Dispatching getCurrentUserProfile");
     dispatch(getCurrentUserProfile());
   }, [dispatch]);
 
-  // Get the logged-in employee's data (assuming employees array contains the current user)
-  const currentEmployee = employees.length > 0 ? employees[0] : null;
+  // Debug log to confirm Redux state
+  console.log("Redux state in component:", { profile, loading, error });
+
+  // Use profile directly as currentEmployee
+  const currentEmployee = profile;
 
   const handleGenerateSingle = () => {
     if (!currentEmployee) return;
@@ -125,7 +148,7 @@ const EmployeeVisitingCard = () => {
   };
 
   return (
-    <div className="w-78/100">
+    <div className="w-full px-4 sm:px-0">
       <div className="min-h-screen">
         {showPreview ? (
           <VisitCardPreview
@@ -134,7 +157,10 @@ const EmployeeVisitingCard = () => {
             onBack={() => setShowPreview(false)}
           />
         ) : showPopup ? (
-          <CardStylePopup style={popupStyle} onClose={() => setShowPopup(false)} />
+          <CardStylePopup
+            style={popupStyle}
+            onClose={() => setShowPopup(false)}
+          />
         ) : (
           <>
             {/* Header */}
@@ -142,7 +168,10 @@ const EmployeeVisitingCard = () => {
               <PageBreadcrumb
                 items={[
                   { label: "Home", link: "/dashboard" },
-                  { label: "My Visiting Card", link: "/employee/visiting-card" },
+                  {
+                    label: "My Visiting Card",
+                    link: "/employee/visiting-card",
+                  },
                 ]}
               />
               <PageMeta title="My Visiting Card" />
@@ -161,11 +190,41 @@ const EmployeeVisitingCard = () => {
                 </div>
 
                 {loading ? (
-                  <p className="text-slate-500">Loading your details...</p>
+                  <div className="text-slate-500 flex items-center justify-center">
+                    <svg
+                      className="animate-spin h-5 w-5 mr-3 text-gray-600"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
+                    </svg>
+                    Loading your details...
+                  </div>
                 ) : error ? (
-                  <p className="text-red-500">{error}</p>
+                  <div className="text-red-500 flex justify-between items-center bg-red-100 p-2 rounded">
+                    {error}
+                    <button
+                      onClick={() => dispatch(getCurrentUserProfile())}
+                      className="text-blue-600 underline hover:text-blue-800"
+                    >
+                      Retry
+                    </button>
+                  </div>
                 ) : !currentEmployee ? (
-                  <p className="text-slate-500">No employee data available.</p>
+                  <p className="text-slate-500 text-center">
+                    No employee data available. Please ensure your profile is
+                    complete.
+                  </p>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Employee Info (Read-only) */}
@@ -174,7 +233,9 @@ const EmployeeVisitingCard = () => {
                         Your Details
                       </label>
                       <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100">
-                        {currentEmployee.full_name} - {currentEmployee.designation_name}
+                        {currentEmployee.full_name} -{" "}
+                        {currentEmployee.designation_name} (
+                        {currentEmployee.department_name})
                       </div>
                     </div>
 
@@ -233,7 +294,9 @@ const EmployeeVisitingCard = () => {
                           className="w-full h-auto rounded-lg shadow-sm"
                         />
                       </div>
-                      <h3 className="font-semibold text-gray-900">{style.name}</h3>
+                      <h3 className="font-semibold text-gray-900">
+                        {style.name}
+                      </h3>
                       {selectedStyle === style.id && (
                         <div className="mt-2">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -262,6 +325,7 @@ const EmployeeVisitingCard = () => {
                   <button
                     onClick={handleGenerateSingle}
                     className="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 px-4 rounded-lg"
+                    disabled={!currentEmployee}
                   >
                     Generate Card
                   </button>
