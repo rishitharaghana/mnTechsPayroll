@@ -120,9 +120,9 @@ const positionTypeOptions = [
 
 const employmentTypeOptions = [
   { value: "", label: "Select Employment Type" },
-  { value: "full_time", label: "Full Time" },
-  { value: "part_time", label: "Part Time" },
-  { value: "intern", label: "Internship" },
+  { value: "full-time", label: "Full Time" },
+  { value: "part-time", label: "Part Time" },
+  { value: "internship", label: "Internship" },
   { value: "contract", label: "Contract" },
 ];
 
@@ -348,10 +348,8 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         )}
       </div>
 
-      {/* Conditional Fields for Experienced */}
       {formData.positionType === "experienced" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 col-span-1 sm:col-span-2">
-          {/* Employer ID/Name */}
           <div className="flex flex-col">
             <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Employer ID/Name</label>
             <input
@@ -367,7 +365,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
             )}
           </div>
 
-          {/* Position Title */}
           <div className="flex flex-col">
             <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Position Title</label>
             <input
@@ -383,7 +380,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
             )}
           </div>
 
-          {/* Employment Type */}
           <div className="flex flex-col">
             <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Employment Type</label>
             <Select
@@ -400,7 +396,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
             )}
           </div>
 
-          {/* Joining Date */}
           <div className="flex flex-col">
             <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Joining Date</label>
             <div className="relative">

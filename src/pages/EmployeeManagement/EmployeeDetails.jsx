@@ -87,7 +87,6 @@ const EmployeeDetails = () => {
     }
   }, [dispatch]);
 
-  // Populate formData from profile
   useEffect(() => {
     console.log("Redux state in component:", { profile, loading, error, progress });
     if (profile) {
