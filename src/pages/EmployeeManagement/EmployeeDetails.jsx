@@ -22,20 +22,21 @@ const steps = ["Personal Details", "Education Details", "Documents", "Bank Detai
 
 const EmployeeDetails = () => {
   const dispatch = useDispatch();
-  const { loading, error, successMessage, employeeId, employees, progress } = useSelector(
+  const { profile, loading, error, successMessage, progress } = useSelector(
     (state) => state.employee
   );
   const [currentStep, setCurrentStep] = useState(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [formData, setFormData] = useState({
+    employee_id: "",
     fullName: "",
     fatherName: "",
     motherName: "",
     phone: "",
     email: "",
     gender: "",
-    panCard: "", 
-    aadharCard: "", 
+    panCard: "",
+    aadharCard: "",
     image: null,
     presentAddress: "",
     previousAddress: "",
@@ -75,6 +76,7 @@ const EmployeeDetails = () => {
     const userToken = localStorage.getItem("userToken");
     if (userToken) {
       try {
+        console.log("Dispatching getCurrentUserProfile and getEmployeeProgress");
         dispatch(getCurrentUserProfile());
         dispatch(getEmployeeProgress());
       } catch (err) {
@@ -85,48 +87,37 @@ const EmployeeDetails = () => {
     }
   }, [dispatch]);
 
+  // Populate formData from profile
   useEffect(() => {
-    if (employees.length > 0 && employeeId) {
-      const employee = employees.find((emp) => emp.employee_id === employeeId);
-      if (employee) {
-        setFormData((prev) => ({
-          ...prev,
-          employee_id: employee.employee_id || employeeId,
-          fullName: employee.full_name || "",
-          email: employee.email || "",
-          phone: employee.mobile || "",
-          gender: employee.gender || "",
-          panCard: employee.pan_card || "", // Added
-          aadharCard: employee.aadhar_card || "", // Added
-          dob: employee.dob || "",
-          bloodGroup: employee.blood_group || "",
-          joiningDate: employee.join_date || "",
-          employmentType: employee.employment_type || "",
-          department: employee.department_name || "",
-          position: employee.designation_name || "",
-          basicSalary: employee.basic_salary || "",
-          allowances: employee.allowances || "",
-          bonuses: employee.bonuses || "",
-        }));
-      }
+    console.log("Redux state in component:", { profile, loading, error, progress });
+    if (profile) {
+      const updatedFormData = {
+        ...formData,
+        employee_id: profile.employee_id || "",
+        fullName: profile.full_name || "",
+        email: profile.email || "",
+        phone: profile.mobile || "",
+        gender: profile.gender || "",
+        panCard: profile.pan_card || "",
+        aadharCard: profile.aadhar_card || "",
+        dob: profile.dob || "",
+        bloodGroup: profile.blood_group || "",
+        joiningDate: profile.join_date || "",
+        employmentType: profile.employment_type || "",
+        department: profile.department_name || "",
+        position: profile.designation_name || "",
+        basicSalary: profile.basic_salary || "",
+        allowances: profile.allowances || "",
+        bonuses: profile.bonuses || "",
+      };
+      setFormData(updatedFormData);
+      console.log("Updated formData:", updatedFormData);
     }
-    if (progress) {
-      if (progress.bankDetails) {
-        setCurrentStep(4);
-      } else if (progress.documents) {
-        setCurrentStep(3);
-      } else if (progress.educationDetails) {
-        setCurrentStep(2);
-      } else if (progress.personalDetails) {
-        setCurrentStep(1);
-      } else {
-        setCurrentStep(0);
-      }
-    }
-  }, [employees, employeeId, progress]);
+  }, [profile]);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
+    console.log("handleChange:", { name, value, type, files: files ? files[0] : null });
     if (type === "file" && files[0]) {
       setFormData((prev) => ({ ...prev, [name]: files[0] }));
       setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -138,19 +129,18 @@ const EmployeeDetails = () => {
 
   const handleDateChange = (name, date) => {
     if (date && !isNaN(date)) {
-      setFormData((prev) => ({
-        ...prev,
+      const updatedFormData = {
+        ...formData,
         [name]: date.toISOString().split("T")[0],
-      }));
+      };
       if (name === "joiningDate" && !formData.contractEndDate) {
         const joinDate = new Date(date);
         joinDate.setFullYear(joinDate.getFullYear() + 1);
-        setFormData((prev) => ({
-          ...prev,
-          contractEndDate: joinDate.toISOString().split("T")[0],
-        }));
+        updatedFormData.contractEndDate = joinDate.toISOString().split("T")[0];
       }
+      setFormData(updatedFormData);
       setErrors((prev) => ({ ...prev, [name]: "" }));
+      console.log("handleDateChange:", { name, date: updatedFormData[name] });
     }
   };
 
@@ -159,12 +149,13 @@ const EmployeeDetails = () => {
     switch (stepIndex) {
       case 0: {
         const requiredFields = [
+          "fullName",
           "fatherName",
           "motherName",
           "presentAddress",
           "positionType",
-          "panCard", // Added
-          "aadharCard", // Added
+          "panCard",
+          "aadharCard",
         ];
         requiredFields.forEach((field) => {
           if (!formData[field]?.trim()) {
@@ -295,15 +286,15 @@ const EmployeeDetails = () => {
       switch (stepIndex) {
         case 0: {
           const personalData = {
-            employee_id: employeeId,
+            employee_id: profile?.employee_id || formData.employee_id,
             fullName: formData.fullName,
             fatherName: formData.fatherName,
             motherName: formData.motherName,
             phone: formData.phone,
             email: formData.email,
             gender: formData.gender,
-            panCard: formData.panCard, // Added
-            aadharCard: formData.aadharCard, // Added
+            panCard: formData.panCard,
+            aadharCard: formData.aadharCard,
             presentAddress: formData.presentAddress,
             previousAddress: formData.previousAddress,
             positionType: formData.positionType,
@@ -315,12 +306,13 @@ const EmployeeDetails = () => {
             dob: formData.dob,
             bloodGroup: formData.bloodGroup,
           };
+          console.log("Submitting personal details:", personalData);
           await dispatch(createEmployeePersonalDetails(personalData)).unwrap();
           return true;
         }
         case 1: {
           const educationData = {
-            employee_id: employeeId,
+            employee_id: profile?.employee_id || formData.employee_id,
             tenthClassName: formData.tenthClassName,
             tenthClassMarks: formData.tenthClassMarks,
             intermediateName: formData.intermediateName,
@@ -330,6 +322,7 @@ const EmployeeDetails = () => {
             postgraduationName: formData.postgraduationName,
             postgraduationMarks: formData.postgraduationMarks,
           };
+          console.log("Submitting education details:", educationData);
           await dispatch(createEducationDetails(educationData)).unwrap();
           return true;
         }
@@ -344,9 +337,10 @@ const EmployeeDetails = () => {
           ];
           for (const { field, documentType } of docFields) {
             if (formData[field]) {
+              console.log("Submitting document:", { documentType, file: formData[field] });
               await dispatch(
                 createDocuments({
-                  employeeId,
+                  employeeId: profile?.employee_id || formData.employee_id,
                   documentType,
                   file: formData[field],
                 })
@@ -357,10 +351,11 @@ const EmployeeDetails = () => {
         }
         case 3: {
           const bankData = {
-            employee_id: employeeId,
+            employee_id: profile?.employee_id || formData.employee_id,
             bankAccountNumber: formData.bankACnumber,
             ifscCode: formData.ifscNumber,
           };
+          console.log("Submitting bank details:", bankData);
           await dispatch(createBankDetails(bankData)).unwrap();
           return true;
         }
@@ -369,13 +364,14 @@ const EmployeeDetails = () => {
       }
     } catch (err) {
       setErrors({ general: err.message || "Failed to submit step" });
+      console.error("Submission error:", err);
       return false;
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!employeeId) {
+    if (!profile?.employee_id) {
       setErrors({ general: "Please log in to submit details." });
       return;
     }
@@ -384,14 +380,15 @@ const EmployeeDetails = () => {
       if (success) {
         dispatch(clearState());
         setFormData({
+          employee_id: "",
           fullName: "",
           fatherName: "",
           motherName: "",
           phone: "",
           email: "",
           gender: "",
-          panCard: "", // Added
-          aadharCard: "", // Added
+          panCard: "",
+          aadharCard: "",
           image: null,
           presentAddress: "",
           previousAddress: "",
@@ -431,7 +428,10 @@ const EmployeeDetails = () => {
     }
   };
 
-  const openPreview = () => setIsPreviewOpen(true);
+  const openPreview = () => {
+    console.log("Opening preview with formData:", formData);
+    setIsPreviewOpen(true);
+  };
   const closePreview = () => setIsPreviewOpen(false);
 
   return (
@@ -486,14 +486,31 @@ const EmployeeDetails = () => {
             Employee Details Form
           </h2>
           {error && (
-            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg flex justify-between items-center">
               {error === "Access denied: Insufficient permissions"
                 ? "You do not have permission to add bank details. Please contact HR."
                 : error}
+              <button
+                onClick={() => dispatch(getCurrentUserProfile())}
+                className="text-blue-600 underline hover:text-blue-800"
+              >
+                Retry
+              </button>
             </div>
           )}
           {loading && (
-            <div className="mb-4 p-4 bg-blue-100 text-blue-700 rounded-lg">Loading...</div>
+            <div className="mb-4 p-4 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center">
+              <svg className="animate-spin h-5 w-5 mr-3 text-blue-600" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+              </svg>
+              Loading...
+            </div>
+          )}
+          {!loading && !error && !profile && (
+            <div className="mb-4 p-4 bg-yellow-100 text-yellow-700 rounded-lg text-center">
+              No employee data available. Please ensure you are logged in.
+            </div>
           )}
           <StepNavigation
             steps={steps}
@@ -538,6 +555,7 @@ const EmployeeDetails = () => {
                     type="button"
                     onClick={openPreview}
                     className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 text-sm font-medium"
+                    disabled={!profile}
                   >
                     View Preview
                   </button>
@@ -558,7 +576,7 @@ const EmployeeDetails = () => {
                 <button
                   type="button"
                   onClick={nextStep}
-                  disabled={loading}
+                  disabled={loading || !profile}
                   className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   aria-label="Next step"
                 >
@@ -567,7 +585,7 @@ const EmployeeDetails = () => {
               ) : (
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !profile}
                   className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   aria-label="Submit form"
                 >

@@ -460,7 +460,7 @@ export const fetchEmployeePersonalDetails = createAsyncThunk(
       );
     } 
   }
-);
+);  
 
 export const fetchEmployeeEducationDetails = createAsyncThunk(
   "employee/fetchEmployeeEducationDetails",
@@ -719,16 +719,19 @@ const employeeSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(getCurrentUserProfile.fulfilled, (state, action) => {
-        state.loading = false;
-        state.profile = action.payload.data; 
-        state.employeeId = action.payload.data.employee_id;
-        state.successMessage = action.payload.message;
-      })
-      .addCase(getCurrentUserProfile.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload?.error || "Failed to fetch profile";
-      })
+    .addCase(getCurrentUserProfile.fulfilled, (state, action) => {
+  state.loading = false;
+  state.profile = action.payload.data || null;
+  state.employeeId = action.payload.data?.employee_id || null;
+  state.successMessage = action.payload.message;
+  console.log("Profile updated in state:", action.payload.data);
+})
+.addCase(getCurrentUserProfile.rejected, (state, action) => {
+  state.loading = false;
+  state.error = action.payload || "Failed to fetch profile";
+  state.profile = null;
+  console.error("Profile fetch error:", action.payload);
+})  
       .addCase(getEmployeeProgress.pending, (state) => {
         state.loading = true;
         state.error = null;

@@ -1,10 +1,11 @@
+import React from 'react';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar } from "lucide-react";
-import Select from "react-select"; // Import react-select
+import Select from "react-select";
 import FileUpload from "./EmployeeFileUpload";
 
-// Custom styles for each Select component
+// Custom styles for Select components (unchanged)
 const genderSelectStyles = {
   control: (provided) => ({
     ...provided,
@@ -103,12 +104,12 @@ const employmentTypeSelectStyles = {
   }),
 };
 
-// Options for each select field
+// Updated gender options to match backend (title case)
 const genderOptions = [
   { value: "", label: "Select Gender" },
-  { value: "male", label: "Male" },
-  { value: "female", label: "Female" },
-  { value: "other", label: "Other" },
+  { value: "Male", label: "Male" },
+  { value: "Female", label: "Female" },
+  { value: "Others", label: "Others" },
 ];
 
 const positionTypeOptions = [
@@ -126,10 +127,11 @@ const employmentTypeOptions = [
 ];
 
 const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDateChange }) => {
-  console.log("formData:", formData);
+  console.log("EmployeePersonaldetailsForm props:", { formData, errors });
 
   // Handle react-select change
   const handleSelectChange = (name) => (selectedOption) => {
+    console.log("handleSelectChange:", { name, value: selectedOption ? selectedOption.value : "" });
     handleChange({ target: { name, value: selectedOption ? selectedOption.value : "" } });
   };
 
@@ -141,13 +143,18 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <input
           type="text"
           name="fullName"
-          value={formData.full_name}
+          value={formData.fullName || ''} // Fixed: Use formData.fullName
           onChange={handleChange}
-          className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
+          className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
+            formData.fullName ? 'bg-gray-100 cursor-not-allowed' : ''
+          }`}
           placeholder="Enter full name"
-          disabled={!!formData.full_name}
+          disabled={!!formData.fullName} // Disable if fullName exists
+          aria-describedby={errors.fullName ? 'fullName-error' : undefined}
         />
-        {errors.full_name && <span className="text-red-500 text-xs mt-1">{errors.full_name}</span>}
+        {errors.fullName && (
+          <span id="fullName-error" className="text-red-500 text-xs mt-1">{errors.fullName}</span>
+        )}
       </div>
 
       {/* Father’s Name */}
@@ -156,7 +163,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <input
           type="text"
           name="fatherName"
-          value={formData.fatherName}
+          value={formData.fatherName || ''}
           onChange={handleChange}
           className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
           placeholder="Enter father’s name"
@@ -170,7 +177,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <input
           type="text"
           name="motherName"
-          value={formData.motherName}
+          value={formData.motherName || ''}
           onChange={handleChange}
           className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
           placeholder="Enter mother’s name"
@@ -184,9 +191,11 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <input
           type="tel"
           name="phone"
-          value={formData.phone}
+          value={formData.phone || ''}
           onChange={handleChange}
-          className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
+          className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
+            formData.phone ? 'bg-gray-100 cursor-not-allowed' : ''
+          }`}
           placeholder="Enter phone number"
           disabled={!!formData.phone}
         />
@@ -199,7 +208,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <div className="relative">
           <DatePicker
             selected={formData.dob ? new Date(formData.dob) : null}
-            onChange={(date) => handleDateChange("dateOfBirth", date)}
+            onChange={(date) => handleDateChange("dob", date)} // Fixed: Use "dob" to match formData
             className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 pr-10"
             dateFormat="yyyy-MM-dd"
             placeholderText="Select date of birth"
@@ -219,9 +228,11 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <input
           type="email"
           name="email"
-          value={formData.email}
+          value={formData.email || ''}
           onChange={handleChange}
-          className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
+          className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
+            formData.email ? 'bg-gray-100 cursor-not-allowed' : ''
+          }`}
           placeholder="Enter email"
           disabled={!!formData.email}
         />
@@ -233,12 +244,13 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Gender</label>
         <Select
           name="gender"
-          value={genderOptions.find((option) => option.value === formData.gender)}
+          value={genderOptions.find((option) => option.value === formData.gender) || null}
           onChange={handleSelectChange("gender")}
           options={genderOptions}
           styles={genderSelectStyles}
           className="w-full"
           placeholder="Select Gender"
+          isDisabled={!!formData.gender} // Disable if gender exists
         />
         {errors.gender && <span className="text-red-500 text-xs mt-1">{errors.gender}</span>}
       </div>
@@ -249,7 +261,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <input
           type="text"
           name="panCard"
-          value={formData.panCard}
+          value={formData.panCard || ''}
           onChange={handleChange}
           className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
           placeholder="e.g., ABCDE1234F"
@@ -264,7 +276,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <input
           type="text"
           name="aadharCard"
-          value={formData.aadharCard}
+          value={formData.aadharCard || ''}
           onChange={handleChange}
           className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
           placeholder="e.g., 123456789012"
@@ -293,7 +305,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <input
           type="text"
           name="presentAddress"
-          value={formData.presentAddress}
+          value={formData.presentAddress || ''}
           onChange={handleChange}
           className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
           placeholder="Enter present address"
@@ -309,7 +321,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <input
           type="text"
           name="previousAddress"
-          value={formData.previousAddress}
+          value={formData.previousAddress || ''}
           onChange={handleChange}
           className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
           placeholder="Enter permanent address"
@@ -324,7 +336,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Position Information</label>
         <Select
           name="positionType"
-          value={positionTypeOptions.find((option) => option.value === formData.positionType)}
+          value={positionTypeOptions.find((option) => option.value === formData.positionType) || null}
           onChange={handleSelectChange("positionType")}
           options={positionTypeOptions}
           styles={positionTypeSelectStyles}
@@ -345,7 +357,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
             <input
               type="text"
               name="employerIdName"
-              value={formData.employerIdName}
+              value={formData.employerIdName || ''}
               onChange={handleChange}
               className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
               placeholder="Enter employer ID or name"
@@ -361,7 +373,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
             <input
               type="text"
               name="positionTitle"
-              value={formData.positionTitle}
+              value={formData.positionTitle || ''}
               onChange={handleChange}
               className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
               placeholder="Enter position title"
@@ -376,7 +388,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
             <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Employment Type</label>
             <Select
               name="employmentType"
-              value={employmentTypeOptions.find((option) => option.value === formData.employmentType)}
+              value={employmentTypeOptions.find((option) => option.value === formData.employmentType) || null}
               onChange={handleSelectChange("employmentType")}
               options={employmentTypeOptions}
               styles={employmentTypeSelectStyles}
