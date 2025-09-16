@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../../redux/slices/authSlice';
-import { Lock, Mail, UserCircle, Phone, Eye, EyeOff } from 'lucide-react';
+import { Lock, UserCircle, Phone, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Select from 'react-select';
+import LoginBackground from '../../../public/assets/login_background.png'; // Imported background image
 
 const Login = () => {
   const [mobileNumber, setMobileNumber] = useState('');
@@ -24,14 +25,14 @@ const Login = () => {
     { value: 'employee', label: 'Employee' },
   ];
 
-  // Custom styles for React Select
+  // Custom styles for React Select (unchanged)
   const customSelectStyles = {
     control: (provided) => ({
       ...provided,
       backgroundColor: 'rgba(255, 255, 255, 0.7)',
-      borderColor: 'rgba(148, 163, 184, 0.5)',
+      borderColor: 'slate-200/50',
       borderRadius: '1rem',
-      padding: '0.2rem 0.75rem',
+      padding: '0.1rem 0.75rem',
       boxShadow: 'none',
       '&:hover': {
         borderColor: 'rgba(148, 163, 184, 0.5)',
@@ -154,10 +155,16 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-teal-50 flex items-center justify-center px-4 z-50">
-      <div className="bg-white/90 backdrop-blur-md rounded-2xl p-6 border border-slate-200/50 shadow-md hover:shadow-lg transition-shadow duration-300 w-full max-w-sm">
+    <div
+      className="min-h-screen lg:pl-50 md:pl-25 flex items-center justify-center md:justify-start px-4 z-50"
+      style={{
+        background: `url(${LoginBackground}) no-repeat center center fixed`,
+        backgroundSize: 'cover',
+      }}
+    >
+      <div className="bg-white/90 backdrop-blur-md rounded-2xl p-6 border border-slate-200/50 shadow-md hover:shadow-lg transition-shadow duration-300 w-full max-w-sm 2xl:max-w-xl">
         <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-xl p-2 mb-4">
-          <h2 className="text-2xl font-extrabold text-center text-white font-sans">
+          <h2 className="sm:text-2xl text-lg font-extrabold text-center text-white font-sans">
             {uiRole === 'employee' ? 'Employee Login' : `${uiRole} Login`}
           </h2>
         </div>
@@ -178,7 +185,7 @@ const Login = () => {
                 value={roleOptions.find((option) => option.value === uiRole)}
                 onChange={(selectedOption) => setUiRole(selectedOption.value)}
                 styles={customSelectStyles}
-                className="w-full"
+                className="w-full  text-sm sm:text-base"
                 placeholder="Select Role"
                 aria-label="Select Role"
               />
@@ -195,7 +202,7 @@ const Login = () => {
                 onChange={(e) => setMobileNumber(e.target.value)}
                 placeholder="Enter Mobile Number"
                 pattern="[0-9]{10}"
-                className="w-full px-3 py-2 bg-white/70 border border-slate-200/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-600 text-slate-900 font-sans"
+                className="w-full px-3 py-2 text-sm sm:text-base bg-white/70 border border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-600 text-slate-900 font-sans"
                 required
                 aria-label="Mobile Number"
               />
@@ -211,7 +218,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-3 py-2 bg-white/70 border border-slate-200/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-600 text-slate-900 font-sans"
+                className="w-full px-3 py-2 text-sm sm:text-base bg-white/70 border border-slate-600 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-600 text-slate-900 font-sans"
                 required
                 aria-label="Password"
               />
