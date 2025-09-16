@@ -9,7 +9,7 @@ import {
   updateAttendanceStatus,
   clearState,
 } from "../../redux/slices/attendanceSlice";
-import { format, parse, isValid } from "date-fns";
+import { format, parse, isValid, addHours, startOfWeek, endOfWeek } from "date-fns";
 
 const Attendance = () => {
   const dispatch = useDispatch();
@@ -17,13 +17,14 @@ const Attendance = () => {
     (state) => state.attendance
   );
 
-  // Keep Date object in state
+  // Initialize selectedDate in IST
   const [selectedDate, setSelectedDate] = useState(() => {
     const date = new Date();
-    return date; // Remove IST offset to match backend dates
+    return date;
   });
 
-  const formattedDate = format(selectedDate, "yyyy-MM-dd"); // String for comparisons
+  const formattedDate = format(selectedDate, "yyyy-MM-dd");
+  console.log("Selected date (IST):", formattedDate);
 
   const userToken = localStorage.getItem("userToken");
   const user = userToken ? JSON.parse(userToken) : null;
@@ -70,7 +71,9 @@ const Attendance = () => {
     try {
       const date = parse(isoDate, "yyyy-MM-dd", new Date());
       if (!isValid(date)) return "";
-      return format(date, "yyyy-MM-dd"); // Remove IST offset to match backend
+      // Convert UTC to IST (UTC+5:30)
+      const istDate = addHours(date, 5.5);
+      return format(istDate, "yyyy-MM-dd");
     } catch {
       return "";
     }
@@ -81,7 +84,7 @@ const Attendance = () => {
   const filteredSubmissions = submissions.filter((submission) => {
     const normalizedSubmissionDate = normalizeDate(submission.date);
     console.log(
-      `Filtering submission: date=${submission.date}, normalized=${normalizedSubmissionDate}, formattedDate=${formattedDate}, recipient=${submission.recipient}, status=${submission.status}`
+      `Filtering submission: date=${submission.date}, normalized (IST)=${normalizedSubmissionDate}, formattedDate=${formattedDate}, recipient=${submission.recipient}, status=${submission.status}`
     );
     return (
       normalizedSubmissionDate === formattedDate &&
@@ -91,12 +94,19 @@ const Attendance = () => {
         : userRole === "super_admin"
         ? submission.recipient === "super_admin" ||
           submission.recipient === user.employee_id ||
-          (submission.recipient === "hr" || submission.recipient === user.hr_employee_id) &&
-          ["Approved", "Rejected"].includes(submission.status)
+          ((submission.recipient === "hr" || (user.hr_employee_id && submission.recipient === user.hr_employee_id)) &&
+            ["Approved", "Rejected"].includes(submission.status))
         : submission.recipient === userRole || submission.recipient === user.employee_id)
     );
   });
   console.log("Filtered submissions:", filteredSubmissions);
+
+  // Calculate week boundaries for selectedDate (Monday to Sunday)
+  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 }); // Monday
+  const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 }); // Sunday
+  const weekStartFormatted = format(weekStart, "yyyy-MM-dd");
+  const weekEndFormatted = format(weekEnd, "yyyy-MM-dd");
+  console.log(`Week range (IST): ${weekStartFormatted} to ${weekEndFormatted}`);
 
   const stats = [
     {
@@ -281,7 +291,7 @@ const Attendance = () => {
                       className="px-2 py-3 sm:px-4 text-sm text-slate-500 text-center whitespace-nowrap"
                     >
                       No attendance records found for{" "}
-                      {format(selectedDate, "dd/MM/yyyy")}.
+                      {format(selectedDate, "dd/MM/yyyy")}. Try selecting a different date.
                     </td>
                   </tr>
                 ) : (
@@ -373,23 +383,28 @@ const Attendance = () => {
         </div>
         <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
           <h2 className="text-xl font-bold text-slate-900 mb-4">
-            Weekly Attendance Overview
+            Weekly Attendance Overview ({format(weekStart, "dd/MM")} - {format(weekEnd, "dd/MM/yyyy")})
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
             {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
               (day, index) => {
-                const daySubmissions = submissions.filter(
-                  (s) =>
-                    new Date(s.date).getDay() === (index + 1) % 7 &&
+                const daySubmissions = submissions.filter((s) => {
+                  const istDate = addHours(parse(s.date, "yyyy-MM-dd", new Date()), 5.5);
+                  const istDateFormatted = format(istDate, "yyyy-MM-dd");
+                  return (
+                    istDate.getDay() === (index + 1) % 7 &&
+                    istDateFormatted >= weekStartFormatted &&
+                    istDateFormatted <= weekEndFormatted &&
                     (userRole === "dept_head"
                       ? s.recipient === "hr" || s.recipient === user.employee_id
                       : userRole === "super_admin"
                       ? s.recipient === "super_admin" ||
                         s.recipient === user.employee_id ||
-                        ((s.recipient === "hr" || s.recipient === user.hr_employee_id) &&
+                        ((s.recipient === "hr" || (user.hr_employee_id && s.recipient === user.hr_employee_id)) &&
                           ["Approved", "Rejected"].includes(s.status))
                       : s.recipient === userRole || s.recipient === user.employee_id)
-                );
+                  );
+                });
                 const presentCount = daySubmissions.filter(
                   (s) => s.status === "Approved"
                 ).length;
