@@ -1,6 +1,7 @@
 import { Clock, Menu, X, Users, CircleUser } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import logo from "../../public/assets/logo.png";
 
 const AppHeader = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -22,14 +23,11 @@ const AppHeader = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 color: bg-teal-600 rounded-xl flex items-center justify-center">
-                <Users className="text-white" size={20} />
+              <div className="w-12 h-12 overflow-hidden">
+                <img src={logo} alt="Logo" className="w-12 h-12 rounded-full" />
               </div>
-              {/* <h1 className="text-xl font-bold bg-slate from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Payroll
-              </h1> */}
               <h1 className="text-xl font-bold bg-gradient-to-r from-teal-600 to-slate-700 bg-clip-text text-transparent">
-                Payroll
+                MNTechs Payroll
               </h1>
             </div>
           </div>
