@@ -18,7 +18,13 @@ import EmployeeDocuments from "./EmployeeDocuments";
 import EmployeeBankDetailsForm from "./EmployeeBankDetailsForm";
 import EmployeePreview from "./EmployeePreview";
 
-const steps = ["Personal Details", "Education Details", "Documents", "Bank Details", "Preview"];
+const steps = [
+  "Personal Details",
+  "Education Details",
+  "Documents",
+  "Bank Details",
+  "Preview",
+];
 
 const EmployeeDetails = () => {
   const dispatch = useDispatch();
@@ -76,11 +82,16 @@ const EmployeeDetails = () => {
     const userToken = localStorage.getItem("userToken");
     if (userToken) {
       try {
-        console.log("Dispatching getCurrentUserProfile and getEmployeeProgress");
+        console.log(
+          "Dispatching getCurrentUserProfile and getEmployeeProgress"
+        );
         dispatch(getCurrentUserProfile());
         dispatch(getEmployeeProgress());
       } catch (err) {
-        setErrors({ general: "Failed to fetch user profile or progress. Please log in again." });
+        setErrors({
+          general:
+            "Failed to fetch user profile or progress. Please log in again.",
+        });
       }
     } else {
       setErrors({ general: "No authentication token found. Please log in." });
@@ -88,7 +99,25 @@ const EmployeeDetails = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    console.log("Redux state in component:", { profile, loading, error, progress });
+    if (progress) {
+      let stepIndex = 0;
+
+      if (progress.personalDetails) stepIndex = 1;
+      if (progress.educationDetails) stepIndex = 2;
+      if (progress.documents) stepIndex = 3;
+      if (progress.bankDetails) stepIndex = 4;
+
+      setCurrentStep(stepIndex);
+    }
+  }, [progress]);
+
+  useEffect(() => {
+    console.log("Redux state in component:", {
+      profile,
+      loading,
+      error,
+      progress,
+    });
     if (profile) {
       const updatedFormData = {
         ...formData,
@@ -116,7 +145,12 @@ const EmployeeDetails = () => {
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
-    console.log("handleChange:", { name, value, type, files: files ? files[0] : null });
+    console.log("handleChange:", {
+      name,
+      value,
+      type,
+      files: files ? files[0] : null,
+    });
     if (type === "file" && files[0]) {
       setFormData((prev) => ({ ...prev, [name]: files[0] }));
       setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -163,7 +197,10 @@ const EmployeeDetails = () => {
               .replace(/^./, (str) => str.toUpperCase())} is required`;
           }
         });
-        if (formData.panCard && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCard)) {
+        if (
+          formData.panCard &&
+          !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCard)
+        ) {
           newErrors.panCard = "Invalid PAN card number (e.g., ABCDE1234F)";
         }
         if (formData.aadharCard && !/^\d{12}$/.test(formData.aadharCard)) {
@@ -196,7 +233,9 @@ const EmployeeDetails = () => {
         numericFields.forEach((field) => {
           if (
             formData[field] &&
-            (isNaN(formData[field]) || Number(formData[field]) < 0 || Number(formData[field]) > 100)
+            (isNaN(formData[field]) ||
+              Number(formData[field]) < 0 ||
+              Number(formData[field]) > 100)
           ) {
             newErrors[field] = `Invalid ${field
               .replace(/([A-Z])/g, " $1")
@@ -217,7 +256,9 @@ const EmployeeDetails = () => {
         docFields.forEach((field) => {
           if (
             formData[field] &&
-            !["image/jpeg", "image/png", "application/pdf"].includes(formData[field].type)
+            !["image/jpeg", "image/png", "application/pdf"].includes(
+              formData[field].type
+            )
           ) {
             newErrors[field] = "Only JPG, PNG, or PDF files are allowed";
           }
@@ -233,7 +274,10 @@ const EmployeeDetails = () => {
               .replace(/^./, (str) => str.toUpperCase())} is required`;
           }
         });
-        if (formData.ifscNumber && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscNumber)) {
+        if (
+          formData.ifscNumber &&
+          !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscNumber)
+        ) {
           newErrors.ifscNumber = "Invalid IFSC code";
         }
         break;
@@ -336,7 +380,10 @@ const EmployeeDetails = () => {
           ];
           for (const { field, documentType } of docFields) {
             if (formData[field]) {
-              console.log("Submitting document:", { documentType, file: formData[field] });
+              console.log("Submitting document:", {
+                documentType,
+                file: formData[field],
+              });
               await dispatch(
                 createDocuments({
                   employeeId: profile?.employee_id || formData.employee_id,
@@ -471,7 +518,10 @@ const EmployeeDetails = () => {
         `}
       </style>
       <div className="hidden sm:flex sm:justify-end sm:items-center">
-        <PageMeta title="Employee Details" description="Add new employee details" />
+        <PageMeta
+          title="Employee Details"
+          description="Add new employee details"
+        />
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/emp-dashboard" },
@@ -499,9 +549,22 @@ const EmployeeDetails = () => {
           )}
           {loading && (
             <div className="mb-4 p-4 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center">
-              <svg className="animate-spin h-5 w-5 mr-3 text-blue-600" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+              <svg
+                className="animate-spin h-5 w-5 mr-3 text-blue-600"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <path
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                />
               </svg>
               Loading...
             </div>
