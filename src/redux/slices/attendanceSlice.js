@@ -3,7 +3,7 @@ import axios from 'axios';
 
 export const markAttendance = createAsyncThunk(
   'attendance/markAttendance',
-  async ({ employee_id, date, login_time, logout_time, recipient, location }, { rejectWithValue }) => {
+  async ({ employee_id, date, login_time, logout_time, recipient_id, location }, { rejectWithValue }) => { // Changed recipient to recipient_id
     try {
       const userToken = localStorage.getItem('userToken');
       if (!userToken) {
@@ -11,9 +11,10 @@ export const markAttendance = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
+      console.log("markAttendance sending payload:", { employee_id, date, login_time, logout_time, recipient_id, location });
       const response = await axios.post(
         'http://localhost:3007/api/attendance',
-        { employee_id, date, login_time, logout_time, recipient, location },
+        { employee_id, date, login_time, logout_time, recipient_id, location }, // Changed recipient to recipient_id
         {
           headers: {
             'Content-Type': 'application/json',
@@ -23,6 +24,7 @@ export const markAttendance = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
+      console.error('markAttendance error:', error.response?.data || error.message);
       return rejectWithValue(error.response?.data?.error || 'Failed to mark attendance');
     }
   }
@@ -43,8 +45,10 @@ export const fetchEmployeeAttendance = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log("fetchEmployeeAttendance response:", response.data);
       return response.data;
     } catch (error) {
+      console.error('fetchEmployeeAttendance error:', error.response?.data || error.message);
       return rejectWithValue(error.response?.data?.error || 'Failed to fetch attendance');
     }
   }

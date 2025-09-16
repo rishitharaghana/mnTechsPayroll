@@ -17,14 +17,13 @@ const Attendance = () => {
     (state) => state.attendance
   );
 
-  // ✅ Keep Date object in state
+  // Keep Date object in state
   const [selectedDate, setSelectedDate] = useState(() => {
     const date = new Date();
-    const istDate = new Date(date.getTime() + 5.5 * 60 * 60 * 1000); // IST offset
-    return istDate;
+    return date; // Remove IST offset to match backend dates
   });
 
-  const formattedDate = format(selectedDate, "yyyy-MM-dd"); // string for comparisons
+  const formattedDate = format(selectedDate, "yyyy-MM-dd"); // String for comparisons
 
   const userToken = localStorage.getItem("userToken");
   const user = userToken ? JSON.parse(userToken) : null;
@@ -71,23 +70,33 @@ const Attendance = () => {
     try {
       const date = parse(isoDate, "yyyy-MM-dd", new Date());
       if (!isValid(date)) return "";
-      const istDate = new Date(date.getTime() + 5.5 * 60 * 60 * 1000);
-      return format(istDate, "yyyy-MM-dd");
+      return format(date, "yyyy-MM-dd"); // Remove IST offset to match backend
     } catch {
       return "";
     }
   };
 
+  // Debug submissions and filtering
+  console.log("Raw submissions:", submissions);
   const filteredSubmissions = submissions.filter((submission) => {
     const normalizedSubmissionDate = normalizeDate(submission.date);
+    console.log(
+      `Filtering submission: date=${submission.date}, normalized=${normalizedSubmissionDate}, formattedDate=${formattedDate}, recipient=${submission.recipient}, status=${submission.status}`
+    );
     return (
       normalizedSubmissionDate === formattedDate &&
       normalizedSubmissionDate !== "" &&
       (userRole === "dept_head"
-        ? submission.recipient === "hr"
-        : submission.recipient === userRole)
+        ? submission.recipient === "hr" || submission.recipient === user.employee_id
+        : userRole === "super_admin"
+        ? submission.recipient === "super_admin" ||
+          submission.recipient === user.employee_id ||
+          (submission.recipient === "hr" || submission.recipient === user.hr_employee_id) &&
+          ["Approved", "Rejected"].includes(submission.status)
+        : submission.recipient === userRole || submission.recipient === user.employee_id)
     );
   });
+  console.log("Filtered submissions:", filteredSubmissions);
 
   const stats = [
     {
@@ -150,7 +159,7 @@ const Attendance = () => {
 
   return (
     <div className="w-full">
-      <div className="hidden sm:flex  sm:justify-end">
+      <div className="hidden sm:flex sm:justify-end">
         <PageMeta
           title="Attendance Management"
           description="Track and manage employee attendance efficiently."
@@ -177,7 +186,7 @@ const Attendance = () => {
             <div className="w-full sm:w-[50%] md:w-[35%] flex items-center space-x-4">
               <DatePicker
                 name="attendanceDate"
-                value={selectedDate} // ✅ Date object
+                value={selectedDate}
                 onChange={(date) => setSelectedDate(date)}
                 className="w-full max-w-xs"
                 aria-label="Select Attendance Date"
@@ -233,134 +242,134 @@ const Attendance = () => {
           </div>
 
           <div className="overflow-x-auto">
-  <table
-    className="w-full table-fixed text-sm min-w-[800px]" // Added min-w-[800px] for scroll trigger
-    aria-label="Employee Attendance Table"
-  >
-    <thead className="bg-gradient-to-r from-teal-600 to-slate-700">
-      <tr>
-        <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
-          Employee
-        </th>
-        <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
-          Date
-        </th>
-        <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
-          Check In
-        </th>
-        <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
-          Check Out
-        </th>
-        <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
-          Location
-        </th>
-        <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
-          Status
-        </th>
-        {["super_admin", "hr"].includes(userRole) && (
-          <th className="w-[20%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
-            Actions
-          </th>
-        )}
-      </tr>
-    </thead>
-    <tbody className="divide-y divide-slate-200/50">
-      {filteredSubmissions.length === 0 ? (
-        <tr>
-          <td
-            colSpan={["super_admin", "hr"].includes(userRole) ? 7 : 6}
-            className="px-2 py-3 sm:px-4 text-sm text-slate-500 text-center whitespace-nowrap"
-          >
-            No attendance records found for{" "}
-            {format(selectedDate, "dd/MM/yyyy")}.
-          </td>
-        </tr>
-      ) : (
-        filteredSubmissions.map(
-          ({
-            id,
-            employee_name,
-            date,
-            login_time,
-            logout_time,
-            location,
-            status,
-          }) => (
-            <tr
-              key={id}
-              className="hover:bg-slate-100/80 transition-colors duration-200"
+            <table
+              className="w-full table-fixed text-sm min-w-[800px]"
+              aria-label="Employee Attendance Table"
             >
-              <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-slate-900">
-                  {employee_name}
-                </div>
-              </td>
-              <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
-                <span className="text-sm text-slate-900">
-                  {format(parse(date, "yyyy-MM-dd", new Date()), "dd/MM/yyyy")}
-                </span>
-              </td>
-              <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
-                <div className="flex items-center space-x-1 sm:space-x-2">
-                  <Clock size={12} className="text-slate-400 sm:w-4 sm:h-4" />
-                  <span className="text-sm text-slate-900">{login_time}</span>
-                </div>
-              </td>
-              <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
-                <div className="flex items-center space-x-1 sm:space-x-2">
-                  <Clock size={12} className="text-slate-400 sm:w-4 sm:h-4" />
-                  <span className="text-sm text-slate-900">
-                    {logout_time || "N/A"}
-                  </span>
-                </div>
-              </td>
-              <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
-                <span
-                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLocationColor(
-                    location
-                  )}`}
-                >
-                  {location}
-                </span>
-              </td>
-              <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
-                <span
-                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                    status
-                  )}`}
-                >
-                  {status}
-                </span>
-              </td>
-              {["super_admin", "hr"].includes(userRole) && (
-                <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
-                  {status === "Pending" && (
-                    <div className="flex space-x-1 sm:space-x-2">
-                      <button
-                        onClick={() => handleStatusUpdate(id, "Approved")}
-                        className="px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm bg-green-600 text-white rounded-lg hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 transition-transform duration-300"
-                        disabled={loading}
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleStatusUpdate(id, "Rejected")}
-                        className="px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm bg-red-600 text-white rounded-lg hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-400 transition-transform duration-300"
-                        disabled={loading}
-                      >
-                        Reject
-                      </button>
-                    </div>
+              <thead className="bg-gradient-to-r from-teal-600 to-slate-700">
+                <tr>
+                  <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+                    Employee
+                  </th>
+                  <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+                    Date
+                  </th>
+                  <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+                    Check In
+                  </th>
+                  <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+                    Check Out
+                  </th>
+                  <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+                    Location
+                  </th>
+                  <th className="w-[15%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+                    Status
+                  </th>
+                  {["super_admin", "hr"].includes(userRole) && (
+                    <th className="w-[20%] px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-white uppercase">
+                      Actions
+                    </th>
                   )}
-                </td>
-              )}
-            </tr>
-          )
-        )
-      )}
-    </tbody>
-  </table>
-</div>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200/50">
+                {filteredSubmissions.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={["super_admin", "hr"].includes(userRole) ? 7 : 6}
+                      className="px-2 py-3 sm:px-4 text-sm text-slate-500 text-center whitespace-nowrap"
+                    >
+                      No attendance records found for{" "}
+                      {format(selectedDate, "dd/MM/yyyy")}.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredSubmissions.map(
+                    ({
+                      id,
+                      employee_name,
+                      date,
+                      login_time,
+                      logout_time,
+                      location,
+                      status,
+                    }) => (
+                      <tr
+                        key={id}
+                        className="hover:bg-slate-100/80 transition-colors duration-200"
+                      >
+                        <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-slate-900">
+                            {employee_name}
+                          </div>
+                        </td>
+                        <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                          <span className="text-sm text-slate-900">
+                            {format(parse(date, "yyyy-MM-dd", new Date()), "dd/MM/yyyy")}
+                          </span>
+                        </td>
+                        <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-1 sm:space-x-2">
+                            <Clock size={12} className="text-slate-400 sm:w-4 sm:h-4" />
+                            <span className="text-sm text-slate-900">{login_time}</span>
+                          </div>
+                        </td>
+                        <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-1 sm:space-x-2">
+                            <Clock size={12} className="text-slate-400 sm:w-4 sm:h-4" />
+                            <span className="text-sm text-slate-900">
+                              {logout_time || "N/A"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLocationColor(
+                              location
+                            )}`}
+                          >
+                            {location}
+                          </span>
+                        </td>
+                        <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                              status
+                            )}`}
+                          >
+                            {status}
+                          </span>
+                        </td>
+                        {["super_admin", "hr"].includes(userRole) && (
+                          <td className="px-2 py-3 sm:px-4 whitespace-nowrap">
+                            {status === "Pending" && (
+                              <div className="flex space-x-1 sm:space-x-2">
+                                <button
+                                  onClick={() => handleStatusUpdate(id, "Approved")}
+                                  className="px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm bg-green-600 text-white rounded-lg hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 transition-transform duration-300"
+                                  disabled={loading}
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleStatusUpdate(id, "Rejected")}
+                                  className="px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm bg-red-600 text-white rounded-lg hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-400 transition-transform duration-300"
+                                  disabled={loading}
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    )
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
         <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
           <h2 className="text-xl font-bold text-slate-900 mb-4">
@@ -373,8 +382,13 @@ const Attendance = () => {
                   (s) =>
                     new Date(s.date).getDay() === (index + 1) % 7 &&
                     (userRole === "dept_head"
-                      ? s.recipient === "hr"
-                      : s.recipient === userRole)
+                      ? s.recipient === "hr" || s.recipient === user.employee_id
+                      : userRole === "super_admin"
+                      ? s.recipient === "super_admin" ||
+                        s.recipient === user.employee_id ||
+                        ((s.recipient === "hr" || s.recipient === user.hr_employee_id) &&
+                          ["Approved", "Rejected"].includes(s.status))
+                      : s.recipient === userRole || s.recipient === user.employee_id)
                 );
                 const presentCount = daySubmissions.filter(
                   (s) => s.status === "Approved"

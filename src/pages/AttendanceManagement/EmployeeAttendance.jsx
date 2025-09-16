@@ -8,6 +8,7 @@ import {
   clearState,
 } from "../../redux/slices/attendanceSlice";
 import { fetchUserProfile } from "../../redux/slices/userSlice";
+import { fetchRecipientOptions } from "../../redux/slices/leaveSlice";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 import Select from "react-select";
@@ -18,17 +19,16 @@ const EmployeeAttendance = () => {
     (state) => state.attendance
   );
   const { profile, error: userError } = useSelector((state) => state.user);
+  const { recipients: recipientOptions, error: leaveError, loading: leaveLoading } = useSelector(
+    (state) => state.leaves
+  );
 
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [loginTime, setLoginTime] = useState("");
   const [logoutTime, setLogoutTime] = useState("");
-  const [recipient, setRecipient] = useState("hr");
+  const [recipient, setRecipient] = useState("");
   const [location, setLocation] = useState("Office");
 
-  const recipients = [
-    { value: "super_admin", label: "Super Admin" },
-    { value: "hr", label: "HR" },
-  ];
   const locations = [
     { value: "Office", label: "Office" },
     { value: "Remote", label: "Remote" },
@@ -44,7 +44,10 @@ const EmployeeAttendance = () => {
     ? `${employee.full_name} (${employee.employee_id})`
     : "Unknown";
 
-  // Custom styles for React Select
+  const validRecipientOptions = recipientOptions.filter(
+    (option) => option.value && option.value !== ""
+  );
+
   const selectStyles = {
     control: (provided) => ({
       ...provided,
@@ -53,9 +56,7 @@ const EmployeeAttendance = () => {
       borderRadius: "0.5rem",
       padding: "0.1rem",
       boxShadow: "none",
-      "&:hover": {
-        borderColor: "#000",
-      },
+      "&:hover": { borderColor: "#000" },
     }),
     menu: (provided) => ({
       ...provided,
@@ -68,21 +69,12 @@ const EmployeeAttendance = () => {
       backgroundColor: state.isSelected ? "#328E6E" : "#fff",
       color: state.isSelected ? "#fff" : "#111827",
       padding: "0.75rem 1rem",
-      "&:hover": {
-        backgroundColor: state.isSelected ? "#328E6E" : "#f3f4f6",
-      },
+      "&:hover": { backgroundColor: state.isSelected ? "#328E6E" : "#f3f4f6" },
     }),
-    singleValue: (provided) => ({
-      ...provided,
-      color: "#111827",
-    }),
-    input: (provided) => ({
-      ...provided,
-      color: "#111827",
-    }),
+    singleValue: (provided) => ({ ...provided, color: "#111827" }),
+    input: (provided) => ({ ...provided, color: "#111827" }),
   };
 
-  // Location-specific styles (optional slight variation)
   const locationSelectStyles = {
     ...selectStyles,
     control: (provided) => ({
@@ -97,6 +89,7 @@ const EmployeeAttendance = () => {
 
   useEffect(() => {
     if (["employee", "dept_head", "hr", "super_admin"].includes(userRole)) {
+      dispatch(fetchRecipientOptions());
       dispatch(fetchEmployeeAttendance());
       if (!profile) {
         dispatch(fetchUserProfile());
@@ -106,6 +99,30 @@ const EmployeeAttendance = () => {
       dispatch(clearState());
     };
   }, [dispatch, userRole, profile]);
+
+  useEffect(() => {
+    console.log("Debug State:", {
+      recipientOptions,
+      validRecipientOptions,
+      recipient,
+      submissions,
+      loading,
+      leaveLoading,
+      leaveError,
+      userRole,
+      employee_id: employee?.employee_id,
+    });
+  }, [recipientOptions, validRecipientOptions, recipient, submissions, loading, leaveLoading, leaveError, userRole, employee]);
+
+  useEffect(() => {
+    if (validRecipientOptions.length > 0 && !recipient) {
+      console.log("Setting default recipient:", validRecipientOptions[0].value);
+      setRecipient(validRecipientOptions[0].value);
+    }
+    if (validRecipientOptions.length === 0 && !leaveLoading && leaveError) {
+      toast.error(leaveError || "No valid recipients available");
+    }
+  }, [validRecipientOptions, recipient, leaveLoading, leaveError]);
 
   useEffect(() => {
     if (successMessage) {
@@ -120,38 +137,34 @@ const EmployeeAttendance = () => {
       toast.error(userError);
       dispatch(clearState());
     }
-  }, [successMessage, error, userError, dispatch]);
+    if (leaveError && validRecipientOptions.length === 0) {
+      toast.error(leaveError || "Failed to load recipient options");
+    }
+  }, [successMessage, error, userError, leaveError, validRecipientOptions.length, dispatch]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!date || !loginTime || !recipient || !location) {
-      toast.error("Please fill in all required fields.");
+    if (!date || !loginTime || !recipient || !location || !employee?.employee_id) {
+      toast.error("Please fill in all required fields, including a valid employee ID.");
       return;
     }
-    if (logoutTime) {
-      const login = new Date(`1970-01-01T${loginTime}:00`);
-      const logout = new Date(`1970-01-01T${logoutTime}:00`);
-      if (logout <= login) {
-        toast.error("Logout time must be after login time.");
-        return;
-      }
-    }
 
-    dispatch(
-      markAttendance({
-        employee_id: employee?.employee_id,
-        date,
-        login_time: loginTime,
-        logout_time: logoutTime || null,
-        recipient,
-        location,
-      })
-    );
+    const payload = {
+      employee_id: employee?.employee_id,
+      date,
+      login_time: loginTime,
+      logout_time: logoutTime || null,
+      recipient_id: recipient, // Changed to recipient_id
+      location,
+    };
+    console.log("Submitting attendance with payload:", payload);
+
+    dispatch(markAttendance(payload));
 
     setLoginTime("");
     setLogoutTime("");
-    setRecipient("hr");
     setLocation("Office");
+    setRecipient(validRecipientOptions.length > 0 ? validRecipientOptions[0].value : "");
   };
 
   return (
@@ -178,6 +191,12 @@ const EmployeeAttendance = () => {
             Submit your daily attendance for review
           </p>
         </div>
+
+        {validRecipientOptions.length === 0 && !leaveLoading ? (
+          <div className="text-red-600 text-sm mb-4">
+            No valid recipients available. Please contact support to add a Super Admin or HR user.
+          </div>
+        ) : null}
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
           <form
@@ -271,22 +290,32 @@ const EmployeeAttendance = () => {
               <div className="flex items-center space-x-2">
                 <FileText size={16} className="text-black" />
                 <Select
-                  options={recipients}
-                  value={recipients.find((rec) => rec.value === recipient)}
-                  onChange={(option) => setRecipient(option.value)}
+                  options={validRecipientOptions}
+                  value={validRecipientOptions.find((rec) => rec.value === recipient) || null}
+                  onChange={(option) => {
+                    console.log("Selected recipient:", option ? option.value : "none");
+                    setRecipient(option ? option.value : "");
+                  }}
                   styles={selectStyles}
                   className="w-full"
                   required
                   aria-label="Submit To"
+                  isLoading={leaveLoading && validRecipientOptions.length === 0}
+                  isDisabled={validRecipientOptions.length === 0}
+                  placeholder={
+                    validRecipientOptions.length === 0
+                      ? "No recipients available"
+                      : "Select a recipient"
+                  }
                 />
               </div>
             </div>
             <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || leaveLoading || validRecipientOptions.length === 0 || !recipient}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                  loading
+                  loading || leaveLoading || validRecipientOptions.length === 0 || !recipient
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-black text-white hover:bg-gray-800 hover:scale-105"
                 }`}
@@ -342,7 +371,7 @@ const EmployeeAttendance = () => {
                       login_time,
                       logout_time,
                       location,
-                      recipient,
+                      recipient_id,
                       status,
                     }) => (
                       <tr key={id} className="hover:bg-gray-50 transition">
@@ -350,7 +379,7 @@ const EmployeeAttendance = () => {
                           {new Date(date).toLocaleDateString()}
                         </td>
                         <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-900 whitespace-nowrap">
-                          {login_time}
+                          {login_time || "N/A"}
                         </td>
                         <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-900 whitespace-nowrap">
                           {logout_time || "N/A"}
@@ -359,7 +388,9 @@ const EmployeeAttendance = () => {
                           {location}
                         </td>
                         <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-900 whitespace-nowrap">
-                          {recipient === "super_admin" ? "Super Admin" : "HR"}
+                          {recipient_id === "hr"
+                            ? "HR"
+                            : validRecipientOptions.find((rec) => rec.value === recipient_id)?.label || "Unknown"}
                         </td>
                         <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-900 whitespace-nowrap">
                           {status}
