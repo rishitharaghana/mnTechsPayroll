@@ -8,8 +8,15 @@ import {
   createDocuments,
   createBankDetails,
   getCurrentUserProfile,
-  clearState,
   getEmployeeProgress,
+  fetchEmployeePersonalDetails,
+  fetchEmployeeEducationDetails,
+  fetchEmployeeDocuments,
+  fetchEmployeeBankDetails,
+  updateEmployeePersonalDetails, // New thunk
+  updateEducationDetails, // New thunk
+  updateBankDetails, // New thunk
+  clearState,
 } from "../../redux/slices/employeeSlice";
 import StepNavigation from "../../Components/common/StepNavigation";
 import EmployeePersonaldetailsForm from "./EmployeePersonaldetailsForm";
@@ -28,9 +35,17 @@ const steps = [
 
 const EmployeeDetails = () => {
   const dispatch = useDispatch();
-  const { profile, loading, error, successMessage, progress } = useSelector(
-    (state) => state.employee
-  );
+  const {
+    profile,
+    personalDetails,
+    educationDetails,
+    documents,
+    bankDetails,
+    loading,
+    error,
+    successMessage,
+    progress,
+  } = useSelector((state) => state.employee);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -82,15 +97,17 @@ const EmployeeDetails = () => {
     const userToken = localStorage.getItem("userToken");
     if (userToken) {
       try {
-        console.log(
-          "Dispatching getCurrentUserProfile and getEmployeeProgress"
-        );
+        console.log("Dispatching profile, progress, and details fetches");
         dispatch(getCurrentUserProfile());
         dispatch(getEmployeeProgress());
+        const { employee_id } = JSON.parse(userToken);
+        dispatch(fetchEmployeePersonalDetails(employee_id));
+        dispatch(fetchEmployeeEducationDetails(employee_id));
+        dispatch(fetchEmployeeDocuments(employee_id));
+        dispatch(fetchEmployeeBankDetails(employee_id));
       } catch (err) {
         setErrors({
-          general:
-            "Failed to fetch user profile or progress. Please log in again.",
+          general: "Failed to fetch user data. Please log in again.",
         });
       }
     } else {
@@ -101,12 +118,10 @@ const EmployeeDetails = () => {
   useEffect(() => {
     if (progress) {
       let stepIndex = 0;
-
       if (progress.personalDetails) stepIndex = 1;
       if (progress.educationDetails) stepIndex = 2;
       if (progress.documents) stepIndex = 3;
       if (progress.bankDetails) stepIndex = 4;
-
       setCurrentStep(stepIndex);
     }
   }, [progress]);
@@ -114,34 +129,67 @@ const EmployeeDetails = () => {
   useEffect(() => {
     console.log("Redux state in component:", {
       profile,
+      personalDetails,
+      educationDetails,
+      documents,
+      bankDetails,
       loading,
       error,
       progress,
     });
-    if (profile) {
+    if (profile || personalDetails || educationDetails || documents || bankDetails) {
       const updatedFormData = {
         ...formData,
-        employee_id: profile.employee_id || "",
-        fullName: profile.full_name || "",
-        email: profile.email || "",
-        phone: profile.mobile || "",
-        gender: profile.gender || "",
-        panCard: profile.pan_card || "",
-        aadharCard: profile.aadhar_card || "",
-        dob: profile.dob || "",
-        bloodGroup: profile.blood_group || "",
-        joiningDate: profile.join_date || "",
-        employmentType: profile.employment_type || "",
-        department: profile.department_name || "",
-        position: profile.designation_name || "",
-        basicSalary: profile.basic_salary || "",
-        allowances: profile.allowances || "",
-        bonuses: profile.bonuses || "",
+        // From profile (hrms_users)
+        employee_id: profile?.employee_id || "",
+        fullName: profile?.full_name || "",
+        email: profile?.email || "",
+        phone: profile?.mobile || "",
+        gender: profile?.gender || "",
+        dob: profile?.dob || "",
+        bloodGroup: profile?.blood_group || "",
+        department: profile?.department_name || "",
+        position: profile?.designation_name || "",
+        basicSalary: profile?.basic_salary || "",
+        allowances: profile?.allowances || "",
+        bonuses: profile?.bonuses || "",
+        // From personal_details
+        fatherName: personalDetails?.father_name || "",
+        motherName: personalDetails?.mother_name || "",
+        presentAddress: personalDetails?.present_address || "",
+        previousAddress: personalDetails?.previous_address || "",
+        positionType: personalDetails?.position_type || "",
+        employerIdName: personalDetails?.employer_id_name || "",
+        positionTitle: personalDetails?.position_title || "",
+        employmentType: personalDetails?.employment_type || "",
+        joiningDate: personalDetails?.joining_date || "",
+        contractEndDate: personalDetails?.contract_end_date || "",
+        panCard: personalDetails?.pan_number || "",
+        aadharCard: personalDetails?.adhar_number || "",
+        // From education_details
+        tenthClassName: educationDetails?.tenth_class_name || "",
+        tenthClassMarks: educationDetails?.tenth_class_marks || "",
+        intermediateName: educationDetails?.intermediate_name || "",
+        intermediateMarks: educationDetails?.intermediate_marks || "",
+        graduationName: educationDetails?.graduation_name || "",
+        graduationMarks: educationDetails?.graduation_marks || "",
+        postgraduationName: educationDetails?.postgraduation_name || "",
+        postgraduationMarks: educationDetails?.postgraduation_marks || "",
+        // From bank_details
+        ifscNumber: bankDetails?.ifsc_number || "",
+        bankACnumber: bankDetails?.bank_account_number || "",
+        // From documents
+        tenthClassDoc: documents?.find(doc => doc.document_type === "tenth_class")?.file_path || null,
+        intermediateDoc: documents?.find(doc => doc.document_type === "intermediate")?.file_path || null,
+        graduationDoc: documents?.find(doc => doc.document_type === "graduation")?.file_path || null,
+        postgraduationDoc: documents?.find(doc => doc.document_type === "postgraduation")?.file_path || null,
+        aadharDoc: documents?.find(doc => doc.document_type === "aadhar")?.file_path || null,
+        panDoc: documents?.find(doc => doc.document_type === "pan")?.file_path || null,
       };
       setFormData(updatedFormData);
       console.log("Updated formData:", updatedFormData);
     }
-  }, [profile]);
+  }, [profile, personalDetails, educationDetails, documents, bankDetails]);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -239,7 +287,7 @@ const EmployeeDetails = () => {
           ) {
             newErrors[field] = `Invalid ${field
               .replace(/([A-Z])/g, " $1")
-              .replace(/^./, (str) => str.toUpperCase())}`;
+              .replace(/^./, (str) => str.toUpperCase())} (0-100)`;
           }
         });
         break;
@@ -305,13 +353,6 @@ const EmployeeDetails = () => {
   const goToStep = async (index) => {
     if (index === steps.length - 1) {
       setIsPreviewOpen(true);
-    } else if (index > currentStep) {
-      if (validateStep(currentStep)) {
-        const success = await submitStep(currentStep);
-        if (success) {
-          setCurrentStep(index);
-        }
-      }
     } else {
       setCurrentStep(index);
     }
@@ -350,7 +391,13 @@ const EmployeeDetails = () => {
             bloodGroup: formData.bloodGroup,
           };
           console.log("Submitting personal details:", personalData);
-          await dispatch(createEmployeePersonalDetails(personalData)).unwrap();
+          if (progress?.personalDetails) {
+            await dispatch(updateEmployeePersonalDetails(personalData)).unwrap();
+            setErrors({ general: "Personal details updated successfully!" });
+          } else {
+            await dispatch(createEmployeePersonalDetails(personalData)).unwrap();
+            setErrors({ general: "Personal details saved successfully!" });
+          }
           return true;
         }
         case 1: {
@@ -366,17 +413,23 @@ const EmployeeDetails = () => {
             postgraduationMarks: formData.postgraduationMarks,
           };
           console.log("Submitting education details:", educationData);
-          await dispatch(createEducationDetails(educationData)).unwrap();
+          if (progress?.educationDetails) {
+            await dispatch(updateEducationDetails(educationData)).unwrap();
+            setErrors({ general: "Education details updated successfully!" });
+          } else {
+            await dispatch(createEducationDetails(educationData)).unwrap();
+            setErrors({ general: "Education details saved successfully!" });
+          }
           return true;
         }
         case 2: {
           const docFields = [
-            { field: "tenthClassDoc", documentType: "tenthClassDoc" },
-            { field: "intermediateDoc", documentType: "intermediateDoc" },
-            { field: "graduationDoc", documentType: "graduationDoc" },
-            { field: "postgraduationDoc", documentType: "postgraduationDoc" },
-            { field: "aadharDoc", documentType: "aadharDoc" },
-            { field: "panDoc", documentType: "panDoc" },
+            { field: "tenthClassDoc", documentType: "tenth_class" },
+            { field: "intermediateDoc", documentType: "intermediate" },
+            { field: "graduationDoc", documentType: "graduation" },
+            { field: "postgraduationDoc", documentType: "postgraduation" },
+            { field: "aadharDoc", documentType: "aadhar" },
+            { field: "panDoc", documentType: "pan" },
           ];
           for (const { field, documentType } of docFields) {
             if (formData[field]) {
@@ -393,6 +446,7 @@ const EmployeeDetails = () => {
               ).unwrap();
             }
           }
+          setErrors({ general: "Documents saved successfully!" });
           return true;
         }
         case 3: {
@@ -402,7 +456,13 @@ const EmployeeDetails = () => {
             ifscCode: formData.ifscNumber,
           };
           console.log("Submitting bank details:", bankData);
-          await dispatch(createBankDetails(bankData)).unwrap();
+          if (progress?.bankDetails) {
+            await dispatch(updateBankDetails(bankData)).unwrap();
+            setErrors({ general: "Bank details updated successfully!" });
+          } else {
+            await dispatch(createBankDetails(bankData)).unwrap();
+            setErrors({ general: "Bank details saved successfully!" });
+          }
           return true;
         }
         default:
@@ -424,60 +484,18 @@ const EmployeeDetails = () => {
     if (validateStep(currentStep)) {
       const success = await submitStep(currentStep);
       if (success) {
-        dispatch(clearState());
-        setFormData({
-          employee_id: "",
-          fullName: "",
-          fatherName: "",
-          motherName: "",
-          phone: "",
-          email: "",
-          gender: "",
-          panCard: "",
-          aadharCard: "",
-          image: null,
-          presentAddress: "",
-          previousAddress: "",
-          positionType: "",
-          employerIdName: "",
-          positionTitle: "",
-          employmentType: "",
-          joiningDate: "",
-          contractEndDate: "",
-          tenthClassName: "",
-          tenthClassMarks: "",
-          intermediateName: "",
-          intermediateMarks: "",
-          graduationName: "",
-          graduationMarks: "",
-          postgraduationName: "",
-          postgraduationMarks: "",
-          tenthClassDoc: null,
-          intermediateDoc: null,
-          graduationDoc: null,
-          postgraduationDoc: null,
-          aadharDoc: null,
-          panDoc: null,
-          ifscNumber: "",
-          bankACnumber: "",
-          dob: "",
-          bloodGroup: "",
-          basicSalary: "",
-          allowances: "",
-          bonuses: "",
-          department: "",
-          position: "",
-        });
-        setCurrentStep(0);
-        setIsPreviewOpen(false);
+        setIsPreviewOpen(true); // Move to preview instead of resetting
       }
     }
   };
+
+
 
   const openPreview = () => {
     console.log("Opening preview with formData:", formData);
     setIsPreviewOpen(true);
   };
+
   const closePreview = () => setIsPreviewOpen(false);
 
   return (
@@ -520,7 +538,7 @@ const EmployeeDetails = () => {
       <div className="hidden sm:flex sm:justify-end sm:items-center">
         <PageMeta
           title="Employee Details"
-          description="Add new employee details"
+          description="Add or update employee details"
         />
         <PageBreadcrumb
           items={[
@@ -534,18 +552,29 @@ const EmployeeDetails = () => {
           <h2 className="text-xl sm:text-2xl font-bold text-center text-gray-900 mb-8 tracking-tight">
             Employee Details Form
           </h2>
-          {error && (
-            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg flex justify-between items-center">
-              {error === "Access denied: Insufficient permissions"
-                ? "You do not have permission to add bank details. Please contact HR."
-                : error}
-              <button
-                onClick={() => dispatch(getCurrentUserProfile())}
-                className="text-blue-600 underline hover:text-blue-800"
-              >
-                Retry
-              </button>
+          {errors.general && errors.general.includes("successfully") ? (
+            <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg text-center">
+              {errors.general}
             </div>
+          ) : (
+            errors.general && (
+              <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg flex justify-between items-center">
+                {errors.general}
+                <button
+                  onClick={() => {
+                    dispatch(getCurrentUserProfile());
+                    const userToken = JSON.parse(localStorage.getItem("userToken"));
+                    dispatch(fetchEmployeePersonalDetails(userToken.employee_id));
+                    dispatch(fetchEmployeeEducationDetails(userToken.employee_id));
+                    dispatch(fetchEmployeeDocuments(userToken.employee_id));
+                    dispatch(fetchEmployeeBankDetails(userToken.employee_id));
+                  }}
+                  className="text-blue-600 underline hover:text-blue-800"
+                >
+                  Retry
+                </button>
+              </div>
+            )
           )}
           {loading && (
             <div className="mb-4 p-4 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center">
@@ -634,6 +663,7 @@ const EmployeeDetails = () => {
               >
                 Back
               </button>
+       
               {currentStep < steps.length - 1 ? (
                 <button
                   type="button"
@@ -670,4 +700,4 @@ const EmployeeDetails = () => {
   );
 };
 
-export default EmployeeDetails;
+export default EmployeeDetails;                                                                                                                                                                       

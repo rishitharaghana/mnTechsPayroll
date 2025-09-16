@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   applyLeave,
   fetchMyLeaves,
@@ -8,13 +8,13 @@ import {
   fetchLeaveBalances,
   allocateMonthlyLeaves,
   clearState,
-} from '../../redux/slices/leaveSlice';
-import { Calendar, List, Send, RefreshCw, ChevronDown } from 'lucide-react';
-import PageBreadcrumb from '../../Components/common/PageBreadcrumb';
-import PageMeta from '../../Components/common/PageMeta';
-import DatePicker from '../../Components/ui/date/DatePicker';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+} from "../../redux/slices/leaveSlice";
+import { Calendar, List, Send, RefreshCw, ChevronDown } from "lucide-react";
+import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
+import PageMeta from "../../Components/common/PageMeta";
+import DatePicker from "../../Components/ui/date/DatePicker";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const LeaveApplication = () => {
   const dispatch = useDispatch();
@@ -29,59 +29,71 @@ const LeaveApplication = () => {
   } = useSelector((state) => state.leaves);
   const { role, token, employee_id } = useSelector((state) => state.auth);
   const [formData, setFormData] = useState({
-    start_date: '',
-    end_date: '',
-    reason: '',
-    leave_status: 'Paid',
-    leave_category: 'casual',
-    recipient_id: '',
+    start_date: "",
+    end_date: "",
+    reason: "",
+    leave_status: "Paid",
+    leave_category: "casual",
+    recipient_id: "",
   });
   const [isLeaveStatusOpen, setIsLeaveStatusOpen] = useState(false);
   const [isLeaveCategoryOpen, setIsLeaveCategoryOpen] = useState(false);
   const [isRecipientOpen, setIsRecipientOpen] = useState(false);
 
   const leaveCategories = [
-    { value: 'casual', label: 'Casual Leave' },
-    { value: 'sick', label: 'Sick Leave' },
-    { value: 'vacation', label: 'Vacation Leave' },
-    { value: 'emergency', label: 'Emergency Leave' },
-    { value: 'maternity', label: 'Maternity Leave' },
-    { value: 'paternity', label: 'Paternity Leave' },
+    { value: "casual", label: "Casual Leave" },
+    { value: "sick", label: "Sick Leave" },
+    { value: "vacation", label: "Vacation Leave" },
+    { value: "emergency", label: "Emergency Leave" },
+    { value: "maternity", label: "Maternity Leave" },
+    { value: "paternity", label: "Paternity Leave" },
   ];
 
+  // --- FIXED TIME ISSUE: convert to IST before sending to backend ---
+  const convertToIST = (dateStr) => {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    const istOffset = 5.5 * 60; // +5:30 hours
+    const istDate = new Date(date.getTime() + istOffset * 60000);
+    const yyyy = istDate.getFullYear();
+    const mm = String(istDate.getMonth() + 1).padStart(2, "0");
+    const dd = String(istDate.getDate()).padStart(2, "0");
+    const hh = String(istDate.getHours()).padStart(2, "0");
+    const min = String(istDate.getMinutes()).padStart(2, "0");
+    const ss = String(istDate.getSeconds()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+  };
+
   useEffect(() => {
-    if (!token || !localStorage.getItem('userToken')) {
-      console.log('No token found, redirecting to login');
-      navigate('/login');
+    if (!token || !localStorage.getItem("userToken")) {
+      navigate("/login");
       return;
     }
     try {
-      const { token: parsedToken } = JSON.parse(localStorage.getItem('userToken'));
+      const { token: parsedToken } = JSON.parse(
+        localStorage.getItem("userToken")
+      );
       if (parsedToken !== token) {
-        console.warn('Token mismatch between Redux and localStorage');
-        navigate('/login');
+        navigate("/login");
         return;
       }
     } catch (error) {
-      console.error('Error parsing userToken:', error);
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
     dispatch(fetchMyLeaves());
     dispatch(fetchRecipientOptions());
-    dispatch(fetchLeaveBalances()); // Fixed: Added missing closing parenthesis
+    dispatch(fetchLeaveBalances());
     const interval = setInterval(() => {
-      console.log('Polling fetchMyLeaves and fetchLeaveBalances');
       dispatch(fetchMyLeaves());
       dispatch(fetchLeaveBalances());
     }, 60000);
-
     return () => clearInterval(interval);
   }, [dispatch, navigate, token]);
 
   useEffect(() => {
-    console.log('Updated recipients:', recipients);
+    console.log("Updated recipients:", recipients);
   }, [recipients]);
 
   useEffect(() => {
@@ -99,33 +111,41 @@ const LeaveApplication = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.leave_status === 'Paid' && leaveBalances.paid <= 0) {
-      toast.error('No paid leave balance available');
+    if (formData.leave_status === "Paid" && leaveBalances.paid <= 0) {
+      toast.error("No paid leave balance available");
       return;
     }
     if (new Date(formData.end_date) < new Date(formData.start_date)) {
-      toast.error('End date cannot be before start date');
+      toast.error("End date cannot be before start date");
       return;
     }
     if (!formData.recipient_id) {
-      toast.error('Please select a recipient');
+      toast.error("Please select a recipient");
       return;
     }
-    dispatch(applyLeave({ ...formData, employee_id })).then((result) => {
+
+    // Convert dates to IST before sending
+    const payload = {
+      ...formData,
+      employee_id,
+      start_date: convertToIST(formData.start_date),
+      end_date: convertToIST(formData.end_date),
+    };
+
+    dispatch(applyLeave(payload)).then((result) => {
       if (result.error) {
-        console.error('applyLeave error:', result.error.message);
         toast.error(result.error.message);
-        if (result.error.message.includes('No authentication token')) {
-          navigate('/login');
+        if (result.error.message.includes("No authentication token")) {
+          navigate("/login");
         }
-      } else if (result.meta.requestStatus === 'fulfilled') {
+      } else if (result.meta.requestStatus === "fulfilled") {
         setFormData({
-          start_date: '',
-          end_date: '',
-          reason: '',
-          leave_status: 'Paid',
-          leave_category: 'casual',
-          recipient_id: '',
+          start_date: "",
+          end_date: "",
+          reason: "",
+          leave_status: "Paid",
+          leave_category: "casual",
+          recipient_id: "",
         });
         dispatch(fetchMyLeaves());
         dispatch(fetchLeaveBalances());
@@ -244,8 +264,8 @@ const LeaveApplication = () => {
         />
         <PageBreadcrumb
           items={[
-            { label: 'Home', link: '/emp-dashboard' },
-            { label: 'Leave Application', link: '/employee/leave-application' },
+            { label: "Home", link: "/emp-dashboard" },
+            { label: "Leave Application", link: "/employee/leave-application" },
           ]}
         />
       </div>
@@ -255,8 +275,12 @@ const LeaveApplication = () => {
           <div className="flex items-center gap-2">
             <Calendar size={24} className="text-teal-700" />
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-700">Leave Application</h1>
-              <p className="text-slate-700 mt-1 text-sm sm:text-base">Submit your leave request</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-700">
+                Leave Application
+              </h1>
+              <p className="text-slate-700 mt-1 text-sm sm:text-base">
+                Submit your leave request
+              </p>
             </div>
           </div>
         </div>
@@ -271,8 +295,10 @@ const LeaveApplication = () => {
           <p>Available Paid Leave: {leaveBalances.paid} days</p>
         </div>
 
-        {role === 'super_admin' ? (
-          <p className="text-red-500 text-sm sm:text-base">Super admins cannot apply for leaves.</p>
+        {role === "super_admin" ? (
+          <p className="text-red-500 text-sm sm:text-base">
+            Super admins cannot apply for leaves.
+          </p>
         ) : (
           <form
             onSubmit={handleSubmit}
@@ -284,7 +310,7 @@ const LeaveApplication = () => {
                   name="start_date"
                   title="Start Date"
                   value={formData.start_date}
-                  onChange={(date) => handleInputChange('start_date', date)}
+                  onChange={(date) => handleInputChange("start_date", date)}
                   icon={<Calendar size={20} className="text-teal-700" />}
                 />
               </div>
@@ -293,19 +319,25 @@ const LeaveApplication = () => {
                   name="end_date"
                   title="End Date"
                   value={formData.end_date}
-                  onChange={(date) => handleInputChange('end_date', date)}
+                  onChange={(date) => handleInputChange("end_date", date)}
                   icon={<Calendar size={20} className="text-teal-700" />}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Leave Status</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Leave Status
+                </label>
                 <div className="custom-select-container">
                   <div
                     className="custom-select"
                     onClick={() => setIsLeaveStatusOpen(!isLeaveStatusOpen)}
                   >
-                    <span>{formData.leave_status || 'Select Leave Status'}</span>
-                    <span><ChevronDown size={16} className="text-slate-400" /></span>
+                    <span>
+                      {formData.leave_status || "Select Leave Status"}
+                    </span>
+                    <span>
+                      <ChevronDown size={16} className="text-slate-400" />
+                    </span>
                   </div>
                   {isLeaveStatusOpen && (
                     <div className="custom-select-options">
@@ -313,18 +345,21 @@ const LeaveApplication = () => {
                         className="leave-status-option"
                         onClick={() => {
                           if (leaveBalances.paid > 0) {
-                            handleInputChange('leave_status', 'Paid');
+                            handleInputChange("leave_status", "Paid");
                             setIsLeaveStatusOpen(false);
                           }
                         }}
-                        style={{ cursor: leaveBalances.paid <= 0 ? 'not-allowed' : 'pointer' }}
+                        style={{
+                          cursor:
+                            leaveBalances.paid <= 0 ? "not-allowed" : "pointer",
+                        }}
                       >
                         Paid ({leaveBalances.paid} days)
                       </div>
                       <div
                         className="leave-status-option"
                         onClick={() => {
-                          handleInputChange('leave_status', 'Unpaid');
+                          handleInputChange("leave_status", "Unpaid");
                           setIsLeaveStatusOpen(false);
                         }}
                       >
@@ -335,17 +370,22 @@ const LeaveApplication = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Leave Category</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Leave Category
+                </label>
                 <div className="custom-select-container">
                   <div
                     className="custom-select"
                     onClick={() => setIsLeaveCategoryOpen(!isLeaveCategoryOpen)}
                   >
                     <span>
-                      {leaveCategories.find((cat) => cat.value === formData.leave_category)?.label ||
-                        'Select Leave Category'}
+                      {leaveCategories.find(
+                        (cat) => cat.value === formData.leave_category
+                      )?.label || "Select Leave Category"}
                     </span>
-                    <span><ChevronDown size={16} className="text-slate-400" /></span>
+                    <span>
+                      <ChevronDown size={16} className="text-slate-400" />
+                    </span>
                   </div>
                   {isLeaveCategoryOpen && (
                     <div className="custom-select-options">
@@ -354,7 +394,7 @@ const LeaveApplication = () => {
                           key={category.value}
                           className="leave-category-option"
                           onClick={() => {
-                            handleInputChange('leave_category', category.value);
+                            handleInputChange("leave_category", category.value);
                             setIsLeaveCategoryOpen(false);
                           }}
                         >
@@ -366,35 +406,46 @@ const LeaveApplication = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Recipient</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Recipient
+                </label>
                 <div className="custom-select-container">
                   <div
                     className="custom-select"
                     onClick={() => setIsRecipientOpen(!isRecipientOpen)}
                   >
                     <span>
-                      {recipients.find((r) => r.employee_id === formData.recipient_id)?.full_name ||
-                        'Select Recipient'}
+                      {recipients.find((r) => r.value === formData.recipient_id)
+                        ?.label || "Select Recipient"}
                     </span>
-                    <span><ChevronDown size={16} className="text-slate-400" /></span>
+
+                    <span>
+                      <ChevronDown size={16} className="text-slate-400" />
+                    </span>
                   </div>
                   {isRecipientOpen && (
                     <div className="custom-select-options">
                       {recipients.length > 0 ? (
                         recipients.map((recipient) => (
                           <div
-                            key={recipient.employee_id}
+                            key={recipient.value}
                             className="recipient-option"
                             onClick={() => {
-                              handleInputChange('recipient_id', recipient.employee_id);
+                              handleInputChange(
+                                "recipient_id",
+                                recipient.value
+                              );
                               setIsRecipientOpen(false);
                             }}
                           >
-                            {recipient.full_name}
+                            {recipient.label}
                           </div>
                         ))
                       ) : (
-                        <div className="recipient-option" style={{ cursor: 'not-allowed' }}>
+                        <div
+                          className="recipient-option"
+                          style={{ cursor: "not-allowed" }}
+                        >
                           No recipients available
                         </div>
                       )}
@@ -403,21 +454,27 @@ const LeaveApplication = () => {
                 </div>
               </div>
               <div className="sm:col-span-2 lg:col-span-3">
-                <label className="block text-sm font-medium text-slate-700 mb-1">Reason</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Reason
+                </label>
                 <textarea
                   name="reason"
                   value={formData.reason}
-                  onChange={(e) => handleInputChange('reason', e.target.value)}
+                  onChange={(e) => handleInputChange("reason", e.target.value)}
                   className="mt-1 block w-full rounded-lg border border-teal-700 bg-white py-2.5 px-3 text-slate-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition duration-150 ease-in-out"
                   placeholder="Enter reason for leave"
                   required
                 />
               </div>
               <div className="sm:col-span-2 lg:col-span-3 flex flex-col sm:flex-row justify-end gap-2">
-                {['super_admin', 'hr'].includes(role) && (
+                {["super_admin", "hr"].includes(role) && (
                   <button
                     type="button"
-                    onClick={() => dispatch(allocateMonthlyLeaves()).then(() => dispatch(fetchLeaveBalances()))}
+                    onClick={() =>
+                      dispatch(allocateMonthlyLeaves()).then(() =>
+                        dispatch(fetchLeaveBalances())
+                      )
+                    }
                     className="px-3 py-2 bg-teal-700 text-white rounded-lg hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-700 transition duration-150 ease-in-out flex items-center gap-2 w-full sm:w-auto"
                   >
                     <RefreshCw size={16} />
@@ -434,11 +491,17 @@ const LeaveApplication = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || !formData.recipient_id || !formData.leave_category || (formData.leave_status === 'Paid' && leaveBalances.paid <= 0)}
+                  disabled={
+                    loading ||
+                    !formData.recipient_id ||
+                    !formData.leave_category ||
+                    (formData.leave_status === "Paid" &&
+                      leaveBalances.paid <= 0)
+                  }
                   className="flex items-center gap-2 bg-teal-700 text-white px-3 py-2 rounded-lg hover:bg-slate-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-700 transition duration-150 ease-in-out w-full sm:w-auto"
                 >
                   <Send size={16} />
-                  <span>{loading ? 'Submitting...' : 'Submit'}</span>
+                  <span>{loading ? "Submitting..." : "Submit"}</span>
                 </button>
               </div>
             </div>
@@ -448,73 +511,104 @@ const LeaveApplication = () => {
         <div className="mt-7 bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-md">
           <div className="flex items-center gap-2 mb-4">
             <List size={24} className="text-teal-700" />
-            <h2 className="text-lg sm:text-xl font-bold text-slate-700">Leave History</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-700">
+              Leave History
+            </h2>
           </div>
           {loading && leaves.length === 0 ? (
-            <p className="text-slate-700 text-center text-sm sm:text-base">Loading leave history...</p>
+            <p className="text-slate-700 text-center text-sm sm:text-base">
+              Loading leave history...
+            </p>
           ) : leaves.length > 0 ? (
             <div className="table-container overflow-x-auto">
               <table className="min-w-full divide-y divide-teal-700">
                 <thead className="bg-teal-700/10">
                   <tr>
-                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">Start Date</th>
-                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">End Date</th>
-                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">Days</th>
-                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">Category</th>
-                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">Status</th>
-                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">Reason</th>
-                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">Recipients</th>
-                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">Approval</th>
-                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">Approved At</th>
+                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">
+                      Start Date
+                    </th>
+                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">
+                      End Date
+                    </th>
+                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">
+                      Days
+                    </th>
+                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">
+                      Category
+                    </th>
+                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">
+                      Status
+                    </th>
+                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">
+                      Reason
+                    </th>
+                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">
+                      Recipients
+                    </th>
+                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">
+                      Approval
+                    </th>
+                    <th className="px-2 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">
+                      Approved At
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-teal-700">
                   {leaves.map((leave) => (
                     <tr key={leave.id}>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
-                        {new Date(leave.start_date).toLocaleDateString() || 'N/A'}
+                        {new Date(leave.start_date).toLocaleDateString() ||
+                          "N/A"}
                       </td>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
-                        {new Date(leave.end_date).toLocaleDateString() || 'N/A'}
+                        {new Date(leave.end_date).toLocaleDateString() || "N/A"}
                       </td>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
-                        {leave.total_days || 'N/A'}
+                        {leave.total_days || "N/A"}
                       </td>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
-                        {leaveCategories.find((cat) => cat.value === leave.leave_category)?.label ||
+                        {leaveCategories.find(
+                          (cat) => cat.value === leave.leave_category
+                        )?.label ||
                           leave.leave_category ||
-                          'N/A'}
+                          "N/A"}
                       </td>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
-                        {leave.leave_status || 'N/A'}
+                        {leave.leave_status || "N/A"}
                       </td>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 truncate max-w-[120px] sm:max-w-[200px]">
-                        {leave.reason || 'N/A'}
+                        {leave.reason || "N/A"}
                       </td>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 truncate max-w-[120px] sm:max-w-[200px]">
                         {Array.isArray(leave.recipients)
                           ? leave.recipients
-                              .map((r) => (typeof r === 'string' ? r : r.full_name || r.name || 'Unknown'))
-                              .join(', ')
-                          : typeof leave.recipients === 'string'
-                          ? leave.recipients.split(',').join(', ')
-                          : 'Pending'}
+                              .map((r) =>
+                                typeof r === "string"
+                                  ? r
+                                  : r.full_name || r.name || "Unknown"
+                              )
+                              .join(", ")
+                          : typeof leave.recipients === "string"
+                          ? leave.recipients.split(",").join(", ")
+                          : "Pending"}
                       </td>
                       <td className="px-2 sm:px-6 py-4 text-sm whitespace-nowrap">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            leave.status?.toLowerCase() === 'approved'
-                              ? 'bg-teal-700/20 text-teal-700'
-                              : leave.status?.toLowerCase() === 'rejected'
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-yellow-100 text-yellow-700'
+                            leave.status?.toLowerCase() === "approved"
+                              ? "bg-teal-700/20 text-teal-700"
+                              : leave.status?.toLowerCase() === "rejected"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
                           }`}
                         >
-                          {leave.status || 'Unknown'}
+                          {leave.status || "Unknown"}
                         </span>
                       </td>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
-                        {leave.approved_at ? new Date(leave.approved_at).toLocaleString() : 'Pending'}
+                        {leave.approved_at
+                          ? new Date(leave.approved_at).toLocaleString()
+                          : "Pending"}
                       </td>
                     </tr>
                   ))}
@@ -522,7 +616,9 @@ const LeaveApplication = () => {
               </table>
             </div>
           ) : (
-            <p className="text-slate-700 text-center text-sm sm:text-base">No leave requests found.</p>
+            <p className="text-slate-700 text-center text-sm sm:text-base">
+              No leave requests found.
+            </p>
           )}
         </div>
       </div>

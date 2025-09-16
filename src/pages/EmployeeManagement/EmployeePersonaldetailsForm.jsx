@@ -212,6 +212,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
             className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 pr-10"
             dateFormat="yyyy-MM-dd"
             placeholderText="Select date of birth"
+            disabled
             showYearDropdown
             scrollableYearDropdown
             yearDropdownItemNumber={100}

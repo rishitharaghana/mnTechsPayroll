@@ -62,8 +62,8 @@ const EmployeeIdCards = () => {
               className="shadow-2xl bg-white relative sm:w-[340px] w-[256px] sm:h-[530px] h-[400px] bg-center bg-contain bg-no-repeat"
               style={{ backgroundImage: "url(/assets/IDCardTemplate.png)" }}
             >
-              <div className="absolute sm:top-[22%] top-[19%] left-1/2 -translate-x-1/2">
-                <div className="w-[120px] h-[120px] rounded-full overflow-hidden relative flex items-center justify-center">
+              <div className="absolute sm:top-[114.5px] top-[19%] left-1/2 -translate-x-1/2">
+                <div className="w-[130px] h-[130px] rounded-full overflow-hidden relative flex items-center justify-center">
                   {card.photo_url ? (
                     <img
                       src={card.photo_url}
