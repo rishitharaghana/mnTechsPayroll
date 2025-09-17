@@ -154,17 +154,24 @@ const EmployeeAttendance = () => {
       date,
       login_time: loginTime,
       logout_time: logoutTime || null,
-      recipient_id: recipient, // Changed to recipient_id
+      recipient_id: recipient, // Should be employee_id for HR or full_name for Super Admin
       location,
     };
     console.log("Submitting attendance with payload:", payload);
 
-    dispatch(markAttendance(payload));
-
-    setLoginTime("");
-    setLogoutTime("");
-    setLocation("Office");
-    setRecipient(validRecipientOptions.length > 0 ? validRecipientOptions[0].value : "");
+    dispatch(markAttendance(payload))
+      .unwrap()
+      .then(() => {
+        toast.success("Attendance marked successfully!");
+        setLoginTime("");
+        setLogoutTime("");
+        setLocation("Office");
+        setRecipient(validRecipientOptions.length > 0 ? validRecipientOptions[0].value : "");
+        dispatch(fetchEmployeeAttendance()); // Refresh attendance
+      })
+      .catch((err) => {
+        toast.error(err.message || "Failed to mark attendance");
+      });
   };
 
   return (
@@ -372,6 +379,7 @@ const EmployeeAttendance = () => {
                       logout_time,
                       location,
                       recipient_id,
+                      recipient_name,
                       status,
                     }) => (
                       <tr key={id} className="hover:bg-gray-50 transition">
@@ -388,8 +396,12 @@ const EmployeeAttendance = () => {
                           {location}
                         </td>
                         <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-900 whitespace-nowrap">
-                          {recipient_id === "hr"
-                            ? "HR"
+                          {recipient_name && recipient_name !== "Unknown"
+                            ? recipient_name
+                            : recipient_id === "hr"
+                            ? "Default HR User (HR)"
+                            : recipient_id === "super_admin"
+                            ? "Default Super Admin (Super Admin)"
                             : validRecipientOptions.find((rec) => rec.value === recipient_id)?.label || "Unknown"}
                         </td>
                         <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-900 whitespace-nowrap">

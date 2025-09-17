@@ -9,7 +9,7 @@ import {
   updateAttendanceStatus,
   clearState,
 } from "../../redux/slices/attendanceSlice";
-import { format, parse, isValid, addHours, startOfWeek, endOfWeek } from "date-fns";
+import { format, parse, isValid, startOfWeek, endOfWeek } from "date-fns";
 
 const Attendance = () => {
   const dispatch = useDispatch();
@@ -18,10 +18,7 @@ const Attendance = () => {
   );
 
   // Initialize selectedDate in IST
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const date = new Date();
-    return date;
-  });
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
 
   const formattedDate = format(selectedDate, "yyyy-MM-dd");
   console.log("Selected date (IST):", formattedDate);
@@ -29,6 +26,7 @@ const Attendance = () => {
   const userToken = localStorage.getItem("userToken");
   const user = userToken ? JSON.parse(userToken) : null;
   const userRole = user?.role;
+  const userEmployeeId = user?.employee_id;
 
   useEffect(() => {
     if (["super_admin", "hr", "dept_head"].includes(userRole)) {
@@ -51,6 +49,7 @@ const Attendance = () => {
   }, [successMessage, error, dispatch]);
 
   const handleStatusUpdate = (id, status) => {
+    console.log("Updating attendance status:", { id, status });
     dispatch(updateAttendanceStatus({ id, status }));
   };
 
@@ -69,12 +68,15 @@ const Attendance = () => {
 
   const normalizeDate = (isoDate) => {
     try {
+      if (!isoDate) return "";
       const date = parse(isoDate, "yyyy-MM-dd", new Date());
-      if (!isValid(date)) return "";
-      // Convert UTC to IST (UTC+5:30)
-      const istDate = addHours(date, 5.5);
-      return format(istDate, "yyyy-MM-dd");
-    } catch {
+      if (!isValid(date)) {
+        console.warn(`Invalid date format: ${isoDate}`);
+        return "";
+      }
+      return format(date, "yyyy-MM-dd"); // No IST offset, database is IST
+    } catch (err) {
+      console.warn(`Error normalizing date ${isoDate}:`, err);
       return "";
     }
   };
@@ -84,29 +86,36 @@ const Attendance = () => {
   const filteredSubmissions = submissions.filter((submission) => {
     const normalizedSubmissionDate = normalizeDate(submission.date);
     console.log(
-      `Filtering submission: date=${submission.date}, normalized (IST)=${normalizedSubmissionDate}, formattedDate=${formattedDate}, recipient=${submission.recipient}, status=${submission.status}`
+      `Filtering submission: ID=${submission.id}, date=${submission.date}, normalized=${normalizedSubmissionDate}, formattedDate=${formattedDate}, recipient=${submission.recipient}, status=${submission.status}`
     );
     return (
       normalizedSubmissionDate === formattedDate &&
       normalizedSubmissionDate !== "" &&
       (userRole === "dept_head"
-        ? submission.recipient === "hr" || submission.recipient === user.employee_id
+        ? submission.recipient === "hr" || submission.recipient === userEmployeeId
         : userRole === "super_admin"
         ? submission.recipient === "super_admin" ||
-          submission.recipient === user.employee_id ||
-          ((submission.recipient === "hr" || (user.hr_employee_id && submission.recipient === user.hr_employee_id)) &&
-            ["Approved", "Rejected"].includes(submission.status))
-        : submission.recipient === userRole || submission.recipient === user.employee_id)
+          submission.recipient === userEmployeeId ||
+          submission.recipient === "hr" ||
+          submission.recipient.includes("MO-EMP-") || // Debug: Allow employee IDs
+          submission.recipient === "Office" // Debug: Allow invalid recipient
+        : userRole === "hr"
+        ? submission.recipient === "hr" ||
+          submission.recipient === userEmployeeId ||
+          submission.recipient.includes("MO-EMP-") || // Debug: Allow employee IDs
+          submission.recipient === "Office" // Debug: Allow invalid recipient
+        : submission.recipient === userRole || submission.recipient === userEmployeeId)
     );
   });
   console.log("Filtered submissions:", filteredSubmissions);
 
   // Calculate week boundaries for selectedDate (Monday to Sunday)
-  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 }); // Monday
-  const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 }); // Sunday
+  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
   const weekStartFormatted = format(weekStart, "yyyy-MM-dd");
   const weekEndFormatted = format(weekEnd, "yyyy-MM-dd");
   console.log(`Week range (IST): ${weekStartFormatted} to ${weekEndFormatted}`);
+  console.log("User info:", { userRole, userEmployeeId });
 
   const stats = [
     {
@@ -166,6 +175,57 @@ const Attendance = () => {
       icon: Users,
     },
   ];
+
+  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const weeklyStats = weekDays.map((day, index) => {
+    const expectedDay = index === 6 ? 0 : index + 1;
+    const daySubmissions = submissions.filter((s) => {
+      if (!s.date) {
+        console.warn(`Missing date in submission ID=${s.id}`);
+        return false;
+      }
+      const parsedDate = parse(s.date, "yyyy-MM-dd", new Date());
+      if (!isValid(parsedDate)) {
+        console.warn(`Invalid date in submission ID=${s.id}: ${s.date}`);
+        return false;
+      }
+      const dateFormatted = format(parsedDate, "yyyy-MM-dd");
+      const isValidDay = parsedDate.getDay() === expectedDay;
+      const isValidDateRange =
+        dateFormatted >= weekStartFormatted && dateFormatted <= weekEndFormatted;
+      const isValidRecipient = userRole === "dept_head"
+        ? s.recipient === "hr" || s.recipient === userEmployeeId
+        : userRole === "super_admin"
+        ? s.recipient === "super_admin" ||
+          s.recipient === userEmployeeId ||
+          s.recipient === "hr" ||
+          s.recipient.includes("MO-EMP-") || // Debug: Allow employee IDs
+          s.recipient === "Office" // Debug: Allow invalid recipient
+        : userRole === "hr"
+        ? s.recipient === "hr" ||
+          s.recipient === userEmployeeId ||
+          s.recipient.includes("MO-EMP-") || // Debug: Allow employee IDs
+          s.recipient === "Office" // Debug: Allow invalid recipient
+        : s.recipient === userRole || s.recipient === userEmployeeId;
+      console.log(`Checking submission ID=${s.id} for ${day}:`, {
+        date: s.date,
+        parsedDate: parsedDate.toISOString(),
+        dateFormatted,
+        isValidDay,
+        isValidDateRange,
+        isValidRecipient,
+        expectedDay,
+        actualDay: parsedDate.getDay(),
+      });
+      return isValidDay && isValidDateRange && isValidRecipient;
+    });
+    const presentCount = daySubmissions.filter((s) => s.status === "Approved").length;
+    const totalCount = daySubmissions.length;
+    const percentage = totalCount ? Number(((presentCount / totalCount) * 100).toFixed(1)) : 0;
+    console.log(`Day ${day}:`, { presentCount, totalCount, percentage, daySubmissions });
+    return { day, presentCount, totalCount, percentage };
+  });
+  console.log("Weekly stats:", weeklyStats);
 
   return (
     <div className="w-full">
@@ -381,73 +441,60 @@ const Attendance = () => {
             </table>
           </div>
         </div>
+
+        {/* Weekly Attendance Overview */}
         <div className="bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200/50 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
           <h2 className="text-xl font-bold text-slate-900 mb-4">
-            Weekly Attendance Overview ({format(weekStart, "dd/MM")} - {format(weekEnd, "dd/MM/yyyy")})
+            Weekly Attendance Overview ({format(weekStart, "dd/MM")} -{" "}
+            {format(weekEnd, "dd/MM/yyyy")})
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-              (day, index) => {
-                const daySubmissions = submissions.filter((s) => {
-                  const istDate = addHours(parse(s.date, "yyyy-MM-dd", new Date()), 5.5);
-                  const istDateFormatted = format(istDate, "yyyy-MM-dd");
-                  return (
-                    istDate.getDay() === (index + 1) % 7 &&
-                    istDateFormatted >= weekStartFormatted &&
-                    istDateFormatted <= weekEndFormatted &&
-                    (userRole === "dept_head"
-                      ? s.recipient === "hr" || s.recipient === user.employee_id
-                      : userRole === "super_admin"
-                      ? s.recipient === "super_admin" ||
-                        s.recipient === user.employee_id ||
-                        ((s.recipient === "hr" || (user.hr_employee_id && s.recipient === user.hr_employee_id)) &&
-                          ["Approved", "Rejected"].includes(s.status))
-                      : s.recipient === userRole || s.recipient === user.employee_id)
-                  );
-                });
-                const presentCount = daySubmissions.filter(
-                  (s) => s.status === "Approved"
-                ).length;
-                const percentage = daySubmissions.length
-                  ? ((presentCount / daySubmissions.length) * 100).toFixed(1)
-                  : 0;
-
-                return (
-                  <div
-                    key={day}
-                    className="bg-white/90 p-4 rounded-lg text-center hover:shadow-md hover:scale-105 transition-all duration-300"
-                  >
-                    <div className="text-sm font-medium text-slate-700 mb-2">
-                      {day}
-                    </div>
-                    <div className="relative w-16 h-16 mx-auto">
-                      <svg className="w-full h-full" viewBox="0 0 36 36">
-                        <path
-                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                          fill="none"
-                          stroke="#e2e8f0"
-                          strokeWidth="3"
-                        />
-                        <path
-                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                          fill="none"
-                          stroke="#14b8a6"
-                          strokeWidth="3"
-                          strokeDasharray={`${percentage}, 100`}
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-slate-800">
-                        {percentage}%
-                      </div>
-                    </div>
-                    <div className="text-xs text-slate-500 mt-2">
-                      {presentCount}/{daySubmissions.length}
-                    </div>
+          {weeklyStats.every((stat) => stat.totalCount === 0) ? (
+            <div className="text-slate-500 text-center">
+              No attendance records for the selected week. Try selecting a different week.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+              {weeklyStats.map(({ day, presentCount, totalCount, percentage }) => (
+                <div
+                  key={day}
+                  className="bg-white/90 p-4 rounded-lg text-center hover:shadow-md hover:scale-105 transition-all duration-300"
+                >
+                  <div className="text-sm font-medium text-slate-700 mb-2">
+                    {day}
                   </div>
-                );
-              }
-            )}
-          </div>
+                  <div className="relative w-16 h-16 mx-auto">
+                    <svg className="w-full h-full" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#e2e8f0"
+                        strokeWidth="3"
+                      />
+                      <path
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#14b8a6"
+                        strokeWidth="3"
+                        strokeDasharray={`${percentage}, 100`}
+                      />
+                      <text
+                        x="18"
+                        y="20"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        className="text-xs  text-slate-800"
+                      >
+                        {percentage}%
+                      </text>
+                    </svg>
+                  </div>
+                  <div className="text-xs text-slate-500 mt-2">
+                    {presentCount}/{totalCount}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

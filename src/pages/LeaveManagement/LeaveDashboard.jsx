@@ -194,6 +194,13 @@ const LeaveDashboard = () => {
     }));
   }, [leaves]);
 
+   const calculateDays = (from, to) => {
+    const start = new Date(from);
+    const end = new Date(to);
+    if (isNaN(start) || isNaN(end)) return 0;
+    return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  };
+
   const updatedLeaveBalance = useMemo(() => {
     return leaveBalance.map((balance) => {
       const taken = leaveHistory
@@ -203,12 +210,7 @@ const LeaveDashboard = () => {
     });
   }, [leaveBalance, leaveHistory]);
 
-  const calculateDays = (from, to) => {
-    const start = new Date(from);
-    const end = new Date(to);
-    if (isNaN(start) || isNaN(end)) return 0;
-    return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-  };
+ 
 
   const approvedLeaves = leaveHistory.filter((l) => l.status === "Approved");
   const pendingLeaves = leaveHistory.filter((l) => l.status === "Pending");

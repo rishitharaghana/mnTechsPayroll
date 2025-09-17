@@ -44,7 +44,7 @@ const EmployeeDashboard = () => {
     workSummary: null,
   });
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('payslip'); // State for tabbed interface
+  const [activeTab, setActiveTab] = useState('payslip');
 
   useEffect(() => {
     if (!isAuthenticated && !authLoading) {

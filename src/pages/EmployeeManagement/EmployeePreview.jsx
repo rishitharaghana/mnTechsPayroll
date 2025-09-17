@@ -12,7 +12,7 @@ const EmployeePreview = ({
       title: "Personal Details",
       fields: [
         { label: "Full Name", value: formData.fullName || "N/A" },
-        { label: "Father’s Name", value: formData.fatherName || "N/A" },
+        { label: "Father’s Name", value: formData.father_name || "N/A" },
         { label: "Mother’s Name", value: formData.motherName || "N/A" },
         { label: "Phone", value: formData.phone || "N/A" },
         { label: "Email", value: formData.email || "N/A" },

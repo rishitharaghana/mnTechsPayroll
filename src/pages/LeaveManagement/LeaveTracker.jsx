@@ -102,6 +102,12 @@ const LeaveTracker = () => {
   }, [dispatch, navigate, token, role]);
 
   useEffect(() => {
+    console.log("Auth state:", { role, employee_id, token });
+    console.log("Leaves:", leaves);
+    console.log("Pending Leaves:", pendingLeaves);
+  }, [role, employee_id, token, leaves, pendingLeaves]);
+
+  useEffect(() => {
     if (successMessage || error) {
       const timer = setTimeout(() => {
         dispatch(clearState());
@@ -121,6 +127,32 @@ const LeaveTracker = () => {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   };
 
+const canApproveReject = (req) => {
+  if (!req.employee_id) {
+    console.warn(`Missing employee_id for leave ID ${req.id}`);
+    return false;
+  }
+  if (role === "hr") {
+    console.log("HR canApproveReject:", {
+      leaveId: req.id,
+      recipient_id: req.recipient_id,
+      employee_id,
+      canApprove: true,
+    });
+    return true; // Allow HR to approve/reject all pending requests
+  }
+  if (role === "super_admin") {
+    const canApprove = req.employee_role === "hr";
+    console.log("Super Admin canApproveReject:", {
+      leaveId: req.id,
+      employee_role: req.employee_role,
+      canApprove,
+    });
+    return canApprove;
+  }
+  return false;
+};
+
   const filteredLeaveData = useMemo(() => {
     const sourceLeaves = filterStatus === "pending" ? pendingLeaves : leaves;
     const leavesArray = Array.isArray(sourceLeaves) ? sourceLeaves : [];
@@ -134,6 +166,13 @@ const LeaveTracker = () => {
         recipients: req.recipients || [],
       }))
       .filter((req) => {
+        console.log("Leave request data:", {
+          id: req.id,
+          status: req.status,
+          recipient_id: req.recipient_id,
+          employee_id: req.employee_id,
+          canApprove: canApproveReject(req),
+        });
         const reqStartDate = new Date(req.start_date);
         const reqEndDate = new Date(req.end_date);
         if (isNaN(reqStartDate) || isNaN(reqEndDate)) {
@@ -281,33 +320,6 @@ const LeaveTracker = () => {
   };
 
   const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "?");
-
-  const canApproveReject = (req) => {
-    if (!req.employee_id) {
-      console.warn(`Missing employee_id for leave ID ${req.id}`);
-      return false;
-    }
-    if (role === "hr") {
-      const canApprove = req.recipient_id === employee_id;
-      console.log("HR canApproveReject:", {
-        leaveId: req.id,
-        recipient_id: req.recipient_id,
-        employee_id,
-        canApprove,
-      });
-      return canApprove;
-    }
-    if (role === "super_admin") {
-      const canApprove = req.employee_role === "hr";
-      console.log("Super Admin canApproveReject:", {
-        leaveId: req.id,
-        employee_role: req.employee_role,
-        canApprove,
-      });
-      return canApprove;
-    }
-    return false;
-  };
 
   return (
     <div className="w-full">
@@ -523,7 +535,7 @@ const LeaveTracker = () => {
               ))
             ) : (
               <p className="text-gray-600 text-center">
-                No leave requests found for the selected criteria.
+                No leave requests available for your approval.
               </p>
             )}
           </div>
