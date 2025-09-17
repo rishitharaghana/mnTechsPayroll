@@ -5,7 +5,7 @@ import { login } from '../../redux/slices/authSlice';
 import { Lock, UserCircle, Phone, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Select from 'react-select';
-import LoginBackground from '../../../public/assets/login_background.png'; // Imported background image
+import LoginBackground from '/assets/login_background.png?url'; 
 
 const Login = () => {
   const [mobileNumber, setMobileNumber] = useState('');
