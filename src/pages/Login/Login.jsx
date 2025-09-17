@@ -5,7 +5,7 @@ import { login } from '../../redux/slices/authSlice';
 import { Lock, UserCircle, Phone, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Select from 'react-select';
-import LoginBackground from '/assets/login_background.png?url'; 
+import LoginBackground from '/assets/login_background.png?url';
 
 const Login = () => {
   const [mobileNumber, setMobileNumber] = useState('');
@@ -25,7 +25,6 @@ const Login = () => {
     { value: 'employee', label: 'Employee' },
   ];
 
-  // Custom styles for React Select (unchanged)
   const customSelectStyles = {
     control: (provided) => ({
       ...provided,
