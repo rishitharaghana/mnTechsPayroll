@@ -1,7 +1,7 @@
 import { Clock, Menu, X, Users, CircleUser } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import logo from "../../public/assets/logo.png";
+import logo from "/assets/logo.png?url";
 
 const AppHeader = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
