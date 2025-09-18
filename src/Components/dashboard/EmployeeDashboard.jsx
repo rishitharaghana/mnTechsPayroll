@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Users, Clock, FileText, DollarSign, PiggyBank, Calendar, User } from 'lucide-react';
+import { Users, Clock, FileText, PiggyBank, Calendar, User } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { getCurrentUserProfile } from '../../redux/slices/employeeSlice';
 import { fetchEmployeeAttendance } from '../../redux/slices/attendanceSlice';
@@ -13,7 +13,6 @@ const iconMap = {
   FileText: FileText,
   Users: Users,
   Clock: Clock,
-  DollarSign: DollarSign,
   PiggyBank: PiggyBank,
   Calendar: Calendar,
   User: User,
@@ -22,7 +21,6 @@ const iconMap = {
 const quickActions = [
   { label: 'Leave Request', icon: 'FileText', color: 'bg-gradient-to-r from-teal-600 to-slate-700 hover:from-teal-500 hover:to-slate-600', focusRing: 'focus:ring-teal-600', to: '/employee/leave-application' },
   { label: 'Leave Dashboard', icon: 'Calendar', color: 'bg-gradient-to-r from-teal-600 to-slate-700 hover:from-teal-500 hover:to-slate-600', focusRing: 'focus:ring-teal-600', to: '/employee/leave-dashboard' },
-  { label: 'Payslip', icon: 'DollarSign', color: 'bg-gradient-to-r from-teal-600 to-slate-700 hover:from-teal-500 hover:to-slate-600', focusRing: 'focus:ring-teal-600', to: '/employee-payslip' },
   { label: 'Attendance', icon: 'Clock', color: 'bg-gradient-to-r from-teal-600 to-slate-700 hover:from-teal-500 hover:to-slate-600', focusRing: 'focus:ring-teal-600', to: '/employee/employee-attendance' },
   { label: 'PF', icon: 'PiggyBank', color: 'bg-gradient-to-r from-teal-600 to-slate-700 hover:from-teal-500 hover:to-slate-600', focusRing: 'focus:ring-teal-600', to: '/pf' },
 ];
@@ -44,7 +42,7 @@ const EmployeeDashboard = () => {
     workSummary: null,
   });
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('payslip');
+  const [activeTab, setActiveTab] = useState('workSummary');
 
   useEffect(() => {
     if (!isAuthenticated && !authLoading) {
@@ -167,7 +165,7 @@ const EmployeeDashboard = () => {
                 <User className="text-teal-600" size={40} aria-hidden="true" />
               </div>
               <div className="absolute -bottom-2 -right-2 bg-teal-600 text-white text-xs font-semibold rounded-full px-2 py-1 shadow-md">
-                 {dashboardData.profile?.employee_id || 'N/A'}
+                {dashboardData.profile?.employee_id || 'N/A'}
               </div>
             </div>
             <div className="text-center sm:text-left">
@@ -263,16 +261,9 @@ const EmployeeDashboard = () => {
           })}
         </div>
 
-        {/* Tabbed Interface for Payslip, Work Summary, and Attendance */}
+        {/* Tabbed Interface for Work Summary and Attendance */}
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 mb-8 shadow-sm hover:shadow-md transition-all duration-300">
           <div className="flex border-b border-teal-200/50 mb-4">
-            <button
-              className={`px-4 py-2 text-sm font-medium ${activeTab === 'payslip' ? 'text-teal-600 border-b-2 border-teal-600' : 'text-gray-600 hover:text-teal-600'}`}
-              onClick={() => setActiveTab('payslip')}
-              aria-label="View payslip"
-            >
-              Payslip
-            </button>
             <button
               className={`px-4 py-2 text-sm font-medium ${activeTab === 'workSummary' ? 'text-teal-600 border-b-2 border-teal-600' : 'text-gray-600 hover:text-teal-600'}`}
               onClick={() => setActiveTab('workSummary')}
@@ -288,32 +279,6 @@ const EmployeeDashboard = () => {
               Attendance
             </button>
           </div>
-
-          {activeTab === 'payslip' && (
-            <div>
-              {dashboardData.recentPayslip ? (
-                <div className="space-y-2">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Payslip</h2>
-                  <p className="text-gray-600 text-sm">Month: {dashboardData.recentPayslip.month || 'N/A'}</p>
-                  <p className="text-gray-600 text-sm">
-                    Gross Pay: ₹{parseFloat(dashboardData.recentPayslip.gross_salary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-gray-600 text-sm">
-                    Net Pay: ₹{parseFloat(dashboardData.recentPayslip.net_salary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                  <NavLink
-                    to="/employee-payslip"
-                    className="text-teal-600 text-sm font-medium hover:text-teal-800 hover:underline mt-2 inline-block"
-                    aria-label="View full payslip"
-                  >
-                    View Full Payslip
-                  </NavLink>
-                </div>
-              ) : (
-                <p className="text-gray-500 text-sm">No payslip available for the current month.</p>
-              )}
-            </div>
-          )}
 
           {activeTab === 'workSummary' && (
             <div>

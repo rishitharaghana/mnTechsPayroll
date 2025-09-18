@@ -19,9 +19,11 @@ const EmployeeAttendance = () => {
     (state) => state.attendance
   );
   const { profile, error: userError } = useSelector((state) => state.user);
-  const { recipients: recipientOptions, error: leaveError, loading: leaveLoading } = useSelector(
-    (state) => state.leaves
-  );
+  const {
+    recipients: recipientOptions,
+    error: leaveError,
+    loading: leaveLoading,
+  } = useSelector((state) => state.leaves);
 
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [loginTime, setLoginTime] = useState("");
@@ -112,7 +114,17 @@ const EmployeeAttendance = () => {
       userRole,
       employee_id: employee?.employee_id,
     });
-  }, [recipientOptions, validRecipientOptions, recipient, submissions, loading, leaveLoading, leaveError, userRole, employee]);
+  }, [
+    recipientOptions,
+    validRecipientOptions,
+    recipient,
+    submissions,
+    loading,
+    leaveLoading,
+    leaveError,
+    userRole,
+    employee,
+  ]);
 
   useEffect(() => {
     if (validRecipientOptions.length > 0 && !recipient) {
@@ -140,12 +152,27 @@ const EmployeeAttendance = () => {
     if (leaveError && validRecipientOptions.length === 0) {
       toast.error(leaveError || "Failed to load recipient options");
     }
-  }, [successMessage, error, userError, leaveError, validRecipientOptions.length, dispatch]);
+  }, [
+    successMessage,
+    error,
+    userError,
+    leaveError,
+    validRecipientOptions.length,
+    dispatch,
+  ]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!date || !loginTime || !recipient || !location || !employee?.employee_id) {
-      toast.error("Please fill in all required fields, including a valid employee ID.");
+    if (
+      !date ||
+      !loginTime ||
+      !recipient ||
+      !location ||
+      !employee?.employee_id
+    ) {
+      toast.error(
+        "Please fill in all required fields, including a valid employee ID."
+      );
       return;
     }
 
@@ -166,7 +193,9 @@ const EmployeeAttendance = () => {
         setLoginTime("");
         setLogoutTime("");
         setLocation("Office");
-        setRecipient(validRecipientOptions.length > 0 ? validRecipientOptions[0].value : "");
+        setRecipient(
+          validRecipientOptions.length > 0 ? validRecipientOptions[0].value : ""
+        );
         dispatch(fetchEmployeeAttendance()); // Refresh attendance
       })
       .catch((err) => {
@@ -201,7 +230,8 @@ const EmployeeAttendance = () => {
 
         {validRecipientOptions.length === 0 && !leaveLoading ? (
           <div className="text-red-600 text-sm mb-4">
-            No valid recipients available. Please contact support to add a Super Admin or HR user.
+            No valid recipients available. Please contact support to add a Super
+            Admin or HR user.
           </div>
         ) : null}
 
@@ -235,6 +265,11 @@ const EmployeeAttendance = () => {
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
+                  min={
+                    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                      .toISOString()
+                      .split("T")[0]
+                  }
                   max={new Date().toISOString().split("T")[0]}
                   className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-gray-900 text-sm"
                   required
@@ -298,9 +333,16 @@ const EmployeeAttendance = () => {
                 <FileText size={16} className="text-black" />
                 <Select
                   options={validRecipientOptions}
-                  value={validRecipientOptions.find((rec) => rec.value === recipient) || null}
+                  value={
+                    validRecipientOptions.find(
+                      (rec) => rec.value === recipient
+                    ) || null
+                  }
                   onChange={(option) => {
-                    console.log("Selected recipient:", option ? option.value : "none");
+                    console.log(
+                      "Selected recipient:",
+                      option ? option.value : "none"
+                    );
                     setRecipient(option ? option.value : "");
                   }}
                   styles={selectStyles}
@@ -320,9 +362,17 @@ const EmployeeAttendance = () => {
             <div className="sm:col-span-2 lg:col-span-3 flex justify-end">
               <button
                 type="submit"
-                disabled={loading || leaveLoading || validRecipientOptions.length === 0 || !recipient}
+                disabled={
+                  loading ||
+                  leaveLoading ||
+                  validRecipientOptions.length === 0 ||
+                  !recipient
+                }
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                  loading || leaveLoading || validRecipientOptions.length === 0 || !recipient
+                  loading ||
+                  leaveLoading ||
+                  validRecipientOptions.length === 0 ||
+                  !recipient
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-black text-white hover:bg-gray-800 hover:scale-105"
                 }`}
@@ -402,7 +452,9 @@ const EmployeeAttendance = () => {
                             ? "Default HR User (HR)"
                             : recipient_id === "super_admin"
                             ? "Default Super Admin (Super Admin)"
-                            : validRecipientOptions.find((rec) => rec.value === recipient_id)?.label || "Unknown"}
+                            : validRecipientOptions.find(
+                                (rec) => rec.value === recipient_id
+                              )?.label || "Unknown"}
                         </td>
                         <td className="px-2 sm:px-4 py-2 sm:py-3 text-gray-900 whitespace-nowrap">
                           {status}
