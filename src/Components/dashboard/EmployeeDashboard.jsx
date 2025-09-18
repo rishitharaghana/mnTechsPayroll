@@ -186,7 +186,6 @@ const EmployeeDashboard = () => {
           </div>
         </div>
 
-        {/* Quick Actions Bar */}
         <div className="flex justify-center mb-8">
           <div className="inline-flex bg-white/90 backdrop-blur-sm rounded-full border border-teal-200/50 p-2 shadow-sm">
             {quickActions.map((action, index) => {
@@ -205,7 +204,6 @@ const EmployeeDashboard = () => {
           </div>
         </div>
 
-        {/* Leave Balances with Circular Progress */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
           {dashboardData.leaveBalances.map((leave, index) => {
             const Icon = iconMap[leave.icon] || FileText;
@@ -261,7 +259,6 @@ const EmployeeDashboard = () => {
           })}
         </div>
 
-        {/* Tabbed Interface for Work Summary and Attendance */}
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 mb-8 shadow-sm hover:shadow-md transition-all duration-300">
           <div className="flex border-b border-teal-200/50 mb-4">
             <button
@@ -343,7 +340,6 @@ const EmployeeDashboard = () => {
           )}
         </div>
 
-        {/* Attendance Insights with Mini Calendar */}
         {dashboardData.workSummary ? (
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-teal-200/50 p-6 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Attendance Insights</h2>
