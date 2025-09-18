@@ -42,7 +42,6 @@ import "react-toastify/dist/ReactToastify.css";
 import ChangePassword from "./pages/Login/ChangePassword";
 import TravelExpenseApproval from "./pages/TravelExpenses/TravelExpenseApproval";
 import TravelExpenseSubmission from "./pages/TravelExpenses/TravelExpensesSubmission";
-import ViewEmployeeDetails from "./pages/EmployeeManagement/ViewEmployeeDetails";
 import EmployeePreviewPage from "./pages/EmployeeManagement/EmployeePreviewPage";
 import EmployeeIdCards from "./pages/Cards/EmployeeIdCards";
 import EmployeeVisitingCard from "./pages/Cards/EmployeeVisitingCard";
@@ -91,10 +90,6 @@ const App = () => {
                 <Route
                   path="/admin/addrole"
                   element={<AddEmployeeRoles />}
-                />
-                <Route
-                  path="/admin/view-employees"
-                  element={<ViewEmployeeDetails />}
                 />
                  <Route
                   path="/admin/employees/terminate"

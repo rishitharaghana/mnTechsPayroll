@@ -1,4 +1,3 @@
-// src/components/EmployeePreviewPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,7 +7,7 @@ import {
   fetchEmployeeDocuments,
   fetchEmployeeBankDetails,
 } from "../../redux/slices/employeeSlice";
-import EmployeePreview from "./EmployeePreview"; // Adjust path as needed
+import EmployeePreview from "./EmployeePreview";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 
@@ -25,9 +24,8 @@ const EmployeePreviewPage = () => {
     loading,
     error,
   } = useSelector((state) => state.employee);
-  const [activeTab, setActiveTab] = useState(0); // Track the active tab
+  const [activeTab, setActiveTab] = useState(0);
 
-  // Fetch detailed employee data if not passed via state
   useEffect(() => {
     if (!state?.employee) {
       dispatch(fetchEmployeePersonalDetails(id));
@@ -37,7 +35,6 @@ const EmployeePreviewPage = () => {
     }
   }, [dispatch, id, state]);
 
-  // Map employee data to formData structure for EmployeePreview
   const formData = state?.employee
     ? {
         fullName: state.employee.full_name || state.employee.name || "N/A",
@@ -154,26 +151,24 @@ const EmployeePreviewPage = () => {
         <h3 className="text-2xl font-bold text-left text-gray-900 mb-3 tracking-tight">
           Employee Information
         </h3>
-        {/* Top Tab Navigation */}
         <div className="mb-4 overflow-x-auto bg-white/80 backdrop-blur-xl rounded-xl shadow-md border border-gray-200 p-2 sm:p-3 md:p-4">
-  <div className="flex space-x-2 min-w-max">
-    {tabs.map((tab, index) => (
-      <button
-        key={index}
-        onClick={() => setActiveTab(index)}
-        className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 ${
-          activeTab === index
-            ? "bg-teal-600 text-white shadow-md"
-            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-        } whitespace-nowrap`}
-      >
-        {tab}
-      </button>
-    ))}
-  </div>
-</div>
+          <div className="flex space-x-2 min-w-max">
+            {tabs.map((tab, index) => (
+              <button
+                key={index}
+                onClick={() => setActiveTab(index)}
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 ${
+                  activeTab === index
+                    ? "bg-teal-600 text-white shadow-md"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                } whitespace-nowrap`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        {/* Content Area */}
         <div>
           {loading ? (
             <div className="text-center text-gray-600 animate-pulse">

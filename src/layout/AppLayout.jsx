@@ -7,7 +7,7 @@ const AppLayout = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="max-w-[1536px] mx-auto bg-gradient-to-br from-indigo-50 via-purple-50 to-teal-50 flex flex-col">
+    <div className="max-w-[1536px] min-h-screen mx-auto bg-gradient-to-br from-indigo-50 via-purple-50 to-teal-50 flex flex-col">
       <AppHeader
         className="max-w"
         isMobileMenuOpen={isMobileMenuOpen}
