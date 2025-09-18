@@ -14,32 +14,34 @@ const TravelExpenseHistory = () => {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
   const { profile, error: userError } = useSelector((state) => state.user);
-  const { history, loading, error, successMessage } = useSelector(
-    (state) => state.travelExpenses
+  const { history, loading, error, successMessage, pagination } = useSelector(
+    (state) => state.travelExpense
   );
   const [page, setPage] = useState(1);
   const limit = 10;
 
   useEffect(() => {
-    console.log("Current user:", user);
-    if (["hr", "super_admin"].includes(user?.role)) {
+    if (isAuthenticated && ["hr", "super_admin"].includes(user?.role)) {
       if (!profile) {
         dispatch(fetchUserProfile());
       }
-      dispatch(fetchTravelExpenseHistory());
+      dispatch(fetchTravelExpenseHistory({ page, limit }));
     }
     return () => {
       dispatch(clearState());
     };
-  }, [dispatch, profile, user?.role, page]);
+  }, [dispatch, profile, user?.role, page, isAuthenticated]);
 
   useEffect(() => {
-    console.log("History submissions:", history);
+    console.log("History submissions:", JSON.stringify(history, null, 2));
+    console.log("Pagination:", pagination);
     if (error) {
       const message = error.includes("Insufficient permissions")
         ? "You do not have permission to view travel expense history."
         : error.includes("not found")
-        ? "No submissions found."
+        ? "No travel expense submissions found."
+        : error.includes("Failed to fetch")
+        ? "Unable to fetch travel expense history. Please try again."
         : error;
       toast.error(message, { position: "top-right", autoClose: 3000 });
       setTimeout(() => dispatch(clearState()), 2000);
@@ -54,21 +56,64 @@ const TravelExpenseHistory = () => {
     }
   }, [error, userError, successMessage, dispatch]);
 
-  const handleDownloadReceipt = (receiptId) => {
-    console.log(`Downloading receipt ${receiptId}`);
-    toast.info("Receipt download not implemented in this slice.", {
-      position: "top-right",
-      autoClose: 3000,
-    });
+  const handleDownloadReceipt = async (submissionId) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        toast.error("No authentication token found. Please log in.", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        return;
+      }
+      const token = JSON.parse(userToken).token;
+      const response = await fetch(
+        `http://localhost:3007/api/travel-expenses/${submissionId}/receipt`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `receipt_${submissionId}`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        toast.error("Failed to download receipt.", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Download receipt error:", error);
+      toast.error("Error downloading receipt.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    }
   };
 
   const formatAmount = (amount) => {
-    if (amount === null || amount === undefined) {
+    if (amount === null || amount === undefined || isNaN(Number(amount))) {
       console.warn("Invalid amount:", amount);
+      return "₹0.00";
+    }
+    return `₹${Number(amount).toFixed(2)}`;
+  };
+
+  const formatDate = (date) => {
+    if (!date || isNaN(Date.parse(date))) {
+      console.warn("Invalid date:", date);
       return "N/A";
     }
-    const parsed = Number(amount);
-    return isNaN(parsed) ? "N/A" : `₹${parsed.toFixed(2)}`;
+    return new Date(date).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
   };
 
   if (!isAuthenticated) {
@@ -93,40 +138,82 @@ const TravelExpenseHistory = () => {
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/admin/dashboard" },
-            { label: "Travel Expense History", link: "/admin/travel-expense-history" },
+            {
+              label: "Travel Expense History",
+              link: "/admin/travel-expense-history",
+            },
           ]}
         />
-        <PageMeta title="Travel Expense History" description="View travel expense history" />
+        <PageMeta
+          title="Travel Expense History"
+          description="View travel expense history"
+        />
       </div>
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <h2 className="text-2xl font-semibold text-slate-700 mb-6">
           Travel Expense History
         </h2>
 
+        {error && (
+          <div className="text-center text-red-600 text-lg font-medium py-4">
+            {error.includes("Insufficient permissions")
+              ? "You do not have permission to view travel expense history."
+              : error.includes("not found")
+              ? "No travel expense submissions found."
+              : "Unable to fetch travel expense history."}
+            <button
+              onClick={() => dispatch(fetchTravelExpenseHistory({ page, limit }))}
+              className="ml-4 px-3 py-1 bg-teal-500 text-white rounded-md text-xs font-medium hover:bg-teal-600 transition-all duration-150"
+            >
+              Retry
+            </button>
+          </div>
+        )}
         {loading && (
           <div className="text-center text-gray-600 text-lg font-medium py-10 animate-pulse">
             Loading history...
           </div>
         )}
-        {!loading && history.length === 0 && (
+        {!loading && !error && history.length === 0 && (
           <div className="text-center text-gray-600 text-lg font-medium py-10">
             No travel expense history found.
           </div>
         )}
-        {!loading && history.length > 0 && (
+        {!loading && !error && history.length > 0 && (
           <div>
             <table className="w-full border mt-2 rounded-lg shadow-sm bg-white table-fixed">
               <thead className="bg-gradient-to-r from-teal-600 to-slate-700 text-white">
                 <tr>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[12%]">Employee</th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[10%]">Department</th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[10%]">Travel Date</th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[10%]">Destination</th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[12%]">Purpose</th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[8%]">Total Amount</th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[18%]">Expenses</th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[12%]">Admin Comment</th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[8%]">Status</th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[12%]">
+                    Employee
+                  </th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[10%]">
+                    Department
+                  </th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[10%]">
+                    Travel Date
+                  </th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[10%]">
+                    Destination
+                  </th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[12%]">
+                    Purpose
+                  </th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[8%]">
+                    Total Amount
+                  </th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[8%]">
+                    Receipt
+                  </th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[18%]">
+                    Expenses
+                  </th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[12%]">
+                    Admin Comment
+                  </th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[8%]">
+                    Status
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -142,15 +229,15 @@ const TravelExpenseHistory = () => {
                     }`}
                   >
                     <td className="border border-teal-200 p-2 text-xs text-gray-700 truncate">
-                      {submission.employee_name || "N/A"} ({submission.employee_id || "N/A"})
+                      {submission.employee_name ||
+                        submission.employee_id ||
+                        "N/A"}
                     </td>
                     <td className="border border-teal-200 p-2 text-xs text-gray-700 truncate">
                       {submission.department_name || "N/A"}
                     </td>
                     <td className="border border-teal-200 p-2 text-xs text-gray-700">
-                      {submission.travel_date
-                        ? new Date(submission.travel_date).toLocaleDateString()
-                        : "N/A"}
+                      {formatDate(submission.travel_date)}
                     </td>
                     <td className="border border-teal-200 p-2 text-xs text-gray-700 truncate">
                       {submission.destination || "N/A"}
@@ -161,31 +248,32 @@ const TravelExpenseHistory = () => {
                     <td className="border border-teal-200 p-2 text-xs text-gray-700">
                       {formatAmount(submission.total_amount)}
                     </td>
+                    <td className="border border-teal-200 p-2 text-xs text-gray-700 text-center">
+                      {submission.receipt_path ? (
+                        <button
+                          onClick={() => handleDownloadReceipt(submission.id)}
+                          className="text-teal-500 hover:text-teal-700 transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-teal-500 rounded"
+                          aria-label={`Download Receipt for Submission ${submission.id}`}
+                        >
+                          <Download size={12} className="inline" />
+                        </button>
+                      ) : (
+                        "N/A"
+                      )}
+                    </td>
                     <td className="border border-teal-200 p-2 text-xs text-gray-700">
                       <ul className="list-disc pl-4 space-y-1">
                         {submission.expenses && submission.expenses.length > 0 ? (
-
-
                           submission.expenses.map((exp, idx) => (
                             <li key={idx} className="text-[10px] truncate">
                               {exp.purpose || "N/A"} - {formatAmount(exp.amount)} (
-                              {exp.expense_date
-                                ? new Date(exp.expense_date).toLocaleDateString()
-                                : "N/A"}
-                              )
-                              {exp.receipt && (
-                                <button
-                                  onClick={() => handleDownloadReceipt(exp.receipt.id)}
-                                  className="ml-1 text-teal-500 hover:text-teal-700 transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-teal-500 rounded"
-                                  aria-label={`Download Receipt for ${exp.purpose || "expense"}`}
-                                >
-                                  <Download size={12} className="inline" />
-                                </button>
-                              )}
+                              {formatDate(exp.expense_date)})
                             </li>
                           ))
                         ) : (
-                          <li className="text-[10px] text-gray-500">No expenses</li>
+                          <li className="text-[10px] text-gray-500">
+                            No expenses
+                          </li>
                         )}
                       </ul>
                     </td>
@@ -199,10 +287,12 @@ const TravelExpenseHistory = () => {
                             ? "bg-yellow-100 text-yellow-800"
                             : submission.status === "Approved"
                             ? "bg-teal-100 text-teal-800"
-                            : "bg-red-100 text-red-800"
+                            : submission.status === "Rejected"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {submission.status}
+                        {submission.status || "N/A"}
                       </span>
                     </td>
                   </tr>
@@ -217,10 +307,16 @@ const TravelExpenseHistory = () => {
               >
                 Previous
               </button>
-              <span className="text-xs text-gray-600">Page {page}</span>
+              <span className="text-xs text-gray-600">
+                Page {page} of{" "}
+                {(pagination.history && pagination.history.totalPages) || 1}
+              </span>
               <button
                 onClick={() => setPage((prev) => prev + 1)}
-                disabled={history.length < limit}
+                disabled={
+                  page >=
+                  ((pagination.history && pagination.history.totalPages) || 1)
+                }
                 className="px-3 py-1 bg-teal-500 text-white rounded-md text-xs font-medium hover:bg-teal-600 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-teal-400"
               >
                 Next

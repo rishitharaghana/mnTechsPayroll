@@ -23,15 +23,14 @@ const EmployeeTravelExpenses = () => {
   const { profile, error: userError } = useSelector((state) => state.user);
   const { loading, error, successMessage } = useSelector((state) => state.travelExpenses);
 
-  const [expenses, setExpenses] = useState([
-    { date: "", purpose: "", amount: "", receipt: null, hasReceipt: false },
-  ]);
+  const [expenses, setExpenses] = useState([{ date: "", purpose: "", amount: "" }]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [travelDate, setTravelDate] = useState("");
   const [destination, setDestination] = useState("");
   const [travelPurpose, setTravelPurpose] = useState("");
   const [department, setDepartment] = useState(profile?.department_name || "");
   const [submissionStatus, setSubmissionStatus] = useState("draft");
+  const [receipt, setReceipt] = useState(null); // Single receipt file
 
   const employeeName = profile ? `${profile.full_name} (${profile.employee_id})` : "Unknown";
 
@@ -67,21 +66,21 @@ const EmployeeTravelExpenses = () => {
       toast.success(successMessage);
       setTimeout(() => {
         dispatch(clearState());
-        setExpenses([{ date: "", purpose: "", amount: "", receipt: null, hasReceipt: false }]);
+        setExpenses([{ date: "", purpose: "", amount: "" }]);
         setTravelDate("");
         setDestination("");
         setTravelPurpose("");
+        setReceipt(null);
         setSubmissionStatus("draft");
       }, 2000);
     }
   }, [error, userError, successMessage, dispatch, user?.role]);
 
-  useEffect(()=>{
-    if(profile?.department_name){
-      setDepartment(profile.department_name)
+  useEffect(() => {
+    if (profile?.department_name) {
+      setDepartment(profile.department_name);
     }
-  },[profile]);
-
+  }, [profile]);
 
   const handleExpenseChange = (index, field, value) => {
     const newExpenses = [...expenses];
@@ -90,19 +89,17 @@ const EmployeeTravelExpenses = () => {
     setExpenses(newExpenses);
   };
 
-  const handleFileChange = (index, file) => {
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
     if (file && file.size <= 5 * 1024 * 1024) {
-      const newExpenses = [...expenses];
-      newExpenses[index].receipt = file;
-      newExpenses[index].hasReceipt = true;
-      setExpenses(newExpenses);
+      setReceipt(file);
     } else {
       toast.error("File size exceeds 5MB limit.");
     }
   };
 
   const addExpenseRow = () => {
-    setExpenses([...expenses, { date: "", purpose: "", amount: "", receipt: null, hasReceipt: false }]);
+    setExpenses([...expenses, { date: "", purpose: "", amount: "" }]);
   };
 
   const removeExpenseRow = (index) => {
@@ -118,12 +115,8 @@ const EmployeeTravelExpenses = () => {
       toast.error("Please fill in all required fields.");
       return;
     }
-    if (
-      expenses.some(
-        (exp) => !exp.date || !exp.purpose || !exp.amount || (exp.hasReceipt && !exp.receipt)
-      )
-    ) {
-      toast.error("Please fill in all required fields and upload receipts where indicated.");
+    if (expenses.some((exp) => !exp.date || !exp.purpose || !exp.amount)) {
+      toast.error("Please fill in all required fields for expenses.");
       return;
     }
 
@@ -135,6 +128,7 @@ const EmployeeTravelExpenses = () => {
         travel_purpose: travelPurpose,
         total_amount: totalAmount,
         expenses,
+        receipt,
       })
     );
   };
@@ -211,9 +205,8 @@ const EmployeeTravelExpenses = () => {
                     value={department}
                     disabled
                     className="w-full border border-slate-300 shadow-sm p-2 rounded text-sm text-gray-500 cursor-not-allowed"
-                    aria-label="Employee"
+                    aria-label="Department"
                   />
-
                 </div>
               </div>
             </div>
@@ -231,108 +224,109 @@ const EmployeeTravelExpenses = () => {
                 />
               </div>
             </div>
+            <div className="pt-4">
+              <label className="text-md font-semibold text-slate-700 mb-1 block">Receipt (Optional)</label>
+              <div className="flex items-center space-x-2">
+                <Upload size={20} className="text-teal-600" />
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,application/pdf"
+                  className="text-sm text-gray-500"
+                  onChange={handleFileChange}
+                  aria-label="Receipt Upload"
+                />
+                {receipt && (
+                  <span className="text-xs text-teal-600">{receipt.name}</span>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="border border-slate-300 p-2 sm:p-4 rounded-lg shadow-sm overflow-x-auto">
-  <table className="w-full border rounded-lg shadow-sm bg-white">
-    <caption className="text-md sm:text-lg font-semibold text-slate-700 py-2 text-left">
-      Travel Expenses
-    </caption>
-    <thead className="bg-teal-700 text-white">
-      <tr>
-        <th className="border border-teal-800 p-2 text-xs sm:text-sm font-medium min-w-[120px]">
-          Date
-        </th>
-        <th className="border border-teal-800 p-2 text-xs sm:text-sm font-medium min-w-[150px]">
-          Purpose
-        </th>
-        <th className="border border-teal-800 p-2 text-xs sm:text-sm font-medium min-w-[100px]">
-          Amount
-        </th>
-        <th className="border border-teal-800 p-2 text-xs sm:text-sm font-medium min-w-[150px]">
-          Receipt
-        </th>
-        <th className="border border-teal-800 p-2 text-xs sm:text-sm font-medium min-w-[80px]">
-          Action
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      {expenses.map((exp, index) => (
-        <tr key={index} className="hover:bg-teal-50 transition">
-          <td className="border border-teal-200 p-1 sm:p-2">
-            <input
-              type="date"
-              className="w-full border border-slate-300 shadow-sm p-1 sm:p-2 rounded text-xs sm:text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
-              value={exp.date}
-              onChange={(e) => handleExpenseChange(index, "date", e.target.value)}
-              aria-label={`Expense Date ${index + 1}`}
-            />
-          </td>
-          <td className="border border-teal-200 p-1 sm:p-2">
-            <input
-              type="text"
-              className="w-full border border-slate-300 shadow-sm p-1 sm:p-2 rounded text-xs sm:text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
-              placeholder="Purpose"
-              value={exp.purpose}
-              onChange={(e) => handleExpenseChange(index, "purpose", e.target.value)}
-              aria-label={`Expense Purpose ${index + 1}`}
-            />
-          </td>
-          <td className="border border-teal-200 p-1 sm:p-2">
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              className="w-full border border-slate-300 shadow-sm p-1 sm:p-2 rounded text-xs sm:text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
-              value={exp.amount}
-              onChange={(e) => handleExpenseChange(index, "amount", e.target.value)}
-              aria-label={`Expense Amount ${index + 1}`}
-            />
-          </td>
-          <td className="border border-teal-200 p-1 sm:p-2">
-            <input
-              type="file"
-              accept="image/jpeg,image/png,application/pdf"
-              className="text-xs sm:text-sm text-gray-500 w-full"
-              onChange={(e) => handleFileChange(index, e.target.files[0])}
-              aria-label={`Receipt Upload ${index + 1}`}
-            />
-            {exp.receipt && (
-              <span className="text-xs text-teal-600 block mt-1">{exp.receipt.name}</span>
-            )}
-          </td>
-          <td className="border border-teal-200 p-1 sm:p-2 text-center">
-            {index > 0 && (
+            <table className="w-full border rounded-lg shadow-sm bg-white">
+              <caption className="text-md sm:text-lg font-semibold text-slate-700 py-2 text-left">
+                Travel Expenses
+              </caption>
+              <thead className="bg-teal-700 text-white">
+                <tr>
+                  <th className="border border-teal-800 p-2 text-xs sm:text-sm font-medium min-w-[120px]">
+                    Date
+                  </th>
+                  <th className="border border-teal-800 p-2 text-xs sm:text-sm font-medium min-w-[150px]">
+                    Purpose
+                  </th>
+                  <th className="border border-teal-800 p-2 text-xs sm:text-sm font-medium min-w-[100px]">
+                    Amount
+                  </th>
+                  <th className="border border-teal-800 p-2 text-xs sm:text-sm font-medium min-w-[80px]">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {expenses.map((exp, index) => (
+                  <tr key={index} className="hover:bg-teal-50 transition">
+                    <td className="border border-teal-200 p-1 sm:p-2">
+                      <input
+                        type="date"
+                        className="w-full border border-slate-300 shadow-sm p-1 sm:p-2 rounded text-xs sm:text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
+                        value={exp.date}
+                        onChange={(e) => handleExpenseChange(index, "date", e.target.value)}
+                        aria-label={`Expense Date ${index + 1}`}
+                      />
+                    </td>
+                    <td className="border border-teal-200 p-1 sm:p-2">
+                      <input
+                        type="text"
+                        className="w-full border border-slate-300 shadow-sm p-1 sm:p-2 rounded text-xs sm:text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
+                        placeholder="Purpose"
+                        value={exp.purpose}
+                        onChange={(e) => handleExpenseChange(index, "purpose", e.target.value)}
+                        aria-label={`Expense Purpose ${index + 1}`}
+                      />
+                    </td>
+                    <td className="border border-teal-200 p-1 sm:p-2">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="w-full border border-slate-300 shadow-sm p-1 sm:p-2 rounded text-xs sm:text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
+                        value={exp.amount}
+                        onChange={(e) => handleExpenseChange(index, "amount", e.target.value)}
+                        aria-label={`Expense Amount ${index + 1}`}
+                      />
+                    </td>
+                    <td className="border border-teal-200 p-1 sm:p-2 text-center">
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => removeExpenseRow(index)}
+                          className="text-slate-500 hover:text-slate-700 transition"
+                          aria-label={`Remove Expense Row ${index + 1}`}
+                        >
+                          <Trash2 size={16} className="sm:h-5 sm:w-5" />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mt-4 gap-2">
               <button
                 type="button"
-                onClick={() => removeExpenseRow(index)}
-                className="text-slate-500 hover:text-slate-700 transition"
-                aria-label={`Remove Expense Row ${index + 1}`}
+                className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-lg text-xs sm:text-sm shadow-md hover:from-teal-700 hover:to-teal-900 transition"
+                onClick={addExpenseRow}
+                aria-label="Add Expense Row"
               >
-                <Trash2 size={16} className="sm:h-5 sm:w-5" />
+                Add Row
               </button>
-            )}
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-  <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mt-4 gap-2">
-    <button
-      type="button"
-      className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-lg text-xs sm:text-sm shadow-md hover:from-teal-700 hover:to-teal-900 transition"
-      onClick={addExpenseRow}
-      aria-label="Add Expense Row"
-    >
-      Add Row
-    </button>
-    <div className="text-right font-semibold text-teal-800 text-sm sm:text-base">
-      Total: ₹{totalAmount.toFixed(2)}
-    </div>
-  </div>
-</div>
+              <div className="text-right font-semibold text-teal-800 text-sm sm:text-base">
+                Total: ₹{totalAmount.toFixed(2)}
+              </div>
+            </div>
+          </div>
 
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-500">
