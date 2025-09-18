@@ -136,7 +136,7 @@ const TravelExpenseApproval = () => {
   const paginationData = viewMode === "pending" ? pagination.submissions : pagination.history;
 
   return (
-    <div className="w-full lg:w-[78%]">
+    <div className="w-full ">
       <div className="flex justify-between items-center">
         <div className="flex gap-2">
           <button

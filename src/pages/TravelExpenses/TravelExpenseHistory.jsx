@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { FileText, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
+import axios from "axios";
 import {
   fetchTravelExpenseHistory,
   clearState,
@@ -15,33 +16,33 @@ const TravelExpenseHistory = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
   const { profile, error: userError } = useSelector((state) => state.user);
   const { history, loading, error, successMessage, pagination } = useSelector(
-    (state) => state.travelExpense
+    (state) => state.travelExpenses
   );
   const [page, setPage] = useState(1);
+  const [downloadLoading, setDownloadLoading] = useState({});
   const limit = 10;
 
   useEffect(() => {
-    if (isAuthenticated && ["hr", "super_admin"].includes(user?.role)) {
+    console.log("Current user:", user);
+    if (!isAuthenticated || !localStorage.getItem("userToken")) {
+      window.location.href = "/login";
+      return;
+    }
+    if (["hr", "super_admin"].includes(user?.role)) {
       if (!profile) {
         dispatch(fetchUserProfile());
       }
       dispatch(fetchTravelExpenseHistory({ page, limit }));
     }
-    return () => {
-      dispatch(clearState());
-    };
-  }, [dispatch, profile, user?.role, page, isAuthenticated]);
+  }, [dispatch, profile, user?.role, page, limit, isAuthenticated]);
 
   useEffect(() => {
-    console.log("History submissions:", JSON.stringify(history, null, 2));
-    console.log("Pagination:", pagination);
+    console.log("History submissions:", history);
     if (error) {
       const message = error.includes("Insufficient permissions")
         ? "You do not have permission to view travel expense history."
         : error.includes("not found")
-        ? "No travel expense submissions found."
-        : error.includes("Failed to fetch")
-        ? "Unable to fetch travel expense history. Please try again."
+        ? "No submissions found."
         : error;
       toast.error(message, { position: "top-right", autoClose: 3000 });
       setTimeout(() => dispatch(clearState()), 2000);
@@ -57,6 +58,7 @@ const TravelExpenseHistory = () => {
   }, [error, userError, successMessage, dispatch]);
 
   const handleDownloadReceipt = async (submissionId) => {
+    setDownloadLoading((prev) => ({ ...prev, [submissionId]: true }));
     try {
       const userToken = localStorage.getItem("userToken");
       if (!userToken) {
@@ -64,35 +66,38 @@ const TravelExpenseHistory = () => {
           position: "top-right",
           autoClose: 3000,
         });
+        window.location.href = "/login";
         return;
       }
       const token = JSON.parse(userToken).token;
-      const response = await fetch(
-        `http://localhost:3007/api/travel-expenses/${submissionId}/receipt`,
+      const response = await axios.get(
+        `http://localhost:3007/api/travel-expenses/download/${submissionId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
         }
       );
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `receipt_${submissionId}`;
-        link.click();
-        window.URL.revokeObjectURL(url);
-      } else {
-        toast.error("Failed to download receipt.", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `receipt_${submissionId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Download receipt error:", error);
-      toast.error("Error downloading receipt.", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      console.error("Download receipt error:", error.response?.data);
+      const errorMessage =
+        error.response?.status === 401
+          ? "Session expired. Please log in again."
+          : error.response?.data?.error || "Failed to download receipt";
+      if (error.response?.status === 401) {
+        localStorage.removeItem("userToken");
+        window.location.href = "/login";
+      }
+      toast.error(errorMessage, { position: "top-right", autoClose: 3000 });
+    } finally {
+      setDownloadLoading((prev) => ({ ...prev, [submissionId]: false }));
     }
   };
 
@@ -106,7 +111,6 @@ const TravelExpenseHistory = () => {
 
   const formatDate = (date) => {
     if (!date || isNaN(Date.parse(date))) {
-      console.warn("Invalid date:", date);
       return "N/A";
     }
     return new Date(date).toLocaleDateString("en-IN", {
@@ -138,82 +142,41 @@ const TravelExpenseHistory = () => {
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/admin/dashboard" },
-            {
-              label: "Travel Expense History",
-              link: "/admin/travel-expense-history",
-            },
+            { label: "Travel Expense History", link: "/admin/travel-expense-history" },
           ]}
         />
-        <PageMeta
-          title="Travel Expense History"
-          description="View travel expense history"
-        />
+        <PageMeta title="Travel Expense History" description="View travel expense history" />
       </div>
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <h2 className="text-2xl font-semibold text-slate-700 mb-6">
           Travel Expense History
         </h2>
 
-        {error && (
-          <div className="text-center text-red-600 text-lg font-medium py-4">
-            {error.includes("Insufficient permissions")
-              ? "You do not have permission to view travel expense history."
-              : error.includes("not found")
-              ? "No travel expense submissions found."
-              : "Unable to fetch travel expense history."}
-            <button
-              onClick={() => dispatch(fetchTravelExpenseHistory({ page, limit }))}
-              className="ml-4 px-3 py-1 bg-teal-500 text-white rounded-md text-xs font-medium hover:bg-teal-600 transition-all duration-150"
-            >
-              Retry
-            </button>
-          </div>
-        )}
         {loading && (
           <div className="text-center text-gray-600 text-lg font-medium py-10 animate-pulse">
             Loading history...
           </div>
         )}
-        {!loading && !error && history.length === 0 && (
+        {!loading && history.length === 0 && (
           <div className="text-center text-gray-600 text-lg font-medium py-10">
             No travel expense history found.
           </div>
         )}
-        {!loading && !error && history.length > 0 && (
+        {!loading && history.length > 0 && (
           <div>
             <table className="w-full border mt-2 rounded-lg shadow-sm bg-white table-fixed">
               <thead className="bg-gradient-to-r from-teal-600 to-slate-700 text-white">
                 <tr>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[12%]">
-                    Employee
-                  </th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[10%]">
-                    Department
-                  </th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[10%]">
-                    Travel Date
-                  </th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[10%]">
-                    Destination
-                  </th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[12%]">
-                    Purpose
-                  </th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[8%]">
-                    Total Amount
-                  </th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[8%]">
-                    Receipt
-                  </th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[18%]">
-                    Expenses
-                  </th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[12%]">
-                    Admin Comment
-                  </th>
-                  <th className="border border-teal-800 p-2 text-xs font-medium w-[8%]">
-                    Status
-                  </th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[12%]">Employee</th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[10%]">Department</th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[10%]">Travel Date</th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[10%]">Destination</th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[12%]">Purpose</th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[8%]">Total Amount</th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[8%]">Receipt</th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[18%]">Expenses</th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[12%]">Admin Comment</th>
+                  <th className="border border-teal-800 p-2 text-xs font-medium w-[8%]">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -229,9 +192,7 @@ const TravelExpenseHistory = () => {
                     }`}
                   >
                     <td className="border border-teal-200 p-2 text-xs text-gray-700 truncate">
-                      {submission.employee_name ||
-                        submission.employee_id ||
-                        "N/A"}
+                      {submission.employee_name || "N/A"} ({submission.employee_id || "N/A"})
                     </td>
                     <td className="border border-teal-200 p-2 text-xs text-gray-700 truncate">
                       {submission.department_name || "N/A"}
@@ -252,10 +213,13 @@ const TravelExpenseHistory = () => {
                       {submission.receipt_path ? (
                         <button
                           onClick={() => handleDownloadReceipt(submission.id)}
-                          className="text-teal-500 hover:text-teal-700 transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-teal-500 rounded"
+                          className={`text-teal-500 hover:text-teal-700 transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-teal-500 rounded ${
+                            downloadLoading[submission.id] ? "opacity-50 cursor-not-allowed animate-pulse" : ""
+                          }`}
+                          disabled={downloadLoading[submission.id]}
                           aria-label={`Download Receipt for Submission ${submission.id}`}
                         >
-                          <Download size={12} className="inline" />
+                          {downloadLoading[submission.id] ? "Downloading..." : <Download size={12} className="inline" />}
                         </button>
                       ) : (
                         "N/A"
@@ -271,9 +235,7 @@ const TravelExpenseHistory = () => {
                             </li>
                           ))
                         ) : (
-                          <li className="text-[10px] text-gray-500">
-                            No expenses
-                          </li>
+                          <li className="text-[10px] text-gray-500">No expenses</li>
                         )}
                       </ul>
                     </td>
@@ -287,12 +249,10 @@ const TravelExpenseHistory = () => {
                             ? "bg-yellow-100 text-yellow-800"
                             : submission.status === "Approved"
                             ? "bg-teal-100 text-teal-800"
-                            : submission.status === "Rejected"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-gray-100 text-gray-800"
+                            : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {submission.status || "N/A"}
+                        {submission.status}
                       </span>
                     </td>
                   </tr>
@@ -308,15 +268,11 @@ const TravelExpenseHistory = () => {
                 Previous
               </button>
               <span className="text-xs text-gray-600">
-                Page {page} of{" "}
-                {(pagination.history && pagination.history.totalPages) || 1}
+                Page {page} of {pagination.history.totalPages || 1}
               </span>
               <button
                 onClick={() => setPage((prev) => prev + 1)}
-                disabled={
-                  page >=
-                  ((pagination.history && pagination.history.totalPages) || 1)
-                }
+                disabled={page >= pagination.history.totalPages}
                 className="px-3 py-1 bg-teal-500 text-white rounded-md text-xs font-medium hover:bg-teal-600 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-teal-400"
               >
                 Next
@@ -325,7 +281,7 @@ const TravelExpenseHistory = () => {
           </div>
         )}
       </div>
-    </div>
+    </div>  
   );
 };
 
