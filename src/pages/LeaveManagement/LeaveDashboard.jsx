@@ -336,18 +336,7 @@ const LeaveDashboard = () => {
           ))}
         </div>
 
-        {unpaidUsed > 0 && (
-          <div
-            className="bg-teal-100 border-l-4 border-teal-700 text-slate-700 p-4 sm:p-5 rounded-lg shadow-md flex items-center gap-2"
-            role="alert"
-          >
-            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-teal-700" />
-            <p className="font-semibold text-sm sm:text-base">
-              <strong>Salary Deduction:</strong> ₹{deductionAmount} for {unpaidUsed} unpaid leave(s)
-            </p>
-          </div>
-        )}
-
+      
         <div>
           <h3 className="text-lg sm:text-xl font-semibold text-slate-700 mb-4">
             Leave Balance

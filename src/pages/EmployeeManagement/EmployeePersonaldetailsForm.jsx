@@ -208,7 +208,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <div className="relative">
           <DatePicker
             selected={formData.dob ? new Date(formData.dob) : null}
-            onChange={(date) => handleDateChange("dob", date)} // Fixed: Use "dob" to match formData
+            onChange={(date) => handleDateChange("dob", date)} 
             className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 pr-10"
             dateFormat="yyyy-MM-dd"
             placeholderText="Select date of birth"
@@ -271,7 +271,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         {errors.panCard && <span className="text-red-500 text-xs mt-1">{errors.panCard}</span>}
       </div>
 
-      {/* Aadhar Card Number */}
       <div className="flex flex-col">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Aadhar Card Number</label>
         <input
