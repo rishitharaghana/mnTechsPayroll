@@ -97,13 +97,13 @@ const Attendance = () => {
         ? submission.recipient === "super_admin" ||
           submission.recipient === userEmployeeId ||
           submission.recipient === "hr" ||
-          submission.recipient.includes("MO-EMP-") || // Debug: Allow employee IDs
-          submission.recipient === "Office" // Debug: Allow invalid recipient
+          (typeof submission.recipient === "string" && submission.recipient.includes("MO-EMP-")) ||
+          submission.recipient === "Office"
         : userRole === "hr"
         ? submission.recipient === "hr" ||
           submission.recipient === userEmployeeId ||
-          submission.recipient.includes("MO-EMP-") || // Debug: Allow employee IDs
-          submission.recipient === "Office" // Debug: Allow invalid recipient
+          (typeof submission.recipient === "string" && submission.recipient.includes("MO-EMP-")) ||
+          submission.recipient === "Office"
         : submission.recipient === userRole || submission.recipient === userEmployeeId)
     );
   });
@@ -199,13 +199,13 @@ const Attendance = () => {
         ? s.recipient === "super_admin" ||
           s.recipient === userEmployeeId ||
           s.recipient === "hr" ||
-          s.recipient.includes("MO-EMP-") || // Debug: Allow employee IDs
-          s.recipient === "Office" // Debug: Allow invalid recipient
+          (typeof s.recipient === "string" && s.recipient.includes("MO-EMP-")) ||
+          s.recipient === "Office"
         : userRole === "hr"
         ? s.recipient === "hr" ||
           s.recipient === userEmployeeId ||
-          s.recipient.includes("MO-EMP-") || // Debug: Allow employee IDs
-          s.recipient === "Office" // Debug: Allow invalid recipient
+          (typeof s.recipient === "string" && s.recipient.includes("MO-EMP-")) ||
+          s.recipient === "Office"
         : s.recipient === userRole || s.recipient === userEmployeeId;
       console.log(`Checking submission ID=${s.id} for ${day}:`, {
         date: s.date,
@@ -482,7 +482,7 @@ const Attendance = () => {
                         y="20"
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        className="text-xs  text-slate-800"
+                        className="text-xs text-slate-800"
                       >
                         {percentage}%
                       </text>

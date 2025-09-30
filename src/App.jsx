@@ -52,6 +52,7 @@ import DetailedAttendanceReport from "./pages/AttendanceManagement/DetailedAtten
 import ForgotPassword from "./pages/Login/ForgotPassword";
 import AddEmployeeRoles from "./pages/EmployeeManagement/AddEmployeeRoles";
 import TerminateEmployee from "./pages/EmployeeManagement/TerminateEmployee";
+// import EmployeeSalaryStructure from "./pages/EmployeeManagement/EmployeeSalaryStructure";
 
 const App = () => {
   return (
@@ -61,7 +62,7 @@ const App = () => {
 
         <Routes>
           <Route path="/login" element={<Login />} />
-           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           {/* <Route path="/reset-password" element={<ResetPassword />} />  */}
           <Route path="/change-password" element={<ChangePassword />} />
 
@@ -87,11 +88,8 @@ const App = () => {
                   />
                 }
               >
+                <Route path="/admin/addrole" element={<AddEmployeeRoles />} />
                 <Route
-                  path="/admin/addrole"
-                  element={<AddEmployeeRoles />}
-                />
-                 <Route
                   path="/admin/employees/terminate"
                   element={<TerminateEmployee />}
                 />
@@ -99,6 +97,7 @@ const App = () => {
                   path="/admin/working-hours"
                   element={<EmployeeAvgHours />}
                 />
+                {/* <Route path ="/admin/:employeeId/salary-structure" element={<EmployeeSalaryStructure/>}  /> */}
                 <Route path="/admin/dashboard" element={<Dashboard />} />
                 <Route path="/admin/employees" element={<Employee />} />
                 <Route
@@ -154,10 +153,15 @@ const App = () => {
                   path="/employee/leave-dashboard"
                   element={<LeaveDashboard />}
                 />
-                <Route path="/employee/attendance-report" element={<DetailedAttendanceReport />} />
+                <Route
+                  path="/employee/attendance-report"
+                  element={<DetailedAttendanceReport />}
+                />
 
-
-        <Route path="/employee/attendance-overview" element={<EmpAttendanceOverview />} />
+                <Route
+                  path="/employee/attendance-overview"
+                  element={<EmpAttendanceOverview />}
+                />
 
                 <Route
                   path="/employee/employee-visitingcards"
@@ -224,7 +228,7 @@ const App = () => {
                   element={<AnnualCalendar />}
                 />
               </Route>
-            
+
               <Route path="/userprofile" element={<UserProfile />} />
               <Route path="/profile" element={<EditProfile />} />
               <Route path="/idcard/" element={<ViewIdCard />} />

@@ -109,6 +109,8 @@ export const fetchEmployeePerformance = createAsyncThunk(
         achievements: Array.isArray(response.data.data.achievements) ? response.data.data.achievements : [],
         feedback: Array.isArray(response.data.data.feedback) ? response.data.data.feedback : [],
         learningGrowth: Array.isArray(response.data.data.learningGrowth) ? response.data.data.learningGrowth : [],
+        appraisals: Array.isArray(response.data.data.appraisals) ? response.data.data.appraisals : [],
+        bonuses: Array.isArray(response.data.data.bonuses) ? response.data.data.bonuses : [],
       };
     } catch (error) {
       console.error("fetchEmployeePerformance - Error:", error.response?.data || error.message);
@@ -121,6 +123,8 @@ export const fetchEmployeePerformance = createAsyncThunk(
           achievements: [],
           feedback: [],
           learningGrowth: [],
+          appraisals: [],
+          bonuses: [],
         };
       }
       return rejectWithValue(error.response?.data?.error || "Failed to fetch performance data");
@@ -150,15 +154,50 @@ export const submitSelfReview = createAsyncThunk(
   }
 );
 
+export const awardBonus = createAsyncThunk(
+  "performance/awardBonus",
+  async ({ employee_id, bonusData }, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const { token } = JSON.parse(userToken);
+      const response = await axios.post(
+        "http://localhost:3007/api/employee/awardbonus",
+        { employee_id, ...bonusData },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || "Failed to award bonus");
+    }
+  }
+);
+
 const performanceSlice = createSlice({
   name: "performance",
   initialState: {
-    performance: { goals: [], tasks: [], competencies: [], achievements: [], feedback: [], learningGrowth: [], appraisals: [] },
+    performance: {
+      goals: [],
+      tasks: [],
+      competencies: [],
+      achievements: [],
+      feedback: [],
+      learningGrowth: [],
+      appraisals: [],
+      bonuses: [], 
+    },
     loading: false,
     error: null,
-     employees: [],
+    employees: [],
     successMessage: null,
-    
   },
   reducers: {
     clearState: (state) => {
@@ -180,7 +219,7 @@ const performanceSlice = createSlice({
         if (state.performance) {
           state.performance.goals.push(action.payload.data);
         } else {
-          state.performance = { goals: [action.payload.data], reviews: [] };
+          state.performance = { goals: [action.payload.data], appraisals: [], bonuses: [] };
         }
       })
       .addCase(setEmployeeGoal.rejected, (state, action) => {
@@ -221,9 +260,9 @@ const performanceSlice = createSlice({
         state.loading = false;
         state.successMessage = action.payload.message;
         if (state.performance) {
-          state.performance.reviews.push(action.payload.data);
+          state.performance.appraisals.push(action.payload.data);
         } else {
-          state.performance = { goals: [], reviews: [action.payload.data] };
+          state.performance = { goals: [], appraisals: [action.payload.data], bonuses: [] };
         }
       })
       .addCase(conductAppraisal.rejected, (state, action) => {
@@ -249,6 +288,24 @@ const performanceSlice = createSlice({
         state.successMessage = action.payload.message;
       })
       .addCase(submitSelfReview.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(awardBonus.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(awardBonus.fulfilled, (state, action) => {
+        state.loading = false;
+        state.successMessage = action.payload.message;
+        if (state.performance) {
+          state.performance.bonuses.push(action.payload.data);
+        } else {
+          state.performance = { goals: [], appraisals: [], bonuses: [action.payload.data] };
+        }
+      })
+      .addCase(awardBonus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

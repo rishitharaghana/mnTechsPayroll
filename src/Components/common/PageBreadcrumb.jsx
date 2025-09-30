@@ -58,16 +58,11 @@ const PageBreadcrumb = ({ items = [] }) => {
         const textColor = isActive ? "text-teal-600" : "text-slate-700";
         const iconColor = isActive ? "text-teal-600" : "text-slate-700";
 
-        // Fallback to a default icon or null if label is not in iconMap
         const icon = iconMap[item.label] || (
           <Home className="h-4 w-4 text-gray-400" />
         );
 
-        // Debugging: Log to check if icon is correctly mapped
-        if (!iconMap[item.label]) {
-          console.log(`Icon not found for label: ${item.label}`);
-        }
-
+      
         return (
           <div key={index} className="flex gap-2 items-center">
             {index > 0 && (

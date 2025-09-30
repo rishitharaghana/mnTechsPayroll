@@ -10,7 +10,18 @@ export const createEmployee = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
 
-      const { token } = JSON.parse(userToken);
+      let token;
+      try {
+        const parsedToken = JSON.parse(userToken);
+        token = parsedToken.token;
+        if (!token) {
+          return rejectWithValue("Invalid token format. Please log in again.");
+        }
+      } catch (parseError) {
+        console.error("Error parsing userToken:", parseError);
+        return rejectWithValue("Invalid token format. Please log in again.");
+      }
+
       console.log("FormData entries in createEmployee:");
       for (let [key, value] of formData.entries()) {
         console.log(`${key}:`, value instanceof File ? value.name : value);
@@ -24,14 +35,22 @@ export const createEmployee = createAsyncThunk(
             "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`,
           },
+          timeout: 10000,
         }
       );
       console.log("Create employee response:", response.data);
+
+      // Validate response structure
+      if (!response.data.data || !response.data.data.employee_id) {
+        console.error("Invalid response structure:", response.data);
+        return rejectWithValue("Invalid response from server: missing employee_id");
+      }
+
       return response.data;
     } catch (error) {
       console.error("Create employee error:", error.response?.data || error.message);
       return rejectWithValue(
-        error.response?.data?.error || "Failed to create employee"
+        error.response?.data?.error || error.message || "Failed to create employee"
       );
     }
   }
@@ -67,7 +86,10 @@ export const createEmployeePersonalDetails = createAsyncThunk(
       console.log("Create personal details response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Create personal details error:", error.response?.data || error.message);
+      console.error(
+        "Create personal details error:",
+        error.response?.data || error.message
+      );
       return rejectWithValue(
         error.response?.data?.error || "Failed to save personal details"
       );
@@ -105,7 +127,10 @@ export const updateEmployeePersonalDetails = createAsyncThunk(
       console.log("Update personal details response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Update personal details error:", error.response?.data || error.message);
+      console.error(
+        "Update personal details error:",
+        error.response?.data || error.message
+      );
       return rejectWithValue(
         error.response?.data?.error || "Failed to update personal details"
       );
@@ -316,7 +341,16 @@ export const updateEmployee = createAsyncThunk(
 export const deleteEmployee = createAsyncThunk(
   "employee/deleteEmployee",
   async (
-    { id, role, exitType, reason, noticeStartDate, lastWorkingDate, restrictLeaves, exitChecklist },
+    {
+      id,
+      role,
+      exitType,
+      reason,
+      noticeStartDate,
+      lastWorkingDate,
+      restrictLeaves,
+      exitChecklist,
+    },
     { rejectWithValue }
   ) => {
     try {
@@ -328,7 +362,15 @@ export const deleteEmployee = createAsyncThunk(
       const { token } = JSON.parse(userToken);
       const response = await axios.post(
         `http://localhost:3007/api/employees/${id}/terminate`,
-        { role, exitType, reason, noticeStartDate, lastWorkingDate, restrictLeaves, exitChecklist },
+        {
+          role,
+          exitType,
+          reason,
+          noticeStartDate,
+          lastWorkingDate,
+          restrictLeaves,
+          exitChecklist,
+        },
         {
           headers: {
             "Content-Type": "application/json",
@@ -337,7 +379,12 @@ export const deleteEmployee = createAsyncThunk(
         }
       );
       console.log("Terminate employee response:", response.data);
-      return { id, role, message: response.data.message, status: response.data.status };
+      return {
+        id,
+        role,
+        message: response.data.message,
+        status: response.data.status,
+      };
     } catch (error) {
       console.error("Terminate employee error:", error.response?.data);
       return rejectWithValue(
@@ -383,11 +430,14 @@ export const fetchEmployeeById = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(`http://localhost:3007/api/employees/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        `http://localhost:3007/api/employees/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       console.log("Fetch employee by ID response:", response.data);
       return response.data;
     } catch (error) {
@@ -434,9 +484,12 @@ export const getEmployeeProgress = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get("http://localhost:3007/api/employees/progress", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "http://localhost:3007/api/employees/progress",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       console.log("Get employee progress response:", response.data);
       return response.data;
     } catch (error) {
@@ -457,13 +510,19 @@ export const fetchDepartments = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get("http://localhost:3007/api/departments", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "http://localhost:3007/api/departments",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       console.log("Fetch departments response:", response.data);
       return response.data.data;
     } catch (error) {
-      console.error("Fetch departments error:", error.response?.data || error.message);
+      console.error(
+        "Fetch departments error:",
+        error.response?.data || error.message
+      );
       return rejectWithValue(
         error.response?.data?.error || "Failed to fetch departments"
       );
@@ -480,13 +539,19 @@ export const fetchDesignations = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get("http://localhost:3007/api/designations", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "http://localhost:3007/api/designations",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       console.log("Fetch designations response:", response.data);
       return response.data.data;
     } catch (error) {
-      console.error("Fetch designations error:", error.response?.data || error.message);
+      console.error(
+        "Fetch designations error:",
+        error.response?.data || error.message
+      );
       return rejectWithValue(
         error.response?.data?.error || "Failed to fetch designations"
       );
@@ -503,13 +568,19 @@ export const fetchRoles = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get("http://localhost:3007/api/employee/roles", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "http://localhost:3007/api/employee/roles",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       console.log("Fetch roles response:", response.data);
       return response.data.data;
     } catch (error) {
-      console.error("Fetch roles error:", error.response?.data || error.message);
+      console.error(
+        "Fetch roles error:",
+        error.response?.data || error.message
+      );
       return rejectWithValue(
         error.response?.data?.error || "Failed to fetch roles"
       );
@@ -539,7 +610,10 @@ export const createRole = createAsyncThunk(
       console.log("Create role response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Create role error:", error.response?.data || error.message);
+      console.error(
+        "Create role error:",
+        error.response?.data || error.message
+      );
       return rejectWithValue(
         error.response?.data?.error || "Failed to create role"
       );
@@ -673,6 +747,7 @@ const employeeSlice = createSlice({
     successMessage: null,
     employeeId: null,
     progress: null,
+    salaryStructure: null, // Retained for storing salary structure from createEmployee
   },
   reducers: {
     clearState: (state) => {
@@ -687,6 +762,7 @@ const employeeSlice = createSlice({
       state.currentEmployee = null;
       state.profile = null;
       state.progress = null;
+      state.salaryStructure = null;
     },
   },
   extraReducers: (builder) => {
@@ -704,6 +780,7 @@ const employeeSlice = createSlice({
           blood_group: action.payload.data.blood_group,
           photo_url: action.payload.data.photo_url,
         });
+        state.salaryStructure = action.payload.data.salary_structure; // Store salary structure
       })
       .addCase(createEmployee.rejected, (state, action) => {
         state.loading = false;
@@ -873,11 +950,12 @@ const employeeSlice = createSlice({
       })
       .addCase(fetchEmployees.fulfilled, (state, action) => {
         state.loading = false;
-        state.employees = action.payload.data.map((emp) => ({
-          ...emp,
-          blood_group: emp.blood_group,
-          photo_url: emp.photo_url,
-        })) || [];
+        state.employees =
+          action.payload.data.map((emp) => ({
+            ...emp,
+            blood_group: emp.blood_group,
+            photo_url: emp.photo_url,
+          })) || [];
       })
       .addCase(fetchEmployees.rejected, (state, action) => {
         state.loading = false;
@@ -961,12 +1039,14 @@ const employeeSlice = createSlice({
       .addCase(createRole.fulfilled, (state, action) => {
         state.loading = false;
         state.successMessage = action.payload.message;
-        state.roles.push(action.payload.data || {
-          name: action.meta.arg.name,
-          description: action.meta.arg.description,
-          role_id: action.meta.arg.role_id,
-          isHRRole: action.meta.arg.isHRRole,
-        });
+        state.roles.push(
+          action.payload.data || {
+            name: action.meta.arg.name,
+            description: action.meta.arg.description,
+            role_id: action.meta.arg.role_id,
+            isHRRole: action.meta.arg.isHRRole,
+          }
+        );
       })
       .addCase(createRole.rejected, (state, action) => {
         state.loading = false;

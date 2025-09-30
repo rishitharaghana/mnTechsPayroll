@@ -75,13 +75,12 @@ export const fetchTravelExpenses = createAsyncThunk(
       }
 
       const response = await axios.get(
-        `http://localhost:3007/api/travel-expenses`,
+        `http://localhost:3007/api/travel-expenses?page=${page}&limit=${limit}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { page, limit },
         }
       );
-      console.log("Fetch travel expenses response:", response.data);
+      console.log("Fetch travel expenses response:", JSON.stringify(response.data, null, 2));
       return response.data;
     } catch (error) {
       console.error("Fetch travel expenses error:", error.response?.data);
@@ -108,13 +107,12 @@ export const fetchTravelExpenseHistory = createAsyncThunk(
       }
 
       const response = await axios.get(
-        `http://localhost:3007/api/travel-expenses/history`,
+        `http://localhost:3007/api/travel-expenses/history?page=${page}&limit=${limit}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { page, limit },
         }
       );
-      console.log("Fetch travel expense history response:", response.data);
+      console.log("Fetch travel expense history response:", JSON.stringify(response.data, null, 2));
       return response.data;
     } catch (error) {
       console.error("Fetch travel expense history error:", error.response?.data);
@@ -198,7 +196,23 @@ const travelExpenseSlice = createSlice({
       })
       .addCase(fetchTravelExpenses.fulfilled, (state, action) => {
         state.loading = false;
-        state.submissions = action.payload.data || [];
+        state.submissions = action.payload.data.map((submission) => ({
+          id: submission.id,
+          employee_id: submission.employee_id,
+          employee_name: submission.employee_name,
+          department_name: submission.department_name,
+          travel_date: submission.travel_date,
+          destination: submission.destination,
+          travel_purpose: submission.travel_purpose,
+          total_amount: Number(submission.total_amount),
+          status: submission.status,
+          approved_by: submission.approved_by,
+          created_at: submission.created_at,
+          updated_at: submission.updated_at,
+          admin_comment: submission.admin_comment,
+          receipt_path: submission.receipt_path,
+          expenses: submission.expenses || [],
+        }));
         state.pagination.submissions = action.payload.pagination || {
           total: 0,
           page: 1,
@@ -213,16 +227,34 @@ const travelExpenseSlice = createSlice({
       .addCase(fetchTravelExpenseHistory.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.history = [];
       })
       .addCase(fetchTravelExpenseHistory.fulfilled, (state, action) => {
         state.loading = false;
-        state.history = action.payload.data || [];
+        state.history = action.payload.data.map((submission) => ({
+          id: submission.id,
+          employee_id: submission.employee_id,
+          employee_name: submission.employee_name,
+          department_name: submission.department_name,
+          travel_date: submission.travel_date,
+          destination: submission.destination,
+          travel_purpose: submission.travel_purpose,
+          total_amount: Number(submission.total_amount),
+          status: submission.status,
+          approved_by: submission.approved_by,
+          created_at: submission.created_at,
+          updated_at: submission.updated_at,
+          admin_comment: submission.admin_comment,
+          receipt_path: submission.receipt_path,
+          expenses: submission.expenses || [],
+        }));
         state.pagination.history = action.payload.pagination || {
           total: 0,
           page: 1,
           limit: 10,
           totalPages: 1,
         };
+        console.log("Updated history state:", JSON.stringify(state.history, null, 2));
       })
       .addCase(fetchTravelExpenseHistory.rejected, (state, action) => {
         state.loading = false;
@@ -243,6 +275,7 @@ const travelExpenseSlice = createSlice({
             ...state.submissions[index],
             status: action.payload.data.status,
             admin_comment: action.payload.data.admin_comment,
+            updated_at: new Date().toISOString(),
           };
         }
         const historyIndex = state.history.findIndex(
@@ -253,13 +286,26 @@ const travelExpenseSlice = createSlice({
             ...state.history[historyIndex],
             status: action.payload.data.status,
             admin_comment: action.payload.data.admin_comment,
+            updated_at: new Date().toISOString(),
           };
-        } else {
+        } else if (action.payload.data.status === "Approved" || action.payload.data.status === "Rejected") {
+          const submission = state.submissions[index] || {};
           state.history.push({
-            ...action.payload.data,
-            employee_name: state.submissions[index]?.employee_name || "N/A",
-            department_name: state.submissions[index]?.department_name || "N/A",
-            expenses: state.submissions[index]?.expenses || [],
+            id: action.payload.data.id,
+            employee_id: submission.employee_id,
+            employee_name: submission.employee_name,
+            department_name: submission.department_name,
+            travel_date: submission.travel_date,
+            destination: submission.destination,
+            travel_purpose: submission.travel_purpose,
+            total_amount: Number(submission.total_amount),
+            status: action.payload.data.status,
+            approved_by: action.payload.data.approved_by,
+            created_at: submission.created_at,
+            updated_at: new Date().toISOString(),
+            admin_comment: action.payload.data.admin_comment,
+            receipt_path: submission.receipt_path, // Fixed typo: recept_path -> receipt_path
+            expenses: submission.expenses || [],
           });
         }
       })

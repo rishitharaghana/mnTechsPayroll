@@ -43,24 +43,49 @@ export const downloadPayslip = createAsyncThunk(
         return rejectWithValue('Invalid token format');
       }
 
+      if (!employeeId || !month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+        return rejectWithValue('Invalid employee ID or month format. Use YYYY-MM');
+      }
+
       const response = await axios.get(`http://localhost:3007/api/payslip/${employeeId}/${month}`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob',
       });
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Payslip_${employeeId}_${month}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      // Check if response is a PDF
+      if (response.headers['content-type'].includes('application/pdf')) {
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Payslip_${employeeId}_${month}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
 
-      console.log('Download payslip success:', { employeeId, month });
-      return { success: true };
+        console.log('Download payslip success:', { employeeId, month });
+        return { success: true };
+      } else {
+        // Handle JSON error response
+        const text = await response.data.text();
+        try {
+          const json = JSON.parse(text);
+          return rejectWithValue(json.error || 'Failed to download payslip');
+        } catch (e) {
+          return rejectWithValue('Invalid response format');
+        }
+      }
     } catch (error) {
-      console.error('Download payslip error:', error.response?.data || error.message);
+      console.error('Download payslip error:', error);
+      if (error.response?.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text();
+          const json = JSON.parse(text);
+          return rejectWithValue(json.error || 'Failed to download payslip');
+        } catch (e) {
+          return rejectWithValue('Failed to parse error response');
+        }
+      }
       return rejectWithValue(error.response?.data?.error || 'Failed to download payslip');
     }
   }
@@ -95,12 +120,12 @@ export const fetchRecentPayslip = createAsyncThunk(
   }
 );
 
-
 const payslipSlice = createSlice({
   name: 'payslip',
   initialState: {
     payslips: [],
     totalRecords: 0,
+    recentPayslip: null,
     loading: false,
     error: null,
   },
@@ -124,7 +149,7 @@ const payslipSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-       .addCase(fetchRecentPayslip.pending, (state) => {
+      .addCase(fetchRecentPayslip.pending, (state) => {
         state.loading = true;
         state.error = null;
       })

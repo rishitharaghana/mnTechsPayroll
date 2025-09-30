@@ -4,6 +4,7 @@ import {
   setEmployeeGoal,
   conductAppraisal,
   fetchEmployeePerformance,
+  awardBonus,
 } from "../../redux/slices/performanceSlice";
 import { fetchEmployees } from "../../redux/slices/employeeSlice";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
@@ -11,6 +12,7 @@ import PageMeta from "../../Components/common/PageMeta";
 import EmployeeInfoGoalsForm from "./EmployeeInfoGoalsForm";
 import SelfReviewCompetenciesForm from "./SelfReviewCompetenciesForm";
 import AppraisalSummaryForm from "./AppraisalSummaryForm";
+import { toast } from "react-toastify";
 
 const steps = [
   "Employee Info & Goals",
@@ -53,6 +55,7 @@ const AddEmployeeReview = () => {
       bonus_eligible: false,
       promotion_recommended: false,
       salary_hike_percentage: "",
+      bonuses: [], // Added bonuses
     },
   };
 
@@ -124,6 +127,15 @@ const AddEmployeeReview = () => {
                 type: ach.type || "Achievement",
               }))
             : prev.appraisal.achievements,
+          bonuses: Array.isArray(performance.bonuses)
+            ? performance.bonuses.map((bonus) => ({
+                id: Date.now() + Math.random(),
+                bonus_type: bonus.bonus_type || "one_time",
+                amount: bonus.amount || "",
+                effective_date: bonus.effective_date || "",
+                remarks: bonus.remarks || "",
+              }))
+            : prev.appraisal.bonuses,
         },
       }));
     }
@@ -150,6 +162,9 @@ const AddEmployeeReview = () => {
           achievements: Array.isArray(prev.appraisal.achievements)
             ? [...prev.appraisal.achievements]
             : [],
+          bonuses: Array.isArray(prev.appraisal.bonuses)
+            ? [...prev.appraisal.bonuses]
+            : [],
         },
       };
       if (section === "employeeDetails" && field === "employee_id") {
@@ -170,6 +185,16 @@ const AddEmployeeReview = () => {
       ) {
         newState.appraisal.achievements[index] = {
           ...newState.appraisal.achievements[index],
+          [subField]: value,
+        };
+      } else if (
+        section === "appraisal" &&
+        field === "bonuses" &&
+        index !== null &&
+        subField
+      ) {
+        newState.appraisal.bonuses[index] = {
+          ...newState.appraisal.bonuses[index],
           [subField]: value,
         };
       } else if (
@@ -223,6 +248,9 @@ const AddEmployeeReview = () => {
           achievements: Array.isArray(prev.appraisal.achievements)
             ? [...prev.appraisal.achievements]
             : [],
+          bonuses: Array.isArray(prev.appraisal.bonuses)
+            ? [...prev.appraisal.bonuses]
+            : [],
         },
       };
       if (
@@ -233,6 +261,16 @@ const AddEmployeeReview = () => {
       ) {
         newState.appraisal.achievements[index] = {
           ...newState.appraisal.achievements[index],
+          [subField]: formattedDate,
+        };
+      } else if (
+        section === "appraisal" &&
+        field === "bonuses" &&
+        index !== null &&
+        subField
+      ) {
+        newState.appraisal.bonuses[index] = {
+          ...newState.appraisal.bonuses[index],
           [subField]: formattedDate,
         };
       } else if (
@@ -403,7 +441,7 @@ const AddEmployeeReview = () => {
         }
       });
     } else if (currentStep === 2) {
-      const { performance_score, manager_comments, achievements } =
+      const { performance_score, manager_comments, achievements, bonuses } =
         formData.appraisal;
       if (
         !performance_score ||
@@ -432,6 +470,18 @@ const AddEmployeeReview = () => {
             index + 1
           }: Date must be within the 3-month cycle`;
       });
+      if (role === "super_admin" && Array.isArray(bonuses)) {
+        bonuses.forEach((bonus, index) => {
+          if (!bonus.bonus_type)
+            newErrors[`bonus_type_${index}`] = `Bonus ${index + 1}: Type is required`;
+          if (!bonus.amount || bonus.amount <= 0)
+            newErrors[`bonus_amount_${index}`] = `Bonus ${index + 1}: Amount must be positive`;
+          if (!bonus.effective_date)
+            newErrors[`bonus_effective_date_${index}`] = `Bonus ${index + 1}: Effective date is required`;
+          else if (new Date(bonus.effective_date) < new Date())
+            newErrors[`bonus_effective_date_${index}`] = `Bonus ${index + 1}: Effective date must be today or later`;
+        });
+      }
     }
     setFormErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -464,10 +514,12 @@ const AddEmployeeReview = () => {
 
     if (!["hr", "super_admin"].includes(role)) {
       setFormErrors({ form: "Only HR or Admin can submit reviews" });
+      toast.error("Only HR or Admin can submit reviews");
       return;
     }
 
     try {
+      // Submit goals
       for (const goal of formData.goals) {
         await dispatch(
           setEmployeeGoal({
@@ -479,22 +531,40 @@ const AddEmployeeReview = () => {
           })
         ).unwrap();
       }
-      if (currentStep === steps.length - 1) {
-        await dispatch(
-          conductAppraisal({
-            employee_id: formData.employeeDetails.employee_id,
-            reviewer_id: loggedInUserId,
-            ...formData.appraisal,
-            competencies: formData.competencies,
-          })
-        ).unwrap();
-        setFormData(initialFormData);
-        setCurrentStep(0);
-      } else {
-        nextStep();
+
+      // Submit appraisal
+      await dispatch(
+        conductAppraisal({
+          employee_id: formData.employeeDetails.employee_id,
+          reviewer_id: loggedInUserId,
+          ...formData.appraisal,
+          competencies: formData.competencies,
+        })
+      ).unwrap();
+
+      // Submit bonuses (super_admin only)
+      if (role === "super_admin" && Array.isArray(formData.appraisal.bonuses) && formData.appraisal.bonuses.length > 0) {
+        for (const bonus of formData.appraisal.bonuses) {
+          await dispatch(
+            awardBonus({
+              employee_id: formData.employeeDetails.employee_id,
+              bonusData: {
+                bonus_type: bonus.bonus_type,
+                amount: parseFloat(bonus.amount),
+                effective_date: bonus.effective_date,
+                remarks: bonus.remarks,
+              },
+            })
+          ).unwrap();
+        }
       }
+
+      toast.success("Performance review submitted successfully");
+      setFormData(initialFormData);
+      setCurrentStep(0);
     } catch (err) {
       setFormErrors({ form: err || "Failed to submit review" });
+      toast.error(err || "Failed to submit review");
     }
   };
 
@@ -523,6 +593,13 @@ const AddEmployeeReview = () => {
           {successMessage && (
             <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg text-sm sm:text-base">
               {successMessage}
+            </div>
+          )}
+
+          {/* Error Message */}
+          {perfError && (
+            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg text-sm sm:text-base">
+              {perfError}
             </div>
           )}
 

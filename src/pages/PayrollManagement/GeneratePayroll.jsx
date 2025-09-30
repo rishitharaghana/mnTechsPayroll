@@ -18,7 +18,6 @@ import { toast } from "react-toastify";
 // Import Lucid Icons (add these imports based on your needs)
 import { /* Add specific icons here, e.g., FileDownload, FileText, ChevronDown */ } from "lucide-react";
 
-// Custom Select Component
 const CustomSelect = ({ value, onChange, options, disabled, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef(null);
@@ -125,26 +124,29 @@ const GeneratePayroll = () => {
   };
 
   const handleGeneratePayrollForEmployee = (employeeId) => {
-    if (!selectedMonth || !employeeId) {
-      toast.error("Please select a month and an employee.");
-      return;
+  if (!selectedMonth || !employeeId) {
+    toast.error("Please select a month and an employee.");
+    return;
+  }
+  console.log(`Frontend: Generating payroll for employeeId: "${employeeId}" (length: ${employeeId.length}, type: ${typeof employeeId})`);
+  const employee = employees.find((e) => e.employee_id === employeeId);
+  console.log('Frontend: Employee data:', employee);
+  if (!employee) {
+    toast.error("Employee not found in the employees list.");
+    return;
+  }
+  const formattedMonth = format(selectedMonth, "yyyy-MM");
+  dispatch(generatePayrollForEmployee({ employeeId, month: formattedMonth })).then((result) => {
+    if (generatePayrollForEmployee.fulfilled.match(result)) {
+      dispatch(fetchPayroll({ month: formattedMonth, page: currentPage, limit: itemsPerPage }));
+      setSelectedPayroll(result.payload.data);
+      toast.success(result.payload.message || "Payroll generated successfully");
+    } else {
+      console.error('Frontend: Payroll generation error:', result.payload);
+      toast.error(result.payload?.error || "Failed to generate payroll");
     }
-    const employee = employees.find((e) => e.employee_id === employeeId);
-    if (!employee?.basic_salary) {
-      toast.error("Employee has no salary data.");
-      return;
-    }
-    const formattedMonth = format(selectedMonth, "yyyy-MM");
-    dispatch(generatePayrollForEmployee({ employeeId, month: formattedMonth })).then((result) => {
-      if (generatePayrollForEmployee.fulfilled.match(result)) {
-        dispatch(fetchPayroll({ month: formattedMonth, page: currentPage, limit: itemsPerPage }));
-        setSelectedPayroll(result.payload.data);
-        toast.success(result.payload.message || "Payroll generated successfully");
-      } else {
-        toast.error(result.payload?.error || "Failed to generate payroll");
-      }
-    });
-  };
+  });
+};
 
   const handleDownloadPDF = () => {
     if (!selectedMonth) {

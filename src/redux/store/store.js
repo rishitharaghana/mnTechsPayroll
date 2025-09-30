@@ -12,6 +12,7 @@ import siteVisitReducer from '../slices/siteVisitSlice';
 import companyReducer from '../slices/companySlice';
 import dashboardReducer from '../slices/dashboardSlice';
 import visitingCardReducer from '../slices/visitingCardSlice';
+import holidayReducer from '../slices/holidaySlice';
 
 const store = configureStore({
   reducer: {
@@ -28,6 +29,7 @@ const store = configureStore({
     company : companyReducer,
     dashboard: dashboardReducer,
     visitingCard : visitingCardReducer,
+    holidays: holidayReducer,
   },
 });
 export default store;

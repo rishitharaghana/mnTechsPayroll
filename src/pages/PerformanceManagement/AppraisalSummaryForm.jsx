@@ -1,6 +1,7 @@
+import { useState, useEffect } from "react"; // Added useEffect import
+import { useSelector } from "react-redux";
 import DatePicker from "../../Components/ui/date/DatePicker";
-import Select from "react-select"; // Import react-select
-import { useState } from "react";
+import Select from "react-select";
 
 // Custom styles for react-select
 const customSelectStyles = {
@@ -50,16 +51,50 @@ const achievementTypeOptions = [
   { value: "Award", label: "Award" },
 ];
 
-const AppraisalSummaryForm = ({ formData, setFormData, formErrors, handleChange, handleDateChange }) => {
-  // State to track window width for responsive adjustments
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+// Options for bonus type select
+const bonusTypeOptions = [
+  { value: "one_time", label: "One-Time" },
+  { value: "recurring", label: "Recurring" },
+];
 
-  // Update window width on resize
-  window.addEventListener("resize", () => setWindowWidth(window.innerWidth));
+const AppraisalSummaryForm = ({ formData, setFormData, formErrors, handleChange, handleDateChange, perfError }) => {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const { role } = useSelector((state) => state.auth); // Get user role
+
+  // Handle window resize with useEffect
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const addBonus = () => {
+    setFormData((prev) => ({
+      ...prev,
+      appraisal: {
+        ...prev.appraisal,
+        bonuses: [
+          ...(prev.appraisal.bonuses || []),
+          {
+            id: Date.now() + Math.random(),
+            bonus_type: "one_time",
+            amount: "",
+            effective_date: "",
+            remarks: "",
+          },
+        ],
+      },
+    }));
+  };
 
   return (
     <div className="space-y-8 min-h-screen">
       <div className="max-w-7xl mx-auto">
+        {perfError && (
+          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg text-sm">
+            {perfError}
+          </div>
+        )}
         {/* Appraisal Section */}
         <div className="">
           <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">Appraisal</h3>
@@ -181,6 +216,99 @@ const AppraisalSummaryForm = ({ formData, setFormData, formErrors, handleChange,
             </div>
           </div>
 
+          {/* Bonuses Grid (Super Admin Only) */}
+          {role === "super_admin" && (
+            <div className="grid grid-cols-1 gap-6 mb-6">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Bonuses</h4>
+                {(Array.isArray(formData.appraisal.bonuses) ? formData.appraisal.bonuses : []).map((bonus, index) => (
+                  <div key={bonus.id} className="mt-4 p-4 bg-gray-100 rounded-lg shadow-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 lg:grid-cols-2 gap-4">
+                      {/* Bonus Type */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Bonus Type</label>
+                        <Select
+                          name={`bonus_type_${index}`}
+                          value={bonusTypeOptions.find((option) => option.value === bonus.bonus_type)}
+                          onChange={(selectedOption) =>
+                            handleChange(
+                              { target: { name: `bonus_type_${index}`, value: selectedOption.value } },
+                              "appraisal",
+                              "bonuses",
+                              index,
+                              "bonus_type"
+                            )
+                          }
+                          options={bonusTypeOptions}
+                          styles={customSelectStyles}
+                          menuPlacement="auto"
+                          maxMenuHeight={200}
+                          className="text-sm"
+                          placeholder="Select bonus type"
+                        />
+                        {formErrors[`bonus_type_${index}`] && (
+                          <p className="text-red-500 text-xs mt-2">{formErrors[`bonus_type_${index}`]}</p>
+                        )}
+                      </div>
+
+                      {/* Bonus Amount */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Amount (₹)</label>
+                        <input
+                          type="number"
+                          name={`bonus_amount_${index}`}
+                          value={bonus.amount}
+                          onChange={(e) => handleChange(e, "appraisal", "bonuses", index, "amount")}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                          placeholder="Enter amount"
+                          min="0"
+                          step="0.01"
+                        />
+                        {formErrors[`bonus_amount_${index}`] && (
+                          <p className="text-red-500 text-xs mt-2">{formErrors[`bonus_amount_${index}`]}</p>
+                        )}
+                      </div>
+
+                      {/* Effective Date */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Effective Date</label>
+                        <DatePicker
+                          name={`bonus_effective_date_${index}`}
+                          value={bonus.effective_date ? new Date(bonus.effective_date) : null}
+                          onChange={(date) => handleDateChange(date, "appraisal", "bonuses", index, "effective_date")}
+                          className="w-full border border-gray-300 rounded-lg px-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                        />
+                        {formErrors[`bonus_effective_date_${index}`] && (
+                          <p className="text-red-500 text-xs mt-2">{formErrors[`bonus_effective_date_${index}`]}</p>
+                        )}
+                      </div>
+
+                      {/* Remarks */}
+                      <div className="sm:col-span-2 xl:col-span-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Remarks</label>
+                        <textarea
+                          name={`bonus_remarks_${index}`}
+                          value={bonus.remarks}
+                          onChange={(e) => handleChange(e, "appraisal", "bonuses", index, "remarks")}
+                          className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors resize-y"
+                          rows={3}
+                          placeholder="Enter remarks (optional)"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addBonus}
+                  className="mt-4 text-teal-600 hover:text-teal-800 font-medium text-sm transition-colors flex items-center gap-2"
+                >
+                  <span className="text-lg">+</span> Add Bonus
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Bonus Eligible Grid */}
           <div className="grid grid-cols-1 gap-6 mb-6">
             <div className="flex items-center">
@@ -290,10 +418,46 @@ const AppraisalSummaryForm = ({ formData, setFormData, formErrors, handleChange,
             </div>
           </div>
 
+          {/* Learning Progress Grid */}
+          <div className="grid grid-cols-1 gap-6 mb-6">
+            <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Learning Progress</h4>
+              <div className="text-sm text-gray-700">
+                {(Array.isArray(formData.learningGrowth) && formData.learningGrowth.length > 0) ? (
+                  <ul className="list-disc pl-6">
+                    {formData.learningGrowth.map((lg) => (
+                      <li key={lg.id}>
+                        {lg.title} (Progress: {lg.progress}%, Completed: {lg.completed ? "Yes" : "No"})
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No learning progress data available.</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Bonuses Summary (Super Admin Only) */}
+          {role === "super_admin" && (
+            <div className="grid grid-cols-1 gap-6 mb-6">
+              <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Bonuses</h4>
+                <div className="text-sm text-gray-700">
+                  {(Array.isArray(formData.appraisal.bonuses) ? formData.appraisal.bonuses : []).map((bonus) => (
+                    <p key={bonus.id} className="mb-2">
+                      <strong>{bonus.bonus_type === "one_time" ? "One-Time" : "Recurring"} Bonus:</strong> ₹{bonus.amount}, Effective: {bonus.effective_date}, Remarks: {bonus.remarks || "None"}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Appraisal Summary Grid */}
           <div className="grid grid-cols-1 gap-6">
             <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
-              <h4 className="text-lg font-semibold text-gray-900 chorus">Appraisal</h4>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Appraisal</h4>
               <div className="text-sm text-gray-700">
                 <p><strong>Performance Score:</strong> {formData.appraisal.performance_score}</p>
                 <p><strong>Manager Comments:</strong> {formData.appraisal.manager_comments}</p>

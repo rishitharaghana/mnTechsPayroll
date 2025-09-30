@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Select from "react-select"; // Import react-select
+import Select from "react-select";
 import { TrendingUp, Award, Target, Star } from "lucide-react";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
@@ -11,91 +11,67 @@ import { fetchEmployees } from "../../redux/slices/employeeSlice";
 const employeeSelectStyles = {
   control: (provided) => ({
     ...provided,
-    borderColor: '#e2e8f0',
-    borderRadius: '0.5rem',
-    padding: '0.25rem',
-    boxShadow: 'none',
-    '&:hover': {
-      borderColor: '#14b8a6',
-    },
-    backgroundColor: '#fff',
+    borderColor: "#e2e8f0",
+    borderRadius: "0.5rem",
+    padding: "0.25rem",
+    boxShadow: "none",
+    "&:hover": { borderColor: "#14b8a6" },
+    backgroundColor: "#fff",
   }),
   option: (provided, state) => ({
     ...provided,
-    backgroundColor: state.isSelected ? '#14b8a6' : state.isFocused ? '#f0fdfa' : '#fff',
-    color: state.isSelected ? '#fff' : '#1f2937',
-    padding: '0.5rem 1rem',
-    cursor: 'pointer',
-    '&:hover': {
-      backgroundColor: '#f0fdfa',
-      color: '#1f2937',
-    },
+    backgroundColor: state.isSelected ? "#14b8a6" : state.isFocused ? "#f0fdfa" : "#fff",
+    color: state.isSelected ? "#fff" : "#1f2937",
+    padding: "0.5rem 1rem",
+    cursor: "pointer",
+    "&:hover": { backgroundColor: "#f0fdfa", color: "#1f2937" },
   }),
   menu: (provided) => ({
     ...provided,
-    borderRadius: '0.5rem',
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    borderRadius: "0.5rem",
+    border: "1px solid #e2e8f0",
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
     zIndex: 10,
   }),
-  singleValue: (provided) => ({
-    ...provided,
-    color: '#1f2937',
-    fontWeight: '500',
-  }),
-  placeholder: (provided) => ({
-    ...provided,
-    color: '#6b7280',
-  }),
+  singleValue: (provided) => ({ ...provided, color: "#1f2937", fontWeight: "500" }),
+  placeholder: (provided) => ({ ...provided, color: "#6b7280" }),
 };
 
 // Custom styles for period select
 const periodSelectStyles = {
   control: (provided) => ({
     ...provided,
-    borderColor: '#e2e8f0',
-    borderRadius: '0.5rem',
-    padding: '0.25rem',
-    boxShadow: 'none',
-    '&:hover': {
-      borderColor: '#0ea5e9',
-    },
-    backgroundColor: '#f8fafc',
+    borderColor: "#e2e8f0",
+    borderRadius: "0.5rem",
+    padding: "0.25rem",
+    boxShadow: "none",
+    "&:hover": { borderColor: "#0ea5e9" },
+    backgroundColor: "#f8fafc",
   }),
   option: (provided, state) => ({
     ...provided,
-    backgroundColor: state.isSelected ? '#0ea5e9' : state.isFocused ? '#e0f2fe' : '#fff',
-    color: state.isSelected ? '#fff' : '#1f2937',
-    padding: '0.5rem 1rem',
-    cursor: 'pointer',
-    '&:hover': {
-      backgroundColor: '#e0f2fe',
-      color: '#1f2937',
-    },
+    backgroundColor: state.isSelected ? "#0ea5e9" : state.isFocused ? "#e0f2fe" : "#fff",
+    color: state.isSelected ? "#fff" : "#1f2937",
+    padding: "0.5rem 1rem",
+    cursor: "pointer",
+    "&:hover": { backgroundColor: "#e0f2fe", color: "#1f2937" },
   }),
   menu: (provided) => ({
     ...provided,
-    borderRadius: '0.5rem',
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    borderRadius: "0.5rem",
+    border: "1px solid #e2e8f0",
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
     zIndex: 10,
   }),
-  singleValue: (provided) => ({
-    ...provided,
-    color: '#1f2937',
-    fontWeight: '500',
-  }),
-  placeholder: (provided) => ({
-    ...provided,
-    color: '#6b7280',
-  }),
+  singleValue: (provided) => ({ ...provided, color: "#1f2937", fontWeight: "500" }),
+  placeholder: (provided) => ({ ...provided, color: "#6b7280" }),
 };
 
 const Performance = () => {
   const dispatch = useDispatch();
-  const { employees } = useSelector((state) => state.employee);
-  const { performance, loading, error } = useSelector((state) => state.performance);
-  const [selectedEmployee, setSelectedEmployee] = useState(null); // Changed to null for react-select
+  const { employees, loading: empLoading, error: empError } = useSelector((state) => state.employee);
+  const { performance, loading: perfLoading, error: perfError } = useSelector((state) => state.performance);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState({ value: "quarterly", label: "Quarterly" });
 
   // Employee options for react-select
@@ -112,52 +88,86 @@ const Performance = () => {
     { value: "quarterly", label: "Quarterly" },
     { value: "monthly", label: "Monthly" },
     { value: "yearly", label: "Yearly" },
+    { value: "all", label: "All Time" },
   ];
 
   useEffect(() => {
     dispatch(fetchEmployees());
-    if (selectedEmployee?.value !== "all") {
-      dispatch(fetchEmployeePerformance(selectedEmployee?.value)).catch((err) =>
+    if (selectedEmployee?.value && selectedEmployee.value !== "all") {
+      dispatch(fetchEmployeePerformance(selectedEmployee.value)).catch((err) =>
         console.error("Failed to fetch performance:", err)
       );
     }
   }, [dispatch, selectedEmployee]);
 
-  // Calculate date range for 3-month cycle
+  // Calculate date range based on selected period
   const getDateRange = () => {
     const today = new Date();
-    const start = new Date(today.getFullYear(), Math.floor(today.getMonth() / 3) * 3, 1);
-    const end = new Date(today.getFullYear(), Math.floor(today.getMonth() / 3) * 3 + 3, 0);
+    let start, end;
+    if (selectedPeriod.value === "quarterly") {
+      start = new Date(today.getFullYear(), Math.floor(today.getMonth() / 3) * 3, 1);
+      end = new Date(today.getFullYear(), Math.floor(today.getMonth() / 3) * 3 + 3, 0);
+    } else if (selectedPeriod.value === "monthly") {
+      start = new Date(today.getFullYear(), today.getMonth(), 1);
+      end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    } else if (selectedPeriod.value === "yearly") {
+      start = new Date(today.getFullYear(), 0, 1);
+      end = new Date(today.getFullYear(), 11, 31);
+    } else {
+      start = new Date(0); // Start of epoch for "all"
+      end = new Date(); // Current date
+    }
     return { start, end };
   };
 
   // Filter performance data by date range
   const filteredPerformance = {
     ...performance,
-    reviews: (performance?.reviews || []).filter((review) => {
-      if (selectedPeriod.value !== "quarterly") return true;
-      const reviewDate = new Date(review.reviewDate);
-      const { start, end } = getDateRange();
-      return reviewDate >= start && reviewDate <= end;
+    appraisals: (performance?.appraisals || []).filter((appraisal) => {
+      if (selectedPeriod.value === "all") return true;
+      try {
+        const createdAt = new Date(appraisal.created_at);
+        const { start, end } = getDateRange();
+        return createdAt >= start && createdAt <= end;
+      } catch (e) {
+        console.error("Invalid appraisal created_at:", appraisal.created_at);
+        return true;
+      }
     }),
     goals: (performance?.goals || []).filter((goal) => {
-      if (selectedPeriod.value !== "quarterly") return true;
-      const dueDate = new Date(goal.due_date);
-      const { start, end } = getDateRange();
-      return dueDate >= start && dueDate <= end;
+      if (selectedPeriod.value === "all") return true;
+      try {
+        const dueDate = new Date(goal.due_date);
+        const { start, end } = getDateRange();
+        return dueDate >= start && dueDate <= end;
+      } catch (e) {
+        console.error("Invalid goal due_date:", goal.due_date);
+        return true;
+      }
+    }),
+    achievements: (performance?.achievements || []).filter((ach) => {
+      if (selectedPeriod.value === "all") return true;
+      try {
+        const achDate = new Date(ach.date);
+        const { start, end } = getDateRange();
+        return achDate >= start && achDate <= end;
+      } catch (e) {
+        console.error("Invalid achievement date:", ach.date);
+        return true;
+      }
     }),
   };
 
   const performanceMetrics = [
     {
       title: "Team Performance",
-      value: filteredPerformance?.reviews?.length
+      value: filteredPerformance?.appraisals?.length
         ? `${Math.round(
-            filteredPerformance.reviews.reduce((sum, r) => sum + (r.performance_score || 0), 0) /
-              filteredPerformance.reviews.length
+            filteredPerformance.appraisals.reduce((sum, a) => sum + (a.performance_score || 0), 0) /
+              filteredPerformance.appraisals.length
           )}%`
         : "N/A",
-      change: filteredPerformance?.reviews?.length ? "+4.2%" : "N/A",
+      change: filteredPerformance?.appraisals?.length ? "+4.2%" : "N/A",
       icon: TrendingUp,
     },
     {
@@ -173,20 +183,20 @@ const Performance = () => {
     },
     {
       title: "Awards Given",
-      value: filteredPerformance?.reviews?.reduce((sum, r) => sum + (r.achievements?.length || 0), 0) || 0,
-      change: filteredPerformance?.reviews?.length ? "+12" : "N/A",
+      value: filteredPerformance?.achievements?.length || 0,
+      change: filteredPerformance?.achievements?.length ? "+12" : "N/A",
       icon: Award,
     },
     {
       title: "Avg Rating",
-      value: filteredPerformance?.reviews?.length
+      value: filteredPerformance?.appraisals?.length
         ? (
-            filteredPerformance.reviews.reduce((sum, r) => sum + (r.performance_score || 0), 0) /
-            filteredPerformance.reviews.length /
+            filteredPerformance.appraisals.reduce((sum, a) => sum + (a.performance_score || 0), 0) /
+            filteredPerformance.appraisals.length /
             20
           ).toFixed(1)
         : "N/A",
-      change: filteredPerformance?.reviews?.length ? "+0.2" : "N/A",
+      change: filteredPerformance?.appraisals?.length ? "+0.2" : "N/A",
       icon: Star,
     },
   ];
@@ -206,10 +216,7 @@ const Performance = () => {
   return (
     <div className="w-full mt-4 sm:mt-0">
       <div className="hidden sm:flex sm:justify-end sm:items-center">
-        <PageMeta
-          title="Performance Management"
-          description="Track and manage employee performance metrics."
-        />
+        <PageMeta title="Performance Management" description="Track and manage employee performance metrics." />
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/admin/dashboard" },
@@ -223,10 +230,12 @@ const Performance = () => {
           <p className="text-gray-200">Overview of employee metrics and achievements (3-Month Cycle)</p>
         </div>
 
-        {(error || loading) && (
+        {(empError || perfError || perfLoading || empLoading) && (
           <div className="mb-4 p-4 rounded-lg">
-            {error && <p className="bg-red-100 text-red-700 p-4 rounded-lg">{error}</p>}
-            {loading && (
+            {(empError || perfError) && (
+              <p className="bg-red-100 text-red-700 p-4 rounded-lg">{empError || perfError}</p>
+            )}
+            {(perfLoading || empLoading) && (
               <div className="flex justify-center">
                 <svg
                   className="animate-spin h-5 w-5 text-teal-600"
@@ -295,97 +304,129 @@ const Performance = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredEmployees.map((emp) => (
-  <div
-    key={emp.employee_id}
-    className="bg-white shadow-lg rounded-xl sm:p-6 p-5 border-1 border-gray-300"
-  >
-    <div className="flex justify-between items-center mb-4">
-      <div>
-        <h3 className="text-xl font-bold text-gray-800 mb-1">{emp.full_name}</h3>
-        <p className="text-sm text-gray-500">
-          {emp.email} {emp.mobile ? `| ${emp.mobile}` : ""}
-        </p>
-      </div>
-    </div>
- 
+            <div
+              key={emp.employee_id}
+              className="bg-white shadow-lg rounded-xl sm:p-6 p-5 border-1 border-gray-300"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-1">{emp.full_name}</h3>
+                  <p className="text-sm text-gray-500">
+                    {emp.email} {emp.mobile ? `| ${emp.mobile}` : ""}
+                  </p>
+                </div>
+              </div>
 
-
-
-{performance?.employee?.employee_id === emp.employee_id && filteredPerformance.reviews[0] && (
+              {performance?.employee_id === emp.employee_id && (
                 <>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Performance Score</p>
-                      <p
-                        className={`text-lg font-bold ${getPerformanceLabel(
-                          filteredPerformance.reviews[0]?.performance_score || 0
-                        )}`}
-                      >
-                        {filteredPerformance.reviews[0]?.performance_score || "N/A"}%
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Goals Completed</p>
-                      <p className="text-lg font-bold text-gray-800">
-                        {filteredPerformance.goals.filter((g) => g.status === "Completed").length}/
-                        {filteredPerformance.goals.length}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Rating</p>
-                      <p className="text-lg font-bold text-yellow-600">
-                        {filteredPerformance.reviews[0]?.performance_score
-                          ? (filteredPerformance.reviews[0].performance_score / 20).toFixed(1)
-                          : "N/A"}
-                      </p>
-                    </div>
+                  {/* Goals and Tasks */}
+                  <div className="mb-6">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Goals & Tasks</h4>
+                    {filteredPerformance.goals.length === 0 ? (
+                      <p className="text-gray-600">No goals assigned for this period.</p>
+                    ) : (
+                      filteredPerformance.goals.map((goal, index) => (
+                        <div key={goal.id || index} className="p-4 rounded-lg bg-gray-100 mb-4">
+                          <p className="text-gray-800 font-semibold">{goal.title}</p>
+                          <p className="text-sm text-gray-600">{goal.description || "No description provided"}</p>
+                          <p className="text-sm text-gray-500">Due: {goal.due_date || "N/A"}</p>
+                          <div className="mt-2">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                              <div
+                                className={`h-2.5 rounded-full transition-all ${
+                                  goal.status === "At Risk" ? "bg-red-500" : "bg-teal-600"
+                                }`}
+                                style={{ width: `${goal.progress || 0}%` }}
+                              ></div>
+                            </div>
+                            <p className={`text-sm mt-1 ${goal.status === "At Risk" ? "text-red-500" : "text-gray-600"}`}>
+                              {goal.status || "In Progress"} - {goal.progress || 0}%
+                            </p>
+                          </div>
+                          {goal.tasks?.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-sm font-semibold text-gray-700">Tasks:</p>
+                              <ul className="list-disc pl-5 text-sm text-gray-600">
+                                {goal.tasks.map((task, taskIndex) => (
+                                  <li key={task.id || taskIndex}>
+                                    {task.title} - Due: {task.due_date} (Priority: {task.priority || "N/A"})
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
 
-                  <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-gray-700">Manager Comments</h4>
-                    <p className="text-sm text-gray-600 italic">
-                      "{filteredPerformance.reviews[0]?.manager_comments || "No comments"}"
-                    </p>
+                  {/* Appraisals */}
+                  <div className="mb-6">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Latest Appraisal</h4>
+                    {filteredPerformance.appraisals.length === 0 ? (
+                      <p className="text-gray-600">No appraisals recorded for this period.</p>
+                    ) : (
+                      filteredPerformance.appraisals.slice(0, 1).map((appraisal, index) => (
+                        <div key={appraisal.appraisal_id || index} className="p-4 rounded-lg bg-gray-100">
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <p className="text-sm text-gray-600">Performance Score</p>
+                              <p className={`text-lg font-bold ${getPerformanceLabel(appraisal.performance_score || 0)}`}>
+                                {appraisal.performance_score || "N/A"}%
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-600">Rating</p>
+                              <p className="text-lg font-bold text-yellow-600">
+                                {appraisal.performance_score ? (appraisal.performance_score / 20).toFixed(1) : "N/A"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-600">Manager Comments</p>
+                              <p className="text-sm text-gray-600 italic">"{appraisal.manager_comments || "No comments"}"</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-600">Bonus Eligible</p>
+                              <p className="text-sm text-gray-600">{appraisal.bonus_eligible ? "Yes" : "No"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-600">Promotion Recommended</p>
+                              <p className="text-sm text-gray-600">{appraisal.promotion_recommended ? "Yes" : "No"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-600">Salary Hike</p>
+                              <p className="text-sm text-gray-600">
+                                {appraisal.salary_hike_percentage ? `${appraisal.salary_hike_percentage}%` : "N/A"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-600">Reviewed By</p>
+                              <p className="text-sm text-gray-600">{appraisal.reviewer_id || "N/A"}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <p className="text-sm text-gray-600">
-                      <strong>Salary Hike:</strong>{" "}
-                      {filteredPerformance.reviews[0]?.salary_hike_percentage
-                        ? `${filteredPerformance.reviews[0].salary_hike_percentage}%`
-                        : "N/A"}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <strong>Bonus Eligible:</strong>{" "}
-                      {filteredPerformance.reviews[0]?.bonus_eligible ? "Yes" : "No"}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <strong>Promotion:</strong>{" "}
-                      {filteredPerformance.reviews[0]?.promotion_recommended ? "Yes" : "No"}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <strong>Reviewed By:</strong>{" "}
-                      {filteredPerformance.reviews[0]?.reviewer_id || "N/A"}
-                    </p>
-                  </div>
-
+                  {/* Achievements */}
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Achievements</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {(filteredPerformance.reviews[0]?.achievements || []).map((ach, idx) => (
-                        <span
-                          key={ach.id}
-                          className="px-2 py-1 text-xs bg-teal-100 text-teal-700 rounded-full inline-flex items-center gap-1"
-                          title={`Date: ${ach.date}, Type: ${ach.type}`}
-                        >
-                          <Award size={12} /> {ach.title}
-                        </span>
-                      ))}
-                      {(!filteredPerformance.reviews[0]?.achievements ||
-                        filteredPerformance.reviews[0].achievements.length === 0) && (
-                        <p className="text-sm text-gray-600">No achievements recorded</p>
-                      )}
-                    </div>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Achievements</h4>
+                    {filteredPerformance.achievements.length === 0 ? (
+                      <p className="text-gray-600">No achievements recorded for this period.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {filteredPerformance.achievements.map((ach, idx) => (
+                          <span
+                            key={ach.id || idx}
+                            className="px-2 py-1 text-xs bg-teal-100 text-teal-700 rounded-full inline-flex items-center gap-1"
+                            title={`Date: ${ach.date}, Type: ${ach.type}`}
+                          >
+                            <Award size={12} /> {ach.title}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </>
               )}

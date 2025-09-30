@@ -349,7 +349,7 @@ const Employee = () => {
                   {emp.designation_name || "N/A"}
                 </p>
               </div>
-            </div>
+            </div>  
           ))}
         </div>
 

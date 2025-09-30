@@ -52,8 +52,8 @@ export const createPayroll = createAsyncThunk(
           month: payrollData.month,
           basic_salary: payrollData.basicSalary,
           hra: payrollData.hra,
-          da: payrollData.da,
-          other_allowances: payrollData.otherAllowances,
+          special_allowances: payrollData.specialAllowances,
+          bonus: payrollData.bonus || 0,
           gross_salary: payrollData.grossSalary,
           pf_deduction: payrollData.pfDeduction || 0,
           esic_deduction: payrollData.esicDeduction || 0,
@@ -185,7 +185,17 @@ export const generatePayrollForEmployee = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
 
-      const { token } = JSON.parse(userToken);
+      let token;
+      try {
+        token = JSON.parse(userToken).token;
+      } catch (e) {
+        return rejectWithValue("Invalid token format");
+      }
+
+      if (!employeeId || !month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+        return rejectWithValue("Invalid employee ID or month format");
+      }
+
       const response = await axios.post(
         "http://localhost:3007/api/payroll/employee",
         { employeeId, month },

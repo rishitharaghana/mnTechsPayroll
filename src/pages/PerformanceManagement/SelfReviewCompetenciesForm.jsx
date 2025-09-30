@@ -2,7 +2,6 @@ import React from 'react';
 import Select from 'react-select'; // Import react-select
 
 const SelfReviewCompetenciesForm = ({ formData, setFormData, formErrors, handleChange, performance }) => {
-  // Define options for the skill dropdown
   const skillOptions = [
     { value: '', label: 'Select Skill' },
     { value: 'Communication', label: 'Communication' },
@@ -11,16 +10,15 @@ const SelfReviewCompetenciesForm = ({ formData, setFormData, formErrors, handleC
     { value: 'Leadership', label: 'Leadership' },
   ];
 
-  // Custom styles for react-select
   const customSelectStyles = {
     control: (provided) => ({
       ...provided,
-      borderColor: '#d1d5db', // Tailwind gray-300
+      borderColor: '#d1d5db', 
       borderRadius: '0.5rem',
       padding: '0.1rem',
       boxShadow: 'none',
       '&:hover': {
-        borderColor: '#14b8a6', // Tailwind teal-600
+        borderColor: '#14b8a6', 
       },
       '&:focus': {
         borderColor: '#14b8a6',
@@ -30,13 +28,13 @@ const SelfReviewCompetenciesForm = ({ formData, setFormData, formErrors, handleC
     }),
     menu: (provided) => ({
       ...provided,
-      maxHeight: '200px', // Limit height to show ~5 items
+      maxHeight: '200px', 
       borderRadius: '0.5rem',
       zIndex: 10,
     }),
     menuList: (provided) => ({
       ...provided,
-      maxHeight: '200px', // Ensure only ~5 items are visible
+      maxHeight: '200px',
       overflowY: 'auto',
     }),
     option: (provided, state) => ({
@@ -44,26 +42,25 @@ const SelfReviewCompetenciesForm = ({ formData, setFormData, formErrors, handleC
       backgroundColor: state.isSelected
         ? '#14b8a6' // Tailwind teal-600 for selected
         : state.isFocused
-        ? '#e0f2fe' // Tailwind sky-100 for hover
+        ? '#e0f2fe' 
         : '#fff',
-      color: state.isSelected ? '#fff' : '#374151', // Tailwind gray-700
+      color: state.isSelected ? '#fff' : '#374151', 
       padding: '0.75rem',
       cursor: 'pointer',
       '&:hover': {
-        backgroundColor: '#e0f2fe', // Tailwind sky-100
+        backgroundColor: '#e0f2fe', 
       },
     }),
     singleValue: (provided) => ({
       ...provided,
-      color: '#374151', // Tailwind gray-700
+      color: '#374151',
     }),
     placeholder: (provided) => ({
       ...provided,
-      color: '#9ca3af', // Tailwind gray-400
+      color: '#9ca3af', 
     }),
   };
 
-  // Handle change for react-select
   const handleSelectChange = (selectedOption, index) => {
     handleChange(
       { target: { name: `comp_skill_${index}`, value: selectedOption ? selectedOption.value : '' } },
