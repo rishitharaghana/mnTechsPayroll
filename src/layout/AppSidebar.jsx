@@ -101,7 +101,7 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           id: "working-hours",
           label: "Employee Avg Hours",
           path: "/admin/working-hours",
-          allowedRoles: ["super_admin", "hr", "dept_head", "manager"],
+          allowedRoles: ["super_admin", "hr"],
         },
       ],
     },

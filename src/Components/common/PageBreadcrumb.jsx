@@ -19,6 +19,8 @@ import {
   ClipboardCheckIcon,
   BookImage,
   Waypoints,
+  TreePalm,
+  BanknoteArrowDownIcon,
 } from "lucide-react";
 
 const PageBreadcrumb = ({ items = [] }) => {
@@ -46,6 +48,9 @@ const PageBreadcrumb = ({ items = [] }) => {
     "Employee Attendance": <Calendar className="h-4 w-4" />,
     "View Payroll History" : <CreditCard className="h-4 w-4" />,
     "Employee Time Tracking": <Clock className="h-4 w-4" />,
+    "Assign Leave": <TreePalm className="h-4 w-4"/>,
+    "Payroll History": <Clipboard className="h-4 w-4"/>,
+    "Payslip Management": <BanknoteArrowDownIcon className="h-4 w-4"/>
   };
 
   return (

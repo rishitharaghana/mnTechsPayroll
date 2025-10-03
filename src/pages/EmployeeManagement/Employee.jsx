@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Select from "react-select";
 import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
-import { fetchEmployees, clearState } from "../../redux/slices/employeeSlice";
+import { fetchEmployees, getCurrentUserProfile } from "../../redux/slices/employeeSlice";
 
 const selectStyles = {
   control: (provided) => ({
@@ -40,8 +40,8 @@ const selectStyles = {
 
 const Employee = () => {
   const dispatch = useDispatch();
-  const { employees, loading, error, successMessage } = useSelector((state) => state.employee);
-  const { user } = useSelector((state) => state.auth);
+  const { employees, loading, error, successMessage, profile } = useSelector((state) => state.employee);
+  const { user, authLoading } = useSelector((state) => state.auth);
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -49,13 +49,7 @@ const Employee = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const employeesPerPage = 9;
 
-  // Debug logs
-  console.log('User:', user);
-  console.log('canManage:', user ? ["super_admin", "hr"].includes(user.role) : false);
-  console.log('Employees:', employees);
-  console.log('Employee Statuses:', employees?.map(emp => ({ id: emp.id, employee_id: emp.employee_id, status: emp.status })));
-  console.log('Active Employees:', employees?.filter(emp => (emp.status || 'active') === 'active'));
-
+  // Define filter options
   const departments = [...new Set(employees?.map((emp) => emp.department_name) || [])];
   const roles = [...new Set(employees?.map((emp) => emp.role) || [])];
   const statuses = ["all", "active", "serving_notice", "inactive", "absconded"];
@@ -79,13 +73,7 @@ const Employee = () => {
         : status.charAt(0).toUpperCase() + status.slice(1).replace("_", " "),
   }));
 
-  useEffect(() => {
-    dispatch(fetchEmployees());
-    return () => {
-      dispatch(clearState());
-    };
-  }, [dispatch]);
-
+  // Define filtered employees
   const filtered = employees?.filter((emp) => {
     const name = emp.full_name || emp.name || "";
     const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
@@ -94,21 +82,33 @@ const Employee = () => {
     const matchesStatus = statusFilter === "all" || (emp.status || "active") === statusFilter;
 
     if (!user) {
-      console.log('No user in auth state');
-      return false;
+      console.log("No user in auth state, showing all employees for super_admin/hr");
+      return matchesSearch && matchesDepartment && matchesRole && matchesStatus;
     }
     if (user.role === "dept_head") {
+      const department = profile?.department || profile?.department_name;
+      if (!department) {
+        console.log("No department in profile for dept_head, excluding all employees");
+        return false;
+      }
+      console.log(
+        `Filtering dept_head: emp.department_name=${emp.department_name}, profile.department=${department}, emp.role=${emp.role}`
+      );
       return (
-        emp.department_name === user.department &&
+        emp.department_name?.toLowerCase() === department.toLowerCase() &&
         (emp.role === "employee" || emp.role === "manager") &&
         matchesSearch &&
-        matchesDepartment &&
         matchesRole &&
         matchesStatus
       );
     } else if (user.role === "manager") {
+      const department = profile?.department || profile?.department_name;
+      if (!department) {
+        console.log("No department in profile for manager, excluding all employees");
+        return false;
+      }
       return (
-        emp.department_name === user.department &&
+        emp.department_name?.toLowerCase() === department.toLowerCase() &&
         (emp.role === "dept_head" || emp.role === "employee") &&
         matchesSearch &&
         matchesDepartment &&
@@ -127,10 +127,41 @@ const Employee = () => {
     return matchesSearch && matchesDepartment && matchesRole && matchesStatus;
   }) || [];
 
+  // Define pagination
   const totalPages = Math.ceil(filtered.length / employeesPerPage);
   const indexOfLastEmployee = currentPage * employeesPerPage;
   const indexOfFirstEmployee = indexOfLastEmployee - employeesPerPage;
   const currentEmployees = filtered.slice(indexOfFirstEmployee, indexOfLastEmployee);
+
+  // Fetch data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await dispatch(getCurrentUserProfile()).unwrap();
+        await dispatch(fetchEmployees()).unwrap();
+      } catch (err) {
+        console.error("Failed to fetch data:", err);
+      }
+    };
+    fetchData();
+  }, [dispatch]);
+
+  // Set department filter for dept_head
+  useEffect(() => {
+    if (user?.role === "dept_head" && (profile?.department || profile?.department_name)) {
+      setDepartmentFilter(profile?.department || profile?.department_name);
+    }
+  }, [user, profile]);
+
+  // Debug logs
+  useEffect(() => {
+    console.log("User (auth):", user);
+    console.log("Profile (employee):", profile);
+    console.log("Profile Department:", profile?.department || profile?.department_name);
+    console.log("Employee Departments:", [...new Set(employees?.map(emp => emp.department_name))]);
+    console.log("Filtered Employees:", filtered);
+    console.log("Current Employees:", currentEmployees);
+  }, [user, profile, employees, filtered, currentEmployees]);
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
@@ -165,10 +196,24 @@ const Employee = () => {
       .map((n) => n?.charAt(0) || "")
       .join("")
       .toUpperCase();
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=${bgColors[emp.role] || "6B7280"}&color=fff`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=${
+      bgColors[emp.role] || "6B7280"
+    }&color=fff`;
   };
 
   const canManage = user ? ["super_admin", "hr"].includes(user.role) : false;
+
+  if (authLoading || loading) {
+    return <div className="text-center text-gray-600 py-4">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="alert alert-error">{error}</div>;
+  }
+
+  if (!employees || employees.length === 0) {
+    return <div className="text-center text-gray-600 py-4">No employees available.</div>;
+  }
 
   return (
     <div className="w-full">
@@ -204,17 +249,17 @@ const Employee = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Employees</h1>
             <p className="text-gray-500 text-sm sm:text-base">Manage your team members</p>
           </div>
-          {/* {canManage && (
+          {canManage && (
             <Link
               to="/admin/employees/terminate"
               className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center"
             >
               <UserPlus size={16} className="mr-2" /> Termination Dashboard
             </Link>
-          )} */}
+          )}
         </div>
 
-        {successMessage && <div className="alert alert-success">{successMessage}</div>}
+        {/* {successMessage && <div className="alert alert-success">{successMessage}</div>} */}
         {error && <div className="alert alert-error">{error}</div>}
 
         <div className="mb-6 bg-white shadow-md p-4 border border-gray-200 rounded-xl flex flex-col md:flex-row gap-4">
@@ -256,9 +301,13 @@ const Employee = () => {
           </div>
         </div>
 
-        {loading && <div className="text-center text-gray-600 py-4">Loading employees...</div>}
-        {!loading && !error && filtered.length === 0 && (
-          <div className="text-center text-gray-600 py-4">No employees found.</div>
+        {filtered.length === 0 && (
+          <div className="text-center text-gray-600 py-4">
+            No employees found.{" "}
+            {user?.role === "dept_head" && !(profile?.department || profile?.department_name)
+              ? "Department information is missing for this user."
+              : ""}
+          </div>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -270,7 +319,9 @@ const Employee = () => {
               <div className="flex flex-col items-center mb-4">
                 <img
                   src={emp.photo_url && emp.photo_url.trim() ? emp.photo_url : getImageUrl(emp)}
-                  onError={(e) => { e.target.src = getImageUrl(emp); }}
+                  onError={(e) => {
+                    e.target.src = getImageUrl(emp);
+                  }}
                   alt={emp.full_name || emp.name || "Employee"}
                   className="w-20 h-20 rounded-full border-4 border-white shadow-md -mt-4 object-cover"
                 />
@@ -349,7 +400,7 @@ const Employee = () => {
                   {emp.designation_name || "N/A"}
                 </p>
               </div>
-            </div>  
+            </div>
           ))}
         </div>
 

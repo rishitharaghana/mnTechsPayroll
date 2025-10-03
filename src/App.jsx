@@ -163,10 +163,7 @@ const App = () => {
                   element={<DetailedAttendanceReport />}
                 />
 
-                <Route
-                  path="/employee/attendance-overview"
-                  element={<EmpAttendanceOverview />}
-                />
+               
 
                 <Route
                   path="/employee/employee-visitingcards"
@@ -206,7 +203,13 @@ const App = () => {
               <Route
                 path="/employee/leave-dashboard"
                 element={<LeaveDashboard />}
+
               />
+
+               <Route
+                  path="/employee/attendance-overview"
+                  element={<EmpAttendanceOverview />}
+                />
               <Route
                 element={
                   <ProtectedRoute
