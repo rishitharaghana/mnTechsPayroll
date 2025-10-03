@@ -71,13 +71,13 @@ const EmpAttendanceOverview = () => {
     }
   }, [dispatch, isValidSession, userRole, profile, userLoading]);
 
-  // Fetch attendance data
+  // Fetch attendance data only when profile is loaded and data hasn't been fetched
   useEffect(() => {
-    if (!isValidSession || !profile?.employee_id || attendanceLoading) return;
+    if (!isValidSession || !profile?.employee_id || averageHours) return;
 
     console.log("Fetching attendance data for employee_id:", profile.employee_id);
     dispatch(fetchEmployeeAverageHours({ employee_id: profile.employee_id }));
-  }, [dispatch, isValidSession, profile, attendanceLoading]);
+  }, [dispatch, isValidSession, profile, averageHours]);
 
   // Handle loading state
   useEffect(() => {
@@ -116,6 +116,14 @@ const EmpAttendanceOverview = () => {
       toast.error(toastMessage);
     }
   }, [attendanceSuccess, attendanceError, userSuccess, userError, dispatch]);
+
+  // Clean up Redux state on component unmount
+  useEffect(() => {
+    return () => {
+      dispatch(clearAttendanceState());
+      dispatch(clearEmployeeState());
+    };
+  }, [dispatch]);
 
   const calculatePercentage = (hours) => {
     const maxHours = 8;
