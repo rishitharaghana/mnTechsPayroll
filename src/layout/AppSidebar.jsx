@@ -129,6 +129,12 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/employee/leave-application",
           allowedRoles: ["employee", "dept_head", "hr"],
         },
+         {
+          id: "leave-assign",
+          label: "Assign Leave",
+          path: "/admin/assign-leave",
+          allowedRoles: ["super_admin", "hr"],
+        },
       ],
     },
     {

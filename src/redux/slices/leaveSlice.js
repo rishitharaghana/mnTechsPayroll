@@ -219,7 +219,7 @@ export const fetchLeaveBalances = createAsyncThunk(
 
 export const allocateMonthlyLeaves = createAsyncThunk(
   "leaves/allocateMonthlyLeaves",
-  async (_, { rejectWithValue }) => {
+  async ({ year, month }, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
       if (!userToken) {
@@ -228,9 +228,12 @@ export const allocateMonthlyLeaves = createAsyncThunk(
       const { token } = JSON.parse(userToken);
       const response = await axios.post(
         "http://localhost:3007/api/leaves/total-leaves",
-        {},
+        { year, month },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
       console.log("allocateMonthlyLeaves response:", response.data);
@@ -241,7 +244,7 @@ export const allocateMonthlyLeaves = createAsyncThunk(
         error.response?.data || error.message
       );
       return rejectWithValue(
-        error.response?.data?.error || "Failed to allocate monthly leaves"
+        error.response?.data || { error: "Failed to allocate monthly leaves" }
       );
     }
   }

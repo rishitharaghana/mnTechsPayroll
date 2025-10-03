@@ -54,7 +54,7 @@ import AddEmployeeRoles from "./pages/EmployeeManagement/AddEmployeeRoles";
 import TerminateEmployee from "./pages/EmployeeManagement/TerminateEmployee";
 import ExitEmployee from "./pages/EmployeeManagement/EmployeeExit";
 import AlumniList from "./pages/EmployeeManagement/AlumniList";
-// import EmployeeSalaryStructure from "./pages/EmployeeManagement/EmployeeSalaryStructure";
+import AssignLeave from "./pages/LeaveManagement/AssignLeave";
 
 const App = () => {
   return (
@@ -99,7 +99,6 @@ const App = () => {
                   path="/admin/working-hours"
                   element={<EmployeeAvgHours />}
                 />
-                {/* <Route path ="/admin/:employeeId/salary-structure" element={<EmployeeSalaryStructure/>}  /> */}
                 <Route path="/admin/dashboard" element={<Dashboard />} />
                 <Route path="/admin/employees" element={<Employee />} />
                 <Route
@@ -146,7 +145,12 @@ const App = () => {
                   path="/admin/employees/preview/:id"
                   element={<EmployeePreviewPage />}
                 />
+                 <Route
+                  path="/admin/assign-leave"
+                  element={<AssignLeave />}
+                />
               </Route>
+
 
               <Route element={<ProtectedRoute allowedRoles={["employee"]} />}>
                 <Route path="/emp-dashboard" element={<EmployeeDashboard />} />
@@ -154,10 +158,6 @@ const App = () => {
                 <Route path="/employee-payslip" element={<EmployeePayslip />} />
                 <Route path="/employee/viewgoals" element={<ViewGoals />} />
 
-                <Route
-                  path="/employee/leave-dashboard"
-                  element={<LeaveDashboard />}
-                />
                 <Route
                   path="/employee/attendance-report"
                   element={<DetailedAttendanceReport />}
@@ -203,6 +203,10 @@ const App = () => {
                 />
               </Route>
 
+              <Route
+                path="/employee/leave-dashboard"
+                element={<LeaveDashboard />}
+              />
               <Route
                 element={
                   <ProtectedRoute
