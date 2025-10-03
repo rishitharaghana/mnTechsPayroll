@@ -58,6 +58,12 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           path: "/admin/assign-employee",
           allowedRoles: ["super_admin", "hr"],
         },
+           {
+          id: "exit-employee",
+          label: "Employee Exit",
+          path: "/admin/exit-employee",
+          allowedRoles: ["super_admin", "hr"],
+        },
         {
           id: "view-employeees",
           label: "Add Details",
@@ -103,20 +109,25 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "leave-tracker",
       label: "Leave Management",
       icon: CalendarClock,
-      path: "/admin/leave-tracker",
       allowedRoles: ["super_admin", "hr", "dept_head", "employee", "manager"],
       children: [
         {
           id: "leave-dashboard",
           label: "Leave Dashboard",
           path: "/employee/leave-dashboard",
-          allowedRoles: ["employee"],
+          allowedRoles: ["employee", "hr", "dept_head", "manager"],
+        },
+         {
+          id: "leave-tracker",
+          label: "Leave Tracker",
+          path: "/admin/leave-tracker",
+          allowedRoles: ["hr", "super_admin"],
         },
         {
           id: "leave-application",
           label: "Apply Leave",
           path: "/employee/leave-application",
-          allowedRoles: ["employee", "dept_head"],
+          allowedRoles: ["employee", "dept_head", "hr"],
         },
       ],
     },
@@ -166,18 +177,18 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       icon: Calendar,
       allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
       children: [
-        {
-          id: "holiday-calendar",
-          label: "Holiday Calendar",
-          path: "/admin/calendar",
-          allowedRoles: [
-            "super_admin",
-            "hr",
-            "dept_head",
-            "manager",
-            "employee",
-          ],
-        },
+        // {
+        //   id: "holiday-calendar",
+        //   label: "Holiday Calendar",
+        //   path: "/admin/calendar",
+        //   allowedRoles: [
+        //     "super_admin",
+        //     "hr",
+        //     "dept_head",
+        //     "manager",
+        //     "employee",
+        //   ],
+        // },
         {
           id: "calendar",
           label: "Annual Calendar",

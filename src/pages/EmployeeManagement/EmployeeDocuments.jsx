@@ -1,76 +1,71 @@
-import FileUpload from "./EmployeeFileUpload";
+import React from 'react';
+import FileUpload from './EmployeeFileUpload';
 
 const EmployeeDocuments = ({ formData, errors, handleChange }) => {
+  const documentFields = [
+    { name: 'tenthClassDoc', label: '10th Class Document', type: 'tenth_class' },
+    { name: 'intermediateDoc', label: 'Intermediate Document', type: 'intermediate' },
+    { name: 'graduationDoc', label: 'Graduation Document', type: 'graduation' },
+    { name: 'postgraduationDoc', label: 'Postgraduation Document', type: 'postgraduation' },
+    { name: 'aadharDoc', label: 'Aadhar Document', type: 'aadhar' },
+    { name: 'panDoc', label: 'PAN Document', type: 'pan' },
+  ];
+
+  // Helper function to determine if a file is an image or PDF
+  const getFilePreviewProps = (file) => {
+    if (!file) return { preview: null, isPdf: false };
+
+    if (file instanceof File) {
+      // New file selected by user
+      const isImage = file.type.startsWith('image/');
+      const isPdf = file.type === 'application/pdf';
+      return {
+        preview: isImage ? URL.createObjectURL(file) : null,
+        isPdf,
+      };
+    } else if (typeof file === 'string') {
+      // Existing file path from database
+      const extension = file.split('.').pop().toLowerCase();
+      const isImage = ['jpg', 'jpeg', 'png'].includes(extension);
+      const isPdf = extension === 'pdf';
+      return {
+        preview: isImage ? file : null, // Assume file path is accessible for images
+        isPdf,
+      };
+    }
+    return { preview: null, isPdf: false };
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="flex flex-col col-span-2">
-        <FileUpload
-          name="tenthClassDoc"
-          onChange={handleChange}
-          accept=".pdf,.jpg,.png"
-          label="10th Class Document"
-          preview={formData.tenthClassDoc && formData.tenthClassDoc.type.startsWith("image/") ? URL.createObjectURL(formData.tenthClassDoc) : null}
-          isPdf={formData.tenthClassDoc && formData.tenthClassDoc.type === "application/pdf"}
-        />
-        {errors.tenthClassDoc && <span className="text-red-500 text-xs mt-1">{errors.tenthClassDoc}</span>}
-      </div>
-      <div className="flex flex-col col-span-2">
-        <FileUpload
-          name="intermediateDoc"
-          onChange={handleChange}
-          accept=".pdf,.jpg,.png"
-          label="Intermediate Document"
-          preview={formData.intermediateDoc && formData.intermediateDoc.type.startsWith("image/") ? URL.createObjectURL(formData.intermediateDoc) : null}
-          isPdf={formData.intermediateDoc && formData.intermediateDoc.type === "application/pdf"}
-        />
-        {errors.intermediateDoc && <span className="text-red-500 text-xs mt-1">{errors.intermediateDoc}</span>}
-      </div>
-      <div className="flex flex-col col-span-2">
-        <FileUpload
-          name="graduationDoc"
-          onChange={handleChange}
-          accept=".pdf,.jpg,.png"
-          label="Graduation Document"
-          preview={formData.graduationDoc && formData.graduationDoc.type.startsWith("image/") ? URL.createObjectURL(formData.graduationDoc) : null}
-          isPdf={formData.graduationDoc && formData.graduationDoc.type === "application/pdf"}
-        />
-        {errors.graduationDoc && <span className="text-red-500 text-xs mt-1">{errors.graduationDoc}</span>}
-      </div>
-      <div className="flex flex-col col-span-2">
-        <FileUpload
-          name="postgraduationDoc"
-          onChange={handleChange}
-          accept=".pdf,.jpg,.png"
-          label="Postgraduation Document"
-          preview={formData.postgraduationDoc && formData.postgraduationDoc.type.startsWith("image/") ? URL.createObjectURL(formData.postgraduationDoc) : null}
-          isPdf={formData.postgraduationDoc && formData.postgraduationDoc.type === "application/pdf"}
-        />
-        {errors.postgraduationDoc && (
-          <span className="text-red-500 text-xs mt-1">{errors.postgraduationDoc}</span>
-        )}
-      </div>
-      <div className="flex flex-col col-span-2">
-        <FileUpload
-          name="aadharDoc"
-          onChange={handleChange}
-          accept=".pdf,.jpg,.png"
-          label="Aadhar Document"
-          preview={formData.aadharDoc && formData.aadharDoc.type.startsWith("image/") ? URL.createObjectURL(formData.aadharDoc) : null}
-          isPdf={formData.aadharDoc && formData.aadharDoc.type === "application/pdf"}
-        />
-        {errors.aadharDoc && <span className="text-red-500 text-xs mt-1">{errors.aadharDoc}</span>}
-      </div>
-      <div className="flex flex-col col-span-2">
-        <FileUpload
-          name="panDoc"
-          onChange={handleChange}
-          accept=".pdf,.jpg,.png"
-          label="PAN Document"
-          preview={formData.panDoc && formData.panDoc.type.startsWith("image/") ? URL.createObjectURL(formData.panDoc) : null}
-          isPdf={formData.panDoc && formData.panDoc.type === "application/pdf"}
-        />
-        {errors.panDoc && <span className="text-red-500 text-xs mt-1">{errors.panDoc}</span>}
-      </div>
+      {documentFields.map(({ name, label }) => {
+        const { preview, isPdf } = getFilePreviewProps(formData[name]);
+        return (
+          <div key={name} className="flex flex-col col-span-2">
+            <FileUpload
+              name={name}
+              onChange={handleChange}
+              accept=".pdf,.jpg,.png"
+              label={label}
+              preview={preview}
+              isPdf={isPdf}
+            />
+            {formData[name] && typeof formData[name] === 'string' && (
+              <p className="mt-2 text-sm text-gray-600">
+                Current: {formData[name].split('/').pop()}
+              </p>
+            )}
+            {formData[name] && formData[name] instanceof File && (
+              <p className="mt-2 text-sm text-gray-600">
+                Selected: {formData[name].name}
+              </p>
+            )}
+            {errors[name] && (
+              <span className="text-red-500 text-xs mt-1">{errors[name]}</span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };

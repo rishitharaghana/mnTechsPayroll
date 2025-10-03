@@ -52,6 +52,8 @@ import DetailedAttendanceReport from "./pages/AttendanceManagement/DetailedAtten
 import ForgotPassword from "./pages/Login/ForgotPassword";
 import AddEmployeeRoles from "./pages/EmployeeManagement/AddEmployeeRoles";
 import TerminateEmployee from "./pages/EmployeeManagement/TerminateEmployee";
+import ExitEmployee from "./pages/EmployeeManagement/EmployeeExit";
+import AlumniList from "./pages/EmployeeManagement/AlumniList";
 // import EmployeeSalaryStructure from "./pages/EmployeeManagement/EmployeeSalaryStructure";
 
 const App = () => {
@@ -129,6 +131,9 @@ const App = () => {
                 <Route path="/admin/visitingcards" element={<VisitingCard />} />
                 <Route path="/admin/time-tracking" element={<TimeTracking />} />
                 <Route path="/admin/admin-form" element={<AdminForm />} />
+                <Route path="/admin/exit-employee" element={<ExitEmployee />} />
+                <Route path="/admin/alumni" element={<AlumniList />} />
+
                 <Route
                   path="/admin/travel-expense"
                   element={<TravelExpenseApproval />}

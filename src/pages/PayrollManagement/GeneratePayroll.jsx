@@ -15,8 +15,7 @@ import { fetchEmployees, fetchDepartments } from "../../redux/slices/employeeSli
 import { downloadPayslip } from "../../redux/slices/payslipSlice";
 import PayslipGenerator from "../PayslipManagement/PayslipGenerator";
 import { toast } from "react-toastify";
-// Import Lucid Icons (add these imports based on your needs)
-import { /* Add specific icons here, e.g., FileDownload, FileText, ChevronDown */ } from "lucide-react";
+import { ChevronDown, FileText, FileDown, Eye, ArrowLeft, ArrowRight } from "lucide-react";
 
 const CustomSelect = ({ value, onChange, options, disabled, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -52,8 +51,9 @@ const CustomSelect = ({ value, onChange, options, disabled, placeholder }) => {
           <span className={value ? "text-slate-900" : "text-slate-400"}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
-          {/* Replace SVG with Lucid Icon */}
-          {/* Example: <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} /> */}
+          <ChevronDown
+            className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          />
         </div>
       </div>
       {isOpen && !disabled && (
@@ -83,7 +83,7 @@ const GeneratePayroll = () => {
   const { employees, departments, loading: employeesLoading, error: employeesError } = useSelector(
     (state) => state.employee
   );
-  const { role, isAuthenticated } = useSelector((state) => state.auth);
+  const { role, isAuthenticated, employee_id } = useSelector((state) => state.auth);
   const [selectedMonth, setSelectedMonth] = useState(startOfMonth(new Date()));
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [selectedPayroll, setSelectedPayroll] = useState(null);
@@ -97,6 +97,15 @@ const GeneratePayroll = () => {
     dispatch(fetchPayroll({ month: formattedMonth, page: currentPage, limit: itemsPerPage }));
     return () => dispatch(clearState());
   }, [dispatch, selectedMonth, currentPage]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message || "An error occurred");
+    }
+    if (successMessage) {
+      toast.success(successMessage);
+    }
+  }, [error, successMessage]);
 
   if (!isAuthenticated || !["hr", "super_admin"].includes(role)) {
     return (
@@ -124,29 +133,33 @@ const GeneratePayroll = () => {
   };
 
   const handleGeneratePayrollForEmployee = (employeeId) => {
-  if (!selectedMonth || !employeeId) {
-    toast.error("Please select a month and an employee.");
-    return;
-  }
-  console.log(`Frontend: Generating payroll for employeeId: "${employeeId}" (length: ${employeeId.length}, type: ${typeof employeeId})`);
-  const employee = employees.find((e) => e.employee_id === employeeId);
-  console.log('Frontend: Employee data:', employee);
-  if (!employee) {
-    toast.error("Employee not found in the employees list.");
-    return;
-  }
-  const formattedMonth = format(selectedMonth, "yyyy-MM");
-  dispatch(generatePayrollForEmployee({ employeeId, month: formattedMonth })).then((result) => {
-    if (generatePayrollForEmployee.fulfilled.match(result)) {
-      dispatch(fetchPayroll({ month: formattedMonth, page: currentPage, limit: itemsPerPage }));
-      setSelectedPayroll(result.payload.data);
-      toast.success(result.payload.message || "Payroll generated successfully");
-    } else {
-      console.error('Frontend: Payroll generation error:', result.payload);
-      toast.error(result.payload?.error || "Failed to generate payroll");
+    if (!selectedMonth || !employeeId) {
+      toast.error("Please select a month and an employee.");
+      return;
     }
-  });
-};
+    console.log(`Frontend: Generating payroll for employeeId: "${employeeId}" (length: ${employeeId.length}, type: ${typeof employeeId})`);
+    const employee = employees.find((e) => e.employee_id === employeeId);
+    console.log("Frontend: Employee data:", employee);
+    if (!employee) {
+      toast.error("Employee not found in the employees list.");
+      return;
+    }
+    if (role === "hr" && employee.role === "hr" && employee.employee_id !== employee_id) {
+      toast.error("HR users cannot generate payroll for other HR users.");
+      return;
+    }
+    const formattedMonth = format(selectedMonth, "yyyy-MM");
+    dispatch(generatePayrollForEmployee({ employeeId, month: formattedMonth })).then((result) => {
+      if (generatePayrollForEmployee.fulfilled.match(result)) {
+        dispatch(fetchPayroll({ month: formattedMonth, page: currentPage, limit: itemsPerPage }));
+        setSelectedPayroll(result.payload.data);
+        toast.success(result.payload.message || "Payroll generated successfully");
+      } else {
+        console.error("Frontend: Payroll generation error:", result.payload);
+        toast.error(result.payload?.error || "Failed to generate payroll");
+      }
+    });
+  };
 
   const handleDownloadPDF = () => {
     if (!selectedMonth) {
@@ -179,7 +192,6 @@ const GeneratePayroll = () => {
   };
 
   const handleViewPayslip = (record) => {
-    const formattedMonth = format(selectedMonth, "yyyy-MM");
     setSelectedPayroll(record);
   };
 
@@ -187,10 +199,19 @@ const GeneratePayroll = () => {
 
   const employeeOptions = [
     { value: "", label: "Select an employee" },
-    ...employees.map((employee) => ({
-      value: employee.employee_id,
-      label: `${employee.full_name} (${employee.employee_id})`,
-    })),
+    ...employees
+      .filter((employee) => {
+        if (role === "super_admin") return true; // Show all employees for super_admin
+        if (role === "hr") {
+          // HR can only select non-HR employees or themselves
+          return employee.role !== "hr" || employee.employee_id === employee_id;
+        }
+        return false;
+      })
+      .map((employee) => ({
+        value: employee.employee_id,
+        label: `${employee.full_name} (${employee.employee_id}, ${employee.role.charAt(0).toUpperCase() + employee.role.slice(1)})`,
+      })),
   ];
 
   return (
@@ -244,7 +265,7 @@ const GeneratePayroll = () => {
               disabled={loading || employeesLoading || employees.length === 0}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
             >
-              {/* Add Lucid Icon, e.g., <FileText className="inline-block mr-2 w-5 h-5" /> */}
+              <FileText className="inline-block mr-2 w-5 h-5" />
               Generate Payroll for All
             </button>
             <button
@@ -252,7 +273,7 @@ const GeneratePayroll = () => {
               disabled={loading || employeesLoading || !selectedEmployeeId}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
             >
-              {/* Add Lucid Icon, e.g., <FileText className="inline-block mr-2 w-5 h-5" /> */}
+              <FileText className="inline-block mr-2 w-5 h-5" />
               Generate Payroll for Employee
             </button>
             <button
@@ -260,7 +281,7 @@ const GeneratePayroll = () => {
               disabled={loading || employeesLoading}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
             >
-              {/* Add Lucid Icon, e.g., <FileDownload className="inline-block mr-2 w-5 h-5" /> */}
+              <FileDown className="inline-block mr-2 w-5 h-5" />
               Download Payroll PDF
             </button>
             <button
@@ -268,7 +289,7 @@ const GeneratePayroll = () => {
               disabled={loading || employeesLoading || !selectedEmployeeId}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-slate-700 text-white font-medium rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
             >
-              {/* Add Lucid Icon, e.g., <FileDownload className="inline-block mr-2 w-5 h-5" /> */}
+              <FileDown className="inline-block mr-2 w-5 h-5" />
               Download Employee Payslip
             </button>
           </div>
@@ -287,6 +308,7 @@ const GeneratePayroll = () => {
         )}
 
         {loading && <p className="text-slate-500">Loading payroll data...</p>}
+        {employeesError && <p className="text-red-500">Error loading employees: {employeesError}</p>}
         {!loading && payrollList.length === 0 && (
           <p className="text-slate-500">
             No payroll records found for {format(selectedMonth, "yyyy-MM")}. Try generating payroll.
@@ -300,6 +322,7 @@ const GeneratePayroll = () => {
                 <thead className="bg-gradient-to-r border border-slate-200 rounded-md shadow-md from-teal-600 to-slate-700 text-white">
                   <tr>
                     <th className="px-6 py-4 text-left whitespace-nowrap">Employee</th>
+                    <th className="px-6 py-4 text-left whitespace-nowrap">Role</th>
                     <th className="px-6 py-4 text-left whitespace-nowrap hidden sm:table-cell">Department</th>
                     <th className="px-6 py-4 text-left whitespace-nowrap">Gross Salary</th>
                     <th className="px-6 py-4 text-left whitespace-nowrap">Net Salary</th>
@@ -311,16 +334,25 @@ const GeneratePayroll = () => {
                   {payrollList.map((record) => (
                     <tr key={`${record.employee_id}-${record.month}`} className="hover:bg-slate-50">
                       <td className="px-6 py-4 whitespace-nowrap truncate max-w-[180px]">
-                        {record.employee_name} ({record.employee_id})
+                        {record.employee} ({record.employee_id})
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {record.role ? record.role.charAt(0).toUpperCase() + record.role.slice(1) : "-"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                         {record.department || "HR"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        ₹{(parseFloat(record.gross_salary) || 0).toLocaleString("en-IN")}
+                        ₹{(parseFloat(record.gross_salary) || 0).toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        ₹{(parseFloat(record.net_salary) || 0).toLocaleString("en-IN")}
+                        ₹{(parseFloat(record.net_salary) || 0).toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
@@ -338,16 +370,16 @@ const GeneratePayroll = () => {
                       <td className="px-6 py-4 flex flex-col sm:flex-row gap-2 whitespace-nowrap">
                         <button
                           onClick={() => handleViewPayslip(record)}
-                          className="text-teal-600 hover:text-teal-800"
+                          className="text-teal-600 hover:text-teal-800 flex items-center"
                         >
-                          {/* Add Lucid Icon, e.g., <Eye className="inline-block mr-2 w-4 h-4" /> */}
+                          <Eye className="inline-block mr-2 w-4 h-4" />
                           View
                         </button>
                         <button
                           onClick={() => handleDownloadEmployeePayslip(record.employee_id)}
-                          className="text-teal-600 hover:text-teal-800"
+                          className="text-teal-600 hover:text-teal-800 flex items-center"
                         >
-                          {/* Add Lucid Icon, e.g., <FileDownload className="inline-block mr-2 w-4 h-4" /> */}
+                          <FileDown className="inline-block mr-2 w-4 h-4" />
                           Download
                         </button>
                       </td>
@@ -363,7 +395,7 @@ const GeneratePayroll = () => {
                 onClick={() => setCurrentPage(currentPage - 1)}
                 className="px-3 sm:px-4 py-2 text-sm sm:text-md bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
               >
-                {/* Add Lucid Icon, e.g., <ArrowLeft className="inline-block mr-2 w-5 h-5" /> */}
+                <ArrowLeft className="inline-block mr-2 w-5 h-5" />
                 Previous
               </button>
               <span className="text-sm sm:text-md text-slate-500">Page {currentPage} of {totalPages}</span>
@@ -372,7 +404,7 @@ const GeneratePayroll = () => {
                 onClick={() => setCurrentPage(currentPage + 1)}
                 className="px-3 sm:px-4 py-2 text-sm sm:text-md bg-gradient-to-r from-teal-600 to-slate-700 text-white rounded-lg hover:from-teal-500 hover:to-slate-600 disabled:bg-slate-300 disabled:cursor-not-allowed"
               >
-                {/* Add Lucid Icon, e.g., <ArrowRight className="inline-block mr-2 w-5 h-5" /> */}
+                <ArrowRight className="inline-block mr-2 w-5 h-5" />
                 Next
               </button>
             </div>

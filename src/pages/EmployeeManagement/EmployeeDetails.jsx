@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from "react-redux";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
@@ -58,8 +58,8 @@ const EmployeeDetails = () => {
     phone: "",
     email: "",
     gender: "",
-    panCard: "",
-    aadharCard: "",
+    pan_number: "",
+    aadhar_number: "",
     image: null,
     presentAddress: "",
     previousAddress: "",
@@ -67,8 +67,14 @@ const EmployeeDetails = () => {
     employerIdName: "",
     positionTitle: "",
     employmentType: "",
-    joiningDate: "",
     contractEndDate: "",
+    dob: "",
+    bloodGroup: "",
+    basicSalary: "",
+    allowances: "",
+    bonuses: "",
+    department: "",
+    position: "",
     tenthClassName: "",
     tenthClassMarks: "",
     intermediateName: "",
@@ -85,13 +91,6 @@ const EmployeeDetails = () => {
     panDoc: null,
     ifscNumber: "",
     bankACnumber: "",
-    dob: "",
-    bloodGroup: "",
-    basicSalary: "",
-    allowances: "",
-    bonuses: "",
-    department: "",
-    position: "",
   });
   const [errors, setErrors] = useState({});
   const isInitialFetchDone = useRef(false);
@@ -196,23 +195,9 @@ const EmployeeDetails = () => {
       employerIdName: personalDetails?.employer_id_name || "",
       positionTitle: personalDetails?.position_title || "",
       employmentType: personalDetails?.employment_type || "",
-      joiningDate: personalDetails?.joining_date || "",
       contractEndDate: personalDetails?.contract_end_date || "",
-      panCard:
-        personalDetails?.pan_number ||
-        personalDetails?.panCard ||
-        personalDetails?.pan_no ||
-        personalDetails?.panNumber ||
-        personalDetails?.pan ||
-        "", // Added more fallbacks
-      aadharCard:
-        personalDetails?.aadhar_number ||
-        personalDetails?.adhar_number ||
-        personalDetails?.aadharCard ||
-        personalDetails?.aadhar_no ||
-        personalDetails?.aadharNumber ||
-        personalDetails?.aadhar ||
-        "", // Added more fallbacks
+      pan_number: personalDetails?.pan_number || "",
+      aadhar_number: personalDetails?.aadhar_number || "",
       tenthClassName: educationDetails?.tenth_class_name || "",
       tenthClassMarks: educationDetails?.tenth_class_marks || "",
       intermediateName: educationDetails?.intermediate_name || "",
@@ -267,10 +252,8 @@ const EmployeeDetails = () => {
         ...formData,
         [name]: date.toISOString().split("T")[0],
       };
-      if (name === "joiningDate" && !formData.contractEndDate) {
-        const joinDate = new Date(date);
-        joinDate.setFullYear(joinDate.getFullYear() + 1);
-        updatedFormData.contractEndDate = joinDate.toISOString().split("T")[0];
+      if (name === "contractEndDate") {
+        updatedFormData.contractEndDate = date.toISOString().split("T")[0];
       }
       setFormData(updatedFormData);
       setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -288,8 +271,8 @@ const EmployeeDetails = () => {
           "motherName",
           "presentAddress",
           "positionType",
-          "panCard",
-          "aadharCard",
+          "pan_number",
+          "aadhar_number",
         ];
         requiredFields.forEach((field) => {
           if (!formData[field]?.trim()) {
@@ -299,20 +282,19 @@ const EmployeeDetails = () => {
           }
         });
         if (
-          formData.panCard &&
-          !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCard)
+          formData.pan_number &&
+          !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.pan_number)
         ) {
-          newErrors.panCard = "Invalid PAN card number (e.g., ABCDE1234F)";
+          newErrors.pan_number = "Invalid PAN card number (e.g., ABCDE1234F)";
         }
-        if (formData.aadharCard && !/^\d{12}$/.test(formData.aadharCard)) {
-          newErrors.aadharCard = "Invalid Aadhar card number (12 digits)";
+        if (formData.aadhar_number && !/^\d{12}$/.test(formData.aadhar_number)) {
+          newErrors.aadhar_number = "Invalid Aadhar card number (12 digits)";
         }
         if (formData.positionType === "experienced") {
           const experiencedFields = [
             "employerIdName",
             "positionTitle",
             "employmentType",
-            "joiningDate",
           ];
           experiencedFields.forEach((field) => {
             if (!formData[field]?.trim()) {
@@ -386,6 +368,7 @@ const EmployeeDetails = () => {
       default:
         break;
     }
+    console.log("Validation errors:", newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -396,6 +379,7 @@ const EmployeeDetails = () => {
       const employee_id = userToken?.employee_id || profile?.employee_id;
       if (!employee_id) {
         setErrors({ general: "Employee ID not found. Please log in again." });
+        console.error("submitStep: No employee_id found");
         return false;
       }
 
@@ -409,26 +393,28 @@ const EmployeeDetails = () => {
             phone: formData.phone,
             email: formData.email,
             gender: formData.gender,
-            panCard: formData.panCard,
-            aadharCard: formData.aadharCard,
+            pan_number: formData.pan_number,
+            aadhar_number: formData.aadhar_number,
             presentAddress: formData.presentAddress,
             previousAddress: formData.previousAddress,
             positionType: formData.positionType,
             employerIdName: formData.employerIdName,
             positionTitle: formData.positionTitle,
             employmentType: formData.employmentType,
-            joiningDate: formData.joiningDate,
             contractEndDate: formData.contractEndDate,
             dob: formData.dob,
             bloodGroup: formData.bloodGroup,
           };
-          console.log("Submitting personal details:", personalData);
+          console.log("submitStep: Submitting personal details:", personalData);
           let action;
           if (progress?.personalDetails) {
+            console.log("submitStep: Updating personal details");
             action = await dispatch(updateEmployeePersonalDetails(personalData)).unwrap();
           } else {
+            console.log("submitStep: Creating personal details");
             action = await dispatch(createEmployeePersonalDetails(personalData)).unwrap();
           }
+          console.log("submitStep: Submission response:", action);
           await dispatch(fetchEmployeePersonalDetails(employee_id)).unwrap();
           setErrors({ general: action.message });
           return true;
@@ -446,7 +432,7 @@ const EmployeeDetails = () => {
               postgraduationName: formData.postgraduationName,
               postgraduationMarks: formData.postgraduationMarks,
             };
-            console.log("Submitting education details:", educationData);
+            console.log("submitStep: Submitting education details:", educationData);
             let action;
             if (progress?.educationDetails) {
               action = await dispatch(updateEducationDetails(educationData)).unwrap();
@@ -457,7 +443,7 @@ const EmployeeDetails = () => {
             setErrors({ general: action.message });
             return true;
           } catch (err) {
-            console.error("Education submission error:", err);
+            console.error("submitStep: Education submission error:", err);
             if (err.message?.includes("Access denied")) {
               setErrors({
                 general: "Education details are restricted. Proceeding to Documents step.",
@@ -479,7 +465,7 @@ const EmployeeDetails = () => {
           let hasNewDocuments = false;
           for (const { field, documentType } of docFields) {
             if (formData[field] && formData[field] instanceof File) {
-              console.log("Submitting document:", { documentType, file: formData[field] });
+              console.log("submitStep: Submitting document:", { documentType, file: formData[field] });
               await dispatch(
                 createDocuments({
                   employeeId: employee_id,
@@ -504,7 +490,7 @@ const EmployeeDetails = () => {
             bankAccountNumber: formData.bankACnumber,
             ifscCode: formData.ifscNumber,
           };
-          console.log("Submitting bank details:", bankData);
+          console.log("submitStep: Submitting bank details:", bankData);
           let action;
           if (progress?.bankDetails) {
             action = await dispatch(updateBankDetails(bankData)).unwrap();
@@ -519,40 +505,53 @@ const EmployeeDetails = () => {
           return true;
       }
     } catch (err) {
-      setErrors({ general: err.message || "Failed to submit step" });
-      console.error("Submission error:", err);
+      const errorMessage = err.message || "Failed to submit step";
+      setErrors({ general: errorMessage });
+      console.error("submitStep: Submission error:", err);
       return false;
     }
   };
 
   const nextStep = async () => {
     console.log("nextStep: currentStep before", currentStep);
-    if (currentStep < steps.length - 1) {
-      if (validateStep(currentStep)) {
-        const success = await submitStep(currentStep);
-        if (success) {
-          const nextStepIndex = currentStep + 1;
-          if (nextStepIndex === 1) {
-            // Check if Education Details is accessible
-            try {
-              const employee_id = JSON.parse(localStorage.getItem("userToken"))?.employee_id || profile?.employee_id;
-              await dispatch(fetchEmployeeEducationDetails(employee_id)).unwrap();
-              setCurrentStep(nextStepIndex);
-            } catch (err) {
-              console.warn("Skipping Education Details due to access restriction:", err);
-              setErrors({
-                general: "Education details are restricted. Proceeding to Documents step.",
-              });
-              setCurrentStep(2); // Skip to Documents
-              return;
-            }
-          } else {
-            setCurrentStep(nextStepIndex);
-          }
-          await dispatch(getEmployeeProgress()).unwrap();
-          console.log("nextStep: setting currentStep to", nextStepIndex);
+    if (currentStep >= steps.length - 1) {
+      console.log("nextStep: Already at the last step");
+      return;
+    }
+
+    const isValid = validateStep(currentStep);
+    console.log("nextStep: Validation result", isValid);
+    if (!isValid) {
+      console.log("nextStep: Validation failed, errors:", errors);
+      return;
+    }
+
+    const success = await submitStep(currentStep);
+    console.log("nextStep: Submission result", success);
+    if (success) {
+      const nextStepIndex = currentStep + 1;
+      if (nextStepIndex === 1) {
+        try {
+          const employee_id = JSON.parse(localStorage.getItem("userToken"))?.employee_id || profile?.employee_id;
+          console.log("nextStep: Fetching education details for employee_id", employee_id);
+          await dispatch(fetchEmployeeEducationDetails(employee_id)).unwrap();
+          setCurrentStep(nextStepIndex);
+        } catch (err) {
+          console.warn("nextStep: Skipping Education Details due to access restriction:", err);
+          setErrors({
+            general: "Education details are restricted. Proceeding to Documents step.",
+          });
+          setCurrentStep(2); // Skip to Documents
+          return;
         }
+      } else {
+        setCurrentStep(nextStepIndex);
       }
+      console.log("nextStep: Fetching progress");
+      await dispatch(getEmployeeProgress()).unwrap();
+      console.log("nextStep: Setting currentStep to", nextStepIndex);
+    } else {
+      console.log("nextStep: Submission failed");
     }
   };
 
@@ -570,10 +569,11 @@ const EmployeeDetails = () => {
           if (index === 1) {
             try {
               const employee_id = JSON.parse(localStorage.getItem("userToken"))?.employee_id || profile?.employee_id;
+              console.log("goToStep: Fetching education details for employee_id", employee_id);
               await dispatch(fetchEmployeeEducationDetails(employee_id)).unwrap();
               setCurrentStep(index);
             } catch (err) {
-              console.warn("Cannot navigate to Education Details due to access restriction:", err);
+              console.warn("goToStep: Cannot navigate to Education Details due to access restriction:", err);
               setErrors({
                 general: "Education details are restricted. Please select another step.",
               });
@@ -844,7 +844,7 @@ const EmployeeDetails = () => {
         />
       )}
     </div>
-  );  
+  );
 };
 
 export default EmployeeDetails;

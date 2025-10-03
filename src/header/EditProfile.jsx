@@ -58,7 +58,7 @@ const EditProfile = () => {
         ? {
             Image: profile?.photo_url || "https://via.placeholder.com/150",
             "Full Name": personalDetails.full_name || "N/A",
-            "Date of Birth": personalDetails.date_of_birth || "N/A",
+            "Date of Birth": personalDetails.dob || "N/A",
             "Father’s Name": personalDetails.father_name || "N/A",
             "Mother’s Name": personalDetails.mother_name || "N/A",
             Phone: personalDetails.phone || "N/A",
@@ -84,7 +84,7 @@ const EditProfile = () => {
             "Contract End Date": currentEmployee.contract_end_date || "N/A",
           }
         : {},
-    },
+    },  
     {
       title: "Education Details",
       icon: <GraduationCap size={18} />,

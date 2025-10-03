@@ -394,6 +394,35 @@ export const deleteEmployee = createAsyncThunk(
   }
 );
 
+export const fetchAlumni = createAsyncThunk(
+  "employee/fetchAlumni",
+  async (_, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const { token } = JSON.parse(userToken);
+      const response = await axios.get(
+        "http://localhost:3007/api/employees/alumni",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Fetch alumni response:", response.data);
+      return response.data.data; // Expecting the alumni array from response.data.data
+    } catch (error) {
+      console.error("Fetch alumni error:", error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch alumni"
+      );
+    }
+  }
+);
+
 export const fetchEmployees = createAsyncThunk(
   "employee/fetchEmployees",
   async (_, { rejectWithValue }) => {
@@ -428,7 +457,6 @@ export const fetchEmployeeById = createAsyncThunk(
       if (!userToken) {
         return rejectWithValue("No authentication token found. Please log in.");
       }
-
       const { token } = JSON.parse(userToken);
       const response = await axios.get(
         `http://localhost:3007/api/employees/${id}`,
@@ -441,7 +469,7 @@ export const fetchEmployeeById = createAsyncThunk(
       console.log("Fetch employee by ID response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Fetch employee by ID error:", error.response?.data);
+      console.error("Fetch employee by ID error:", error.response?.data || error.message);
       return rejectWithValue(
         error.response?.data?.error || "Failed to fetch employee"
       );
@@ -747,7 +775,8 @@ const employeeSlice = createSlice({
     successMessage: null,
     employeeId: null,
     progress: null,
-    salaryStructure: null, // Retained for storing salary structure from createEmployee
+    salaryStructure: null, 
+    alumni: [],
   },
   reducers: {
     clearState: (state) => {
@@ -763,6 +792,7 @@ const employeeSlice = createSlice({
       state.profile = null;
       state.progress = null;
       state.salaryStructure = null;
+        state.alumni = [];
     },
   },
   extraReducers: (builder) => {
@@ -923,6 +953,20 @@ const employeeSlice = createSlice({
         }
       })
       .addCase(deleteEmployee.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchAlumni.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.successMessage = null;
+      })
+      .addCase(fetchAlumni.fulfilled, (state, action) => {
+        state.loading = false;
+        state.alumni = action.payload || [];
+        state.successMessage = "Alumni fetched successfully";
+      })
+      .addCase(fetchAlumni.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

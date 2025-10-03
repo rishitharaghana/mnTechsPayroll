@@ -143,13 +143,13 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <input
           type="text"
           name="fullName"
-          value={formData.fullName || ''} // Fixed: Use formData.fullName
+          value={formData.fullName || ''}
           onChange={handleChange}
           className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
             formData.fullName ? 'bg-gray-100 cursor-not-allowed' : ''
           }`}
           placeholder="Enter full name"
-          disabled={!!formData.fullName} // Disable if fullName exists
+          disabled={!!formData.fullName}
           aria-describedby={errors.fullName ? 'fullName-error' : undefined}
         />
         {errors.fullName && (
@@ -251,7 +251,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           styles={genderSelectStyles}
           className="w-full"
           placeholder="Select Gender"
-          isDisabled={!!formData.gender} // Disable if gender exists
+          isDisabled={!!formData.gender}
         />
         {errors.gender && <span className="text-red-500 text-xs mt-1">{errors.gender}</span>}
       </div>
@@ -396,24 +396,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
             )}
           </div>
 
-          <div className="flex flex-col">
-            <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Joining Date</label>
-            <div className="relative">
-              <DatePicker
-                selected={formData.joiningDate ? new Date(formData.joiningDate) : null}
-                onChange={(date) => handleDateChange("joiningDate", date)}
-                className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 pr-10"
-                dateFormat="yyyy-MM-dd"
-                placeholderText="Select joining date"
-              />
-              <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
-            </div>
-            {errors.joiningDate && (
-              <span className="text-red-500 text-xs mt-1">{errors.joiningDate}</span>
-            )}
-          </div>
-
-          {/* Contract End Date */}
           <div className="flex flex-col">
             <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Contract End Date</label>
             <div className="relative">
