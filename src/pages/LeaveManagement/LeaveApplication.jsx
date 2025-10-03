@@ -47,15 +47,13 @@ const LeaveApplication = () => {
     { value: "emergency", label: "Emergency Leave" },
     { value: "maternity", label: "Maternity Leave" },
     { value: "paternity", label: "Paternity Leave" },
-    { value: "unpaid", label: "Unpaid Leave" }, // Added to match leave_type
+    { value: "unpaid", label: "Unpaid Leave" },
   ];
 
-  // Map full_name to employee_id for super_admin recipients when role is hr
   const recipientIdMap = {
     "Super Admin": "MO-EMP-000",
   };
 
-  // Convert date to IST and return YYYY-MM-DD format
   const convertToIST = (dateStr) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
@@ -82,7 +80,7 @@ const LeaveApplication = () => {
       }
     } catch (error) {
       navigate("/login");
-        return;
+      return;
     }
 
     dispatch(fetchMyLeaves());
@@ -149,6 +147,7 @@ const LeaveApplication = () => {
       start_date: convertToIST(formData.start_date),
       end_date: convertToIST(formData.end_date),
       recipient_id: mappedRecipientId,
+      leave_type: formData.leave_status.toLowerCase(), // Map leave_status to leave_type
     };
 
     console.log("Submitting leave with payload:", payload);
@@ -174,23 +173,24 @@ const LeaveApplication = () => {
     });
   };
 
-  // Map recipient_id to label for display
   const getRecipientLabel = (leave) => {
     if (Array.isArray(leave.recipients) && leave.recipients.length > 0) {
-      return leave.recipients
-        .map((r) => (typeof r === "string" ? r : r.full_name || r.name || "Unknown"))
-        .join(", ");
-    } else if (typeof leave.recipients === "string") {
-      return leave.recipients.split(",").join(", ");
-    } else if (leave.recipient_id || leave.approved_by) {
-      const idToCheck = leave.recipient_id || leave.approved_by;
-      const mappedId = role === "hr" && recipientIdMap[idToCheck]
-        ? recipientIdMap[idToCheck]
-        : idToCheck;
-      const recipient = recipients.find((r) => r.value === idToCheck) ||
-                        recipients.find((r) => r.value === mappedId);
-      return recipient ? recipient.label : "Pending";
+      const mappedRecipients = leave.recipients.map((r) => {
+        const idToCheck = r.employee_id || r;
+        const fullName = r.full_name || r.label;
+
+        const mappedId =
+          role === "hr" && idToCheck === "MO-EMP-000"
+            ? "Super Admin"
+            : idToCheck;
+
+        const recipient = recipients.find((rec) => rec.value === mappedId);
+        return recipient ? recipient.label : fullName || mappedId || "Pending";
+      });
+
+      return mappedRecipients.join(", ");
     }
+
     return "Pending";
   };
 
@@ -395,7 +395,7 @@ const LeaveApplication = () => {
                       <div
                         className="leave-status-option"
                         onClick={() => {
-                          handleInputChange("leave_status", "unpaid");
+                          handleInputChange("leave_status", "Unpaid");
                           setIsLeaveStatusOpen(false);
                         }}
                       >
@@ -592,7 +592,8 @@ const LeaveApplication = () => {
                   {leaves.map((leave) => (
                     <tr key={leave.id}>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
-                        {new Date(leave.start_date).toLocaleDateString() || "N/A"}
+                        {new Date(leave.start_date).toLocaleDateString() ||
+                          "N/A"}
                       </td>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
                         {new Date(leave.end_date).toLocaleDateString() || "N/A"}
@@ -601,11 +602,19 @@ const LeaveApplication = () => {
                         {leave.total_days || "N/A"}
                       </td>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
-                        {leaveCategories.find((cat) => cat.value === leave.leave_type)?.label || 
-                         (leave.leave_type ? leave.leave_type.charAt(0).toUpperCase() + leave.leave_type.slice(1) : "N/A")}
+                        {leaveCategories.find(
+                          (cat) => cat.value === leave.leave_type
+                        )?.label ||
+                          (leave.leave_type
+                            ? leave.leave_type.charAt(0).toUpperCase() +
+                              leave.leave_type.slice(1)
+                            : "N/A")}
                       </td>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
-                        {leave.status ? leave.status.charAt(0).toUpperCase() + leave.status.slice(1) : "N/A"}
+                        {leave.status
+                          ? leave.status.charAt(0).toUpperCase() +
+                            leave.status.slice(1)
+                          : "N/A"}
                       </td>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 truncate max-w-[120px] sm:max-w-[200px]">
                         {leave.reason || "N/A"}
@@ -623,7 +632,10 @@ const LeaveApplication = () => {
                               : "bg-yellow-100 text-yellow-700"
                           }`}
                         >
-                          {leave.status ? leave.status.charAt(0).toUpperCase() + leave.status.slice(1) : "Unknown"}
+                          {leave.status
+                            ? leave.status.charAt(0).toUpperCase() +
+                              leave.status.slice(1)
+                            : "Unknown"}
                         </span>
                       </td>
                       <td className="px-2 sm:px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
