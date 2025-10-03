@@ -17,6 +17,10 @@ import {
   XCircle,
   UserCheck,
   Calendar,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
@@ -45,6 +49,10 @@ const LeaveTracker = () => {
     leave_type: "maternity",
     days: "",
   });
+  const [expandedLeaveId, setExpandedLeaveId] = useState(null); // Track expanded leave
+  const [currentPage, setCurrentPage] = useState(1); // Pagination: current page
+  const [itemsPerPage, setItemsPerPage] = useState(5); // Pagination: items per page
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const {
@@ -127,31 +135,31 @@ const LeaveTracker = () => {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   };
 
-const canApproveReject = (req) => {
-  if (!req.employee_id) {
-    console.warn(`Missing employee_id for leave ID ${req.id}`);
+  const canApproveReject = (req) => {
+    if (!req.employee_id) {
+      console.warn(`Missing employee_id for leave ID ${req.id}`);
+      return false;
+    }
+    if (role === "hr") {
+      console.log("HR canApproveReject:", {
+        leaveId: req.id,
+        recipient_id: req.recipient_id,
+        employee_id,
+        canApprove: true,
+      });
+      return true; // Allow HR to approve/reject all pending requests
+    }
+    if (role === "super_admin") {
+      const canApprove = req.employee_role === "hr";
+      console.log("Super Admin canApproveReject:", {
+        leaveId: req.id,
+        employee_role: req.employee_role,
+        canApprove,
+      });
+      return canApprove;
+    }
     return false;
-  }
-  if (role === "hr") {
-    console.log("HR canApproveReject:", {
-      leaveId: req.id,
-      recipient_id: req.recipient_id,
-      employee_id,
-      canApprove: true,
-    });
-    return true; // Allow HR to approve/reject all pending requests
-  }
-  if (role === "super_admin") {
-    const canApprove = req.employee_role === "hr";
-    console.log("Super Admin canApproveReject:", {
-      leaveId: req.id,
-      employee_role: req.employee_role,
-      canApprove,
-    });
-    return canApprove;
-  }
-  return false;
-};
+  };
 
   const filteredLeaveData = useMemo(() => {
     const sourceLeaves = filterStatus === "pending" ? pendingLeaves : leaves;
@@ -200,6 +208,30 @@ const canApproveReject = (req) => {
     console.log("Filtered leave data:", filtered);
     return filtered;
   }, [leaves, pendingLeaves, filterStatus, selectDate]);
+
+  // Pagination logic
+  const totalItems = filteredLeaveData.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const paginatedLeaves = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredLeaveData.slice(startIndex, endIndex);
+  }, [filteredLeaveData, currentPage, itemsPerPage]);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(parseInt(e.target.value, 10));
+    setCurrentPage(1); // Reset to first page
+  };
+
+  const toggleDetails = (leaveId) => {
+    setExpandedLeaveId(expandedLeaveId === leaveId ? null : leaveId);
+  };
 
   const summary = useMemo(() => {
     const leavesArray = Array.isArray(leaves) ? leaves : [];
@@ -280,6 +312,7 @@ const canApproveReject = (req) => {
 
   const handleFilter = useCallback((status) => {
     setFilterStatus(status);
+    setCurrentPage(1); // Reset to first page on filter change
   }, []);
 
   const handleSpecialLeaveChange = (name, value) => {
@@ -323,6 +356,45 @@ const canApproveReject = (req) => {
 
   return (
     <div className="w-full">
+      <style>{`
+        .details-section {
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
+        }
+        .details-section.open {
+          max-height: 200px; /* Adjust based on content */
+          padding: 1rem;
+        }
+        .pagination-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 1rem;
+        }
+        .pagination-button {
+          padding: 0.5rem 1rem;
+          border-radius: 0.375rem;
+          background: linear-gradient(to right, #0f766e, #1e293b);
+          color: white;
+          transition: background 0.3s ease;
+        }
+        .pagination-button:disabled {
+          background: #d1d5db;
+          cursor: not-allowed;
+        }
+        .pagination-button:hover:not(:disabled) {
+          background: linear-gradient(to right, #0d9488, #334155);
+        }
+        .items-per-page-select {
+          padding: 0.5rem;
+          border-radius: 0.375rem;
+          border: 1px solid #0f766e;
+          background: white;
+          color: #1e293b;
+        }
+      `}</style>
+
       <div className="hidden sm:flex sm:justify-end">
         <PageMeta
           title="Leave Tracker"
@@ -429,12 +501,12 @@ const canApproveReject = (req) => {
           </div>
 
           <div className="space-y-6 p-6">
-            {loading && leaves.length === 0 && pendingLeaves.length === 0 ? (
+            {loading && paginatedLeaves.length === 0 ? (
               <p className="text-gray-600 text-center">
                 Loading leave requests...
               </p>
-            ) : filteredLeaveData.length > 0 ? (
-              filteredLeaveData.map((req) => (
+            ) : paginatedLeaves.length > 0 ? (
+              paginatedLeaves.map((req) => (
                 <div
                   key={req.id}
                   className="p-6 bg-white/95 rounded-2xl border-1 border-teal-200/50 shadow-md transform hover:scale-[1.02] transition-all duration-300"
@@ -453,14 +525,6 @@ const canApproveReject = (req) => {
                         </p>
                         <p className="text-xs text-gray-500">
                           ID: {req.employee_id || "N/A"}
-                        </p>
-                        <p className="text-sm text-gray-700">
-                          <span className="font-medium">Reason:</span>{" "}
-                          {req.reason || "N/A"}
-                        </p>
-                        <p className="text-sm text-gray-700">
-                          <span className="font-medium">Recipients:</span>{" "}
-                          {req.recipients?.join(", ") || "N/A"}
                         </p>
                       </div>
                     </div>
@@ -511,6 +575,17 @@ const canApproveReject = (req) => {
                           {req.status || "Unknown"}
                         </p>
                       </div>
+                      <button
+                        onClick={() => toggleDetails(req.id)}
+                        className="px-4 py-1.5 bg-gradient-to-r from-teal-600 to-slate-700 text-white text-xs rounded-lg hover:from-teal-700 hover:to-slate-800 transition-all duration-300 shadow-md"
+                      >
+                        {expandedLeaveId === req.id ? "Hide Details" : "View Details"}
+                        {expandedLeaveId === req.id ? (
+                          <ChevronUp className="inline ml-2" size={16} />
+                        ) : (
+                          <ChevronDown className="inline ml-2" size={16} />
+                        )}
+                      </button>
                       {req.status?.toLowerCase() === "pending" && canApproveReject(req) && (
                         <div className="flex sm:flex-col md:flex-row gap-2">
                           <button
@@ -531,6 +606,18 @@ const canApproveReject = (req) => {
                       )}
                     </div>
                   </div>
+                  <div className={`details-section ${expandedLeaveId === req.id ? "open" : ""}`}>
+                    <div className="border-t border-teal-200/50 pt-4 mt-4">
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">Reason:</span>{" "}
+                        {req.reason || "N/A"}
+                      </p>
+                      <p className="text-sm text-gray-700 mt-2">
+                        <span className="font-medium">Recipients:</span>{" "}
+                        {req.recipients?.join(", ") || "N/A"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ))
             ) : (
@@ -539,6 +626,50 @@ const canApproveReject = (req) => {
               </p>
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {totalItems > 0 && (
+            <div className="pagination-container p-6">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">
+                  Show:
+                </span>
+                <select
+                  value={itemsPerPage}
+                  onChange={handleItemsPerPageChange}
+                  className="items-per-page-select"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                </select>
+                <span className="text-sm text-gray-600">
+                  items per page
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="pagination-button"
+                >
+                  <ChevronLeft size={16} className="inline" />
+                  <span className="ml-2">Previous</span>
+                </button>
+                <span className="text-sm text-gray-600">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="pagination-button"
+                >
+                  <span className="mr-2">Next</span>
+                  <ChevronRight size={16} className="inline" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
