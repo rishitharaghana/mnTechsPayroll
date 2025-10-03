@@ -155,7 +155,6 @@ const App = () => {
               <Route element={<ProtectedRoute allowedRoles={["employee"]} />}>
                 <Route path="/emp-dashboard" element={<EmployeeDashboard />} />
 
-                <Route path="/employee-payslip" element={<EmployeePayslip />} />
                 <Route path="/employee/viewgoals" element={<ViewGoals />} />
 
                 <Route
@@ -205,6 +204,8 @@ const App = () => {
                 element={<LeaveDashboard />}
 
               />
+                              <Route path="/employee-payslip" element={<EmployeePayslip />} />
+
 
                <Route
                   path="/employee/attendance-overview"

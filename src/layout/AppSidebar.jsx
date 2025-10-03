@@ -167,16 +167,24 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       id: "payslips",
       label: "Payslips",
       icon: FileText,
-      path: "/admin/payslip",
-      allowedRoles: ["super_admin", "hr"],
-    },
-    {
+      allowedRoles: ["super_admin", "hr", "employee", "dept_head", "manager"],
+      children:[
+        {
+          id: "payslip",
+          label: "PaySlips",
+          path: "/admin/payslip",
+          allowedRoles: ["super_admin", "hr", ],
+        },
+         {
       id: "payslips",
-      label: "Payslips",
+      label: "View Payslips",
       icon: FileText,
       path: "/employee-payslip",
-      allowedRoles: ["employee"],
+      allowedRoles: ["employee", "dept_head", "manager", "hr"],
     },
+      ]
+    },
+   
     {
       id: "calendar",
       label: "Calendar",
