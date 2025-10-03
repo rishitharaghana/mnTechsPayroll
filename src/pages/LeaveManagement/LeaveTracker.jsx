@@ -579,7 +579,7 @@ const LeaveTracker = () => {
                         onClick={() => toggleDetails(req.id)}
                         className="px-4 py-1.5 bg-gradient-to-r from-teal-600 to-slate-700 text-white text-xs rounded-lg hover:from-teal-700 hover:to-slate-800 transition-all duration-300 shadow-md"
                       >
-                        {expandedLeaveId === req.id ? "Hide Details" : "View Details"}
+                        {expandedLeaveId === req.id ? "Hide " : "View "}
                         {expandedLeaveId === req.id ? (
                           <ChevronUp className="inline ml-2" size={16} />
                         ) : (
