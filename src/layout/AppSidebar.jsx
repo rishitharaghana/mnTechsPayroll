@@ -305,14 +305,14 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
       label: "Travel Expenses",
       icon: Waypoints,
       path: "/employee/travel-expenses",
-      allowedRoles: ["dept_head", "employee"],
+      allowedRoles: ["dept_head", "employee", "manager"],
     },
     {
       id: "travelexpenses",
       label: "Travel Expenses",
       icon: Waypoints,
       path: "/admin/travel-expense",
-      allowedRoles: ["super_admin", "hr"],
+      allowedRoles: ["super_admin", "hr" ],
     },
   ];
 
