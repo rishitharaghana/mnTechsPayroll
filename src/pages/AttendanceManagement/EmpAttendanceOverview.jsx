@@ -31,7 +31,6 @@ const EmpAttendanceOverview = () => {
   const [isValidSession, setIsValidSession] = useState(true);
   const [userRole, setUserRole] = useState(null);
 
-  // Validate user session and parse userToken
   useEffect(() => {
     let stored, parsed;
     try {
