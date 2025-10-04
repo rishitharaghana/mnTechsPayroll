@@ -402,10 +402,9 @@ const EmployeeVisitingCard = () => {
                 </div>
               </div>
 
-              {/* Generation Options */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Single Card */}
-                <div className="bg-white border rounded-lg shadow-sm p-6 text-center hover:shadow-md">
+                {/* <div className="bg-white border rounded-lg shadow-sm p-6 text-center hover:shadow-md">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <User className="w-8 h-8 text-blue-600" />
                   </div>
@@ -422,10 +421,9 @@ const EmployeeVisitingCard = () => {
                   >
                     Generate Card
                   </button>
-                </div>
+                </div> */}
 
-                {/* Department Cards (Disabled for Employees) */}
-                <div className="bg-white border rounded-lg shadow-sm p-6 text-center opacity-50">
+                {/* <div className="bg-white border rounded-lg shadow-sm p-6 text-center opacity-50">
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Building className="w-8 h-8 text-green-600" />
                   </div>
@@ -442,10 +440,10 @@ const EmployeeVisitingCard = () => {
                   >
                     Generate Batch
                   </button>
-                </div>
+                </div> */}
 
                 {/* Bulk Export (Disabled for Employees) */}
-                <div className="bg-white border rounded-lg shadow-sm p-6 text-center opacity-50">
+                {/* <div className="bg-white border rounded-lg shadow-sm p-6 text-center opacity-50">
                   <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Archive className="w-8 h-8 text-purple-600" />
                   </div>
@@ -462,7 +460,7 @@ const EmployeeVisitingCard = () => {
                   >
                     Export All
                   </button>
-                </div>
+                </div> */}
               </div>
             </div>
           </>
