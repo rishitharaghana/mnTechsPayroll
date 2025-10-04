@@ -14,12 +14,11 @@ const VisitingCardForm = () => {
     phone: "",
     website: "",
     address: "",
-    companyLogo: null, // Store the file object for the company logo
+    companyLogo: null, 
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Add logic to save visiting card (e.g., to localStorage or state)
     console.log("Visiting Card generated:", formData);
     navigate("/visitingcard");
   };

@@ -426,7 +426,7 @@ function VisitingCard() {
               </div>
 
               {/* Generation Options (unchanged) */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white border rounded-lg shadow-sm p-6 text-center hover:shadow-md">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <User className="w-8 h-8 text-blue-600" />
@@ -480,7 +480,7 @@ function VisitingCard() {
                     Export All
                   </button>
                 </div>
-              </div>
+              </div> */}
             </div>
           </>
         )}
