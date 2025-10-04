@@ -6,6 +6,7 @@ import {
   fetchTravelExpenses,
   fetchTravelExpenseHistory,
   updateTravelExpenseStatus,
+  clearState,
 } from "../../redux/slices/travelExpensesSlice";
 import { getCurrentUserProfile } from "../../redux/slices/employeeSlice";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
@@ -13,37 +14,43 @@ import PageMeta from "../../Components/common/PageMeta";
 
 const TravelExpenseApproval = () => {
   const dispatch = useDispatch();
-  const { profile, error: employeeError } = useSelector((state) => state.employee);
+  const { profile, error: employeeError, loading: profileLoading } = useSelector((state) => state.employee);
+  const { user } = useSelector((state) => state.auth);
   const { submissions, history, loading, error, successMessage, pagination } = useSelector(
     (state) => state.travelExpenses
   );
   const [adminComments, setAdminComments] = useState({});
   const [actionLoading, setActionLoading] = useState({});
-  const [viewMode, setViewMode] = useState("pending"); // "pending" or "history"
+  const [viewMode, setViewMode] = useState("pending");
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState(""); // For debugging
+  const [statusFilter, setStatusFilter] = useState("");
+  const [shouldRefresh, setShouldRefresh] = useState(false); // New state for refresh control
   const limit = 10;
 
-  // Memoized fetch function to prevent unnecessary re-renders
+  const userRole = profile?.role || user?.role;
+
   const fetchData = useCallback(() => {
-    console.log("Fetching data:", { role: profile?.role, employee_id: profile?.employee_id, viewMode, page });
+    console.log("Fetching data:", { role: userRole, employee_id: profile?.employee_id, viewMode, page });
     if (!profile) {
       console.log("No profile found, fetching profile");
       dispatch(getCurrentUserProfile());
       return;
     }
 
-    if (!profile.employee_id) {
-      console.warn("Profile employee_id is undefined");
-      toast.error("Employee ID not found. Please ensure your profile is complete.", { position: "top-right", autoClose: 3000 });
+    if (!profile.employee_id || !userRole) {
+      console.warn("Profile missing employee_id or role:", { profile, userRole });
+      toast.error("Profile data incomplete. Please ensure your account is properly set up.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
 
-    if (["employee", "hr", "super_admin"].includes(profile?.role)) {
-      if (profile.role === "employee") {
-        console.log("Fetching employee submissions for employee_id:", profile.employee_id);
+    if (["employee", "dept_head", "hr", "super_admin"].includes(userRole)) {
+      if (["employee", "dept_head"].includes(userRole)) {
+        console.log("Fetching submissions for employee/dept_head:", profile.employee_id);
         dispatch(fetchTravelExpenses({ page, limit }));
-      } else {
+      } else if (["hr", "super_admin"].includes(userRole)) {
         if (viewMode === "pending") {
           console.log("Fetching pending submissions for admin");
           dispatch(fetchTravelExpenses({ page, limit }));
@@ -53,42 +60,48 @@ const TravelExpenseApproval = () => {
         }
       }
     } else {
-      console.warn("Invalid user role:", profile?.role);
+      console.warn("Invalid user role:", userRole);
       toast.error("Access denied: Invalid role.", { position: "top-right", autoClose: 3000 });
     }
-  }, [dispatch, profile, page, viewMode]);
+  }, [dispatch, profile, userRole, page, viewMode]);
 
+  // Effect for initial fetch and dependency changes
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
+  // Effect for handling refresh after success
+  useEffect(() => {
+    if (shouldRefresh) {
+      fetchData();
+      setShouldRefresh(false); // Reset refresh flag
+    }
+  }, [shouldRefresh, fetchData]);
+
+  // Effect for handling errors and success messages
   useEffect(() => {
     if (error) {
       console.error("Travel expense error:", error);
-      const message = error.includes("Insufficient permissions")
-        ? "You do not have permission to perform this action."
-        : error.includes("not found")
-        ? "No submissions found or endpoint unavailable."
-        : error.includes("Only pending")
-        ? "This submission cannot be updated."
-        : error.includes("User not found")
-        ? "Your account is not linked to an employee record."
-        : error;
-      toast.error(message, { position: "top-right", autoClose: 3000 });
+      toast.error(error === "No travel expense history records found" ? "No history records available" : error, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      dispatch(clearState());
     }
     if (employeeError) {
       console.error("Employee error:", employeeError);
-      toast.error(employeeError, { position: "top-right", autoClose: 3000 });
+      toast.error(employeeError || "Failed to load user profile.", { position: "top-right", autoClose: 3000 });
+      dispatch(clearState());
     }
     if (successMessage) {
       console.log("Success message:", successMessage);
       toast.success(successMessage, { position: "top-right", autoClose: 3000 });
-      fetchData(); // Refresh data after success
+      setShouldRefresh(true); // Trigger refresh instead of calling fetchData directly
+      dispatch(clearState());
     }
-  }, [error, employeeError, successMessage, fetchData]);
+  }, [error, employeeError, successMessage, dispatch]);
 
   const handleStatusUpdate = (submissionId, status) => {
-    console.log("Updating status for submissionId:", submissionId, "to", status);
     setActionLoading((prev) => ({ ...prev, [submissionId]: true }));
     const adminComment = adminComments[submissionId] || "";
     dispatch(
@@ -108,7 +121,6 @@ const TravelExpenseApproval = () => {
   };
 
   const handleDownloadReceipt = async (submissionId) => {
-    console.log("Downloading receipt for submissionId:", submissionId);
     try {
       const userToken = localStorage.getItem("userToken");
       const token = userToken ? JSON.parse(userToken).token : null;
@@ -117,7 +129,7 @@ const TravelExpenseApproval = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:3007/api/travel-expenses/download/${submissionId}/`, {
+      const response = await fetch(`http://localhost:3007/api/travel-expenses/download/${submissionId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -127,10 +139,14 @@ const TravelExpenseApproval = () => {
       }
 
       const blob = await response.blob();
+      const contentDisposition = response.headers.get("Content-Disposition");
+      const fileName = contentDisposition
+        ? contentDisposition.split("filename=")[1]?.replace(/"/g, "") || `receipt-${submissionId}`
+        : `receipt-${submissionId}`;
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `receipt-${submissionId}`;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -142,32 +158,28 @@ const TravelExpenseApproval = () => {
   };
 
   const formatAmount = (amount) => {
-    if (amount === null || amount === undefined || isNaN(Number(amount))) {
-      return "₹0.00";
-    }
-    return `₹${Number(amount).toFixed(2)}`;
+    return amount !== null && !isNaN(Number(amount)) ? `₹${Number(amount).toFixed(2)}` : "₹0.00";
   };
 
   const formatDate = (date) => {
-    if (!date || isNaN(Date.parse(date))) {
-      return "N/A";
-    }
-    return new Date(date).toLocaleDateString("en-IN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
+    return date && !isNaN(Date.parse(date))
+      ? new Date(date).toLocaleDateString("en-IN", { year: "numeric", month: "2-digit", day: "2-digit" })
+      : "N/A";
   };
 
-  if (!profile) {
+  if (profileLoading) {
+    return <div className="text-center text-gray-600 text-lg font-medium py-10">Loading user profile...</div>;
+  }
+
+  if (!profile || employeeError) {
     return (
       <div className="text-center text-gray-600 text-lg font-medium py-10">
-        Loading user profile...
+        Unable to load user profile. Please try again or contact support.
       </div>
     );
   }
 
-  if (!["employee", "hr", "super_admin"].includes(profile?.role)) {
+  if (!["employee", "dept_head", "hr", "super_admin"].includes(userRole)) {
     return (
       <div className="text-center text-gray-600 text-lg font-medium py-10">
         Access denied: Insufficient permissions.
@@ -175,38 +187,61 @@ const TravelExpenseApproval = () => {
     );
   }
 
-  const dataToDisplay = profile.role === "employee" ? submissions : viewMode === "pending" ? submissions : history;
+  const dataToDisplay = ["employee", "dept_head"].includes(userRole)
+    ? submissions
+    : viewMode === "pending"
+    ? submissions
+    : history;
   const filteredData = statusFilter ? dataToDisplay.filter((s) => s.status === statusFilter) : dataToDisplay;
-  const paginationData = profile.role === "employee" ? pagination.submissions : viewMode === "pending" ? pagination.submissions : pagination.history;
-
-  console.log("Data to display:", JSON.stringify(filteredData, null, 2));
+  const paginationData = ["employee", "dept_head"].includes(userRole)
+    ? pagination.submissions
+    : viewMode === "pending"
+    ? pagination.submissions
+    : pagination.history;
 
   return (
     <div className="w-full">
       <div className="flex justify-between items-center">
         <div className="flex gap-2">
-          <button
-            onClick={() => {
-              setViewMode("pending");
-              setPage(1);
-            }}
-            className={`px-4 py-2 text-sm font-medium rounded-md ${
-              viewMode === "pending" ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700"
-            } hover:bg-teal-700 hover:text-white transition`}
-          >
-            {profile.role === "employee" ? "My Submissions" : "Pending Submissions"}
-          </button>
-          <button
-            onClick={() => {
-              setViewMode("history");
-              setPage(1);
-            }}
-            className={`px-4 py-2 text-sm font-medium rounded-md ${
-              viewMode === "history" ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700"
-            } hover:bg-teal-700 hover:text-white transition`}
-          >
-            History
-          </button>
+          {["employee", "dept_head"].includes(userRole) ? (
+            <button
+              onClick={() => {
+                setViewMode("pending");
+                setPage(1);
+                setStatusFilter("");
+              }}
+              className="px-4 py-2 text-sm font-medium rounded-md bg-teal-600 text-white hover:bg-teal-700 transition"
+            >
+              My Submissions
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  setViewMode("pending");
+                  setPage(1);
+                  setStatusFilter("");
+                }}
+                className={`px-4 py-2 text-sm font-medium rounded-md ${
+                  viewMode === "pending" ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700"
+                } hover:bg-teal-700 hover:text-white transition`}
+              >
+                Pending Submissions
+              </button>
+              <button
+                onClick={() => {
+                  setViewMode("history");
+                  setPage(1);
+                  setStatusFilter("");
+                }}
+                className={`px-4 py-2 text-sm font-medium rounded-md ${
+                  viewMode === "history" ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700"
+                } hover:bg-teal-700 hover:text-white transition`}
+              >
+                History
+              </button>
+            </>
+          )}
           <select
             value={statusFilter}
             onChange={(e) => {
@@ -216,30 +251,28 @@ const TravelExpenseApproval = () => {
             className="px-2 py-1 border rounded-md text-sm"
           >
             <option value="">All Statuses</option>
+            <option value="Pending">Pending</option>
             <option value="Approved">Approved</option>
             <option value="Rejected">Rejected</option>
-            <option value="Pending">Pending</option>
           </select>
         </div>
         <div className="flex justify-end">
           <PageBreadcrumb
             items={[
-              { label: "Home", link: profile.role === "employee" ? "/employee/dashboard" : "/admin/dashboard" },
-              { label: "Travel Expenses", link: profile.role === "employee" ? "/employee/travel-expense" : "/admin/travel-expense" },
+              { label: "Home", link: ["employee", "dept_head"].includes(userRole) ? "/employee/dashboard" : "/admin/dashboard" },
+              { label: "Travel Expenses", link: ["employee", "dept_head"].includes(userRole) ? "/employee/travel-expense" : "/admin/travel-expense" },
             ]}
           />
           <PageMeta
-            title={profile.role === "employee" ? "My Travel Expenses" : "Travel Expense Approval"}
+            title={["employee", "dept_head"].includes(userRole) ? "My Travel Expenses" : "Travel Expense Approval"}
             description="View and manage travel expenses"
           />
         </div>
       </div>
       <div className="bg-white rounded-2xl shadow-lg p-6 mt-4">
         <h2 className="text-2xl font-semibold text-slate-700 mb-6">
-          {profile.role === "employee"
-            ? viewMode === "pending"
-              ? "My Travel Expense Submissions"
-              : "My Travel Expense History"
+          {["employee", "dept_head"].includes(userRole)
+            ? "My Travel Expense Submissions"
             : viewMode === "pending"
             ? "Travel Expense Approval"
             : "Travel Expense History"}
@@ -247,12 +280,12 @@ const TravelExpenseApproval = () => {
 
         {loading && (
           <div className="text-center text-gray-600 text-lg font-medium py-10 animate-pulse">
-            Loading {profile.role === "employee" ? "submissions" : viewMode === "pending" ? "submissions" : "history"}...
+            Loading {["employee", "dept_head"].includes(userRole) ? "submissions" : viewMode === "pending" ? "submissions" : "history"}...
           </div>
         )}
         {!loading && filteredData.length === 0 && (
           <div className="text-center text-gray-600 text-lg font-medium py-10">
-            No {profile.role === "employee" ? "travel expense submissions" : viewMode === "pending" ? "travel expense submissions" : "travel expense history"} found.
+            No {["employee", "dept_head"].includes(userRole) ? "travel expense submissions" : viewMode === "pending" ? "travel expense submissions" : "travel expense history records"} found.
           </div>
         )}
         {!loading && filteredData.length > 0 && (
@@ -270,18 +303,14 @@ const TravelExpenseApproval = () => {
                   <th className="border border-teal-800 p-2 text-xs font-medium w-[18%]">Expenses</th>
                   <th className="border border-teal-800 p-2 text-xs font-medium w-[12%]">Comment</th>
                   <th className="border border-teal-800 p-2 text-xs font-medium w-[8%]">Status</th>
-                  {profile.role !== "employee" && viewMode === "pending" && (
+                  {["hr", "super_admin"].includes(userRole) && viewMode === "pending" && (
                     <th className="border border-teal-800 p-2 text-xs font-medium w-[10%]">Actions</th>
                   )}
                 </tr>
               </thead>
               <tbody>
                 {filteredData.map((submission) => {
-                  console.log("Rendering submission:", submission);
-                  if (!submission.id) {
-                    console.warn("Skipping submission with missing id:", submission);
-                    return null;
-                  }
+                  if (!submission?.id) return null;
                   return (
                     <tr
                       key={submission.id}
@@ -312,7 +341,7 @@ const TravelExpenseApproval = () => {
                         {formatAmount(submission.total_amount)}
                       </td>
                       <td className="border border-teal-200 p-2 text-xs text-gray-700 text-center">
-                        {submission.receipt_path && submission.receipt_path.startsWith("http://localhost:3007/Uploads/") ? (
+                        {submission.receipt_path && submission.receipt_path.startsWith("http://localhost:3007/uploads/") ? (
                           <button
                             onClick={() => handleDownloadReceipt(submission.id)}
                             className="text-teal-500 hover:text-teal-700 transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-teal-500 rounded"
@@ -339,7 +368,7 @@ const TravelExpenseApproval = () => {
                         </ul>
                       </td>
                       <td className="border border-teal-200 p-2">
-                        {profile.role !== "employee" && viewMode === "pending" ? (
+                        {["hr", "super_admin"].includes(userRole) && viewMode === "pending" ? (
                           <textarea
                             className="w-full border border-gray-300 rounded-md p-1 text-xs text-gray-600 focus:outline-none focus:ring-1 focus:ring-teal-500 transition-colors duration-150 disabled:bg-gray-100 resize-none"
                             placeholder="Comment (optional)"
@@ -368,7 +397,7 @@ const TravelExpenseApproval = () => {
                           {submission.status}
                         </span>
                       </td>
-                      {profile.role !== "employee" && viewMode === "pending" && (
+                      {["hr", "super_admin"].includes(userRole) && viewMode === "pending" && (
                         <td className="border border-teal-200 p-2 text-center">
                           {submission.status === "Pending" ? (
                             <div className="flex gap-1 justify-center">
@@ -417,7 +446,7 @@ const TravelExpenseApproval = () => {
                 Page {page} of {paginationData?.totalPages || 1}
               </span>
               <button
-                onClick={() => setPage((prev) => prev + 1)}
+                onClick={() => setPage((prev) => prev + 1)} 
                 disabled={page >= (paginationData?.totalPages || 1)}
                 className="px-3 py-1 bg-teal-500 text-white rounded-md text-xs font-medium hover:bg-teal-600 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-teal-400"
               >

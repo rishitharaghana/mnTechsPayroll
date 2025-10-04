@@ -6,7 +6,6 @@ const ProtectedRoute = ({ allowedRoles }) => {
   const { isAuthenticated, role, user } = useSelector((state) => state.auth);
   const storedUser = JSON.parse(localStorage.getItem("userToken"));
 
-  // 🔹 Normalize role names: lowercase + replace spaces with underscores
   const normalizeRole = (r) => (r ? r.toLowerCase().replace(/\s+/g, "_") : "");
 
   const userRole = normalizeRole(role);

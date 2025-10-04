@@ -30,7 +30,7 @@ const EmployeeTravelExpenses = () => {
   const [travelPurpose, setTravelPurpose] = useState("");
   const [department, setDepartment] = useState(profile?.department_name || "");
   const [submissionStatus, setSubmissionStatus] = useState("draft");
-  const [receipt, setReceipt] = useState(null); // Single receipt file
+  const [receipt, setReceipt] = useState(null); 
 
   const employeeName = profile ? `${profile.full_name} (${profile.employee_id})` : "Unknown";
 
@@ -40,7 +40,7 @@ const EmployeeTravelExpenses = () => {
   }, 300);
 
   useEffect(() => {
-    if (["employee", "hr", "super_admin"].includes(user?.role)) {
+    if (["employee", "hr", "super_admin", "dept_head"].includes(user?.role)) {
       if (!profile) {
         dispatch(fetchUserProfile());
       }

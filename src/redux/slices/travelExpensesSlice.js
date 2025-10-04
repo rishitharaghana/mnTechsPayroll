@@ -146,7 +146,11 @@ export const updateTravelExpenseStatus = createAsyncThunk(
       console.log("Update travel expense status response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Update travel expense status error:", error.response?.data);
+      console.error("Update travel expense status error:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
       return rejectWithValue(
         error.response?.data?.error || "Failed to update travel expense"
       );
@@ -304,7 +308,7 @@ const travelExpenseSlice = createSlice({
             created_at: submission.created_at,
             updated_at: new Date().toISOString(),
             admin_comment: action.payload.data.admin_comment,
-            receipt_path: submission.receipt_path, // Fixed typo: recept_path -> receipt_path
+            receipt_path: submission.receipt_path, 
             expenses: submission.expenses || [],
           });
         }

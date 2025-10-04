@@ -6,19 +6,16 @@ import {
   downloadPayslip,
   clearError,
 } from "../../redux/slices/payslipSlice";
-import { getCurrentUserProfile } from "../../redux/slices/employeeSlice";
+import { getCurrentUserProfile, fetchEmployees } from "../../redux/slices/employeeSlice";
 import { toast } from "react-toastify";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 import PayslipGenerator from "../PayslipManagement/PayslipGenerator";
 
-// Custom Select Component
-const CustomSelect = ({ value, onChange, options, label }) => {
+const CustomSelect = ({ value, onChange, options, label, placeholder = "Select an option" }) => {
   return (
     <div className="relative w-full">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-      </label>
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       <select
         value={value}
         onChange={onChange}
@@ -26,17 +23,17 @@ const CustomSelect = ({ value, onChange, options, label }) => {
         aria-label={label}
       >
         <option value="" className="text-gray-500 bg-gray-100">
-          Select a month
+          {placeholder}
         </option>
         {options.map((option, index) => (
           <option
-            key={option}
-            value={option}
+            key={option.value || option}
+            value={option.value || option}
             className={`${
               index % 2 === 0 ? "bg-teal-50" : "bg-white"
             } text-gray-800 hover:bg-teal-100 transition duration-150 ease-in-out`}
           >
-            {new Date(option + "-01").toLocaleString("default", {
+            {option.label || new Date(option + "-01").toLocaleString("default", {
               month: "long",
               year: "numeric",
             })}
@@ -49,11 +46,13 @@ const CustomSelect = ({ value, onChange, options, label }) => {
 
 const EmployeePayslip = () => {
   const dispatch = useDispatch();
-  const { user, role, isAuthenticated } = useSelector((state) => state.auth);
+  const { user, role, isAuthenticated, employee_id } = useSelector((state) => state.auth);
   const {
     employeeId,
     loading: employeeLoading,
     error: employeeError,
+    profile,
+    employees,
   } = useSelector((state) => state.employee);
   const {
     loading,
@@ -62,71 +61,108 @@ const EmployeePayslip = () => {
     totalRecords = 0,
   } = useSelector((state) => state.payslip);
   const [selectedMonth, setSelectedMonth] = useState("2025-09");
+  const [selectedEmployee, setSelectedEmployee] = useState("");
   const [isLoadingDownload, setIsLoadingDownload] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
   const [showPreview, setShowPreview] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25;
 
-  // Debug states
   useEffect(() => {
-    console.log("Auth state:", { isAuthenticated, role, user });
-    console.log("Employee state:", {
+    console.log("EmployeePayslip state:", {
+      isAuthenticated,
+      role,
+      employee_id,
       employeeId,
       employeeLoading,
       employeeError,
+      profile,
+      employees,
+      loading,
+      error,
+      payslips,
+      totalRecords,
     });
-    console.log("Payslip state:", { loading, error, payslips, totalRecords });
   }, [
     isAuthenticated,
     role,
-    user,
+    employee_id,
     employeeId,
     employeeLoading,
     employeeError,
+    profile,
+    employees,
     loading,
     error,
     payslips,
     totalRecords,
   ]);
 
-  // Fetch current user profile
   useEffect(() => {
-    if (isAuthenticated && role?.toLowerCase() === "employee" && !employeeId) {
-      console.log("Fetching user profile...");
+    if (
+      isAuthenticated &&
+      ["employee", "dept_head", "manager", "hr", "super_admin"].includes(role?.toLowerCase()) &&
+      !employeeId &&
+      !employeeError
+    ) {
+      console.log("Fetching user profile for:", employee_id);
       dispatch(getCurrentUserProfile());
     }
-  }, [dispatch, isAuthenticated, role, employeeId]);
+    if (["hr", "super_admin"].includes(role?.toLowerCase())) {
+      console.log("Fetching employees for:", role);
+      dispatch(fetchEmployees());
+    }
+  }, [dispatch, isAuthenticated, role, employeeId, employeeError]);
 
-  // Fetch payslips
   useEffect(() => {
-    if (isAuthenticated && role?.toLowerCase() === "employee" && employeeId) {
+    if (
+      isAuthenticated &&
+      ["employee", "dept_head", "manager", "hr", "super_admin"].includes(role?.toLowerCase()) &&
+      employeeId &&
+      !employeeError
+    ) {
       console.log("Fetching payslips for:", {
-        employeeId,
+        employeeId: selectedEmployee || employeeId,
         selectedMonth,
         page: currentPage,
       });
       dispatch(
         fetchPayslips({
           month: selectedMonth,
-          employeeId: employeeId,
+          employeeId: ["hr", "super_admin"].includes(role?.toLowerCase()) ? selectedEmployee : employeeId,
           page: currentPage,
           limit: itemsPerPage,
         })
       );
       dispatch(clearError());
     }
-  }, [dispatch, isAuthenticated, role, employeeId, selectedMonth, currentPage]);
+  }, [dispatch, isAuthenticated, role, employeeId, selectedMonth, selectedEmployee, currentPage, employeeError]);
 
-  // Filter and map payslips
+  useEffect(() => {
+    if (error || downloadError || employeeError) {
+      console.error("Error detected:", { error, downloadError, employeeError });
+      const errorMessage = error || downloadError || employeeError;
+      if (errorMessage.includes("Employee not found")) {
+        toast.error("Your employee profile was not found. Please contact HR.");
+      } else if (errorMessage.includes("HR users cannot view")) {
+        toast.error("Access denied: HR users cannot view other HR users' payslips.");
+      } else {
+        toast.error(errorMessage);
+      }
+    }
+  }, [error, downloadError, employeeError]);
+
   const filteredPayslips = useMemo(() => {
     const filtered = (Array.isArray(payslips) ? payslips : [])
       .filter((slip) => {
         if (
-          role?.toLowerCase() !== "employee" ||
-          slip.employee_id !== employeeId
-        )
+          !["employee", "dept_head", "manager", "hr", "super_admin"].includes(role?.toLowerCase())
+        ) {
           return false;
+        }
+        if (["employee", "dept_head", "manager"].includes(role?.toLowerCase()) && slip.employee_id !== employeeId) {
+          return false;
+        }
         return (
           (!selectedMonth || slip.month === selectedMonth) &&
           ["Approved", "Paid", "Pending"].includes(slip.status)
@@ -138,8 +174,8 @@ const EmployeePayslip = () => {
         totalEarnings:
           (parseFloat(slip.basic_salary) || 0) +
           (parseFloat(slip.hra) || 0) +
-          (parseFloat(slip.da) || 0) +
-          (parseFloat(slip.other_allowances) || 0),
+          (parseFloat(slip.special_allowances) || 0) +
+          (parseFloat(slip.bonus) || 0),
         totalDeductions:
           (parseFloat(slip.pf_deduction) || 0) +
           (parseFloat(slip.esic_deduction) || 0) +
@@ -147,10 +183,6 @@ const EmployeePayslip = () => {
           (parseFloat(slip.tax_deduction) || 0),
         netPay: parseFloat(slip.net_salary) || 0,
         net_salary: parseFloat(slip.net_salary) || 0,
-        pan_number: slip.pan_number || "-",
-        uan_number: slip.uan_number || "-",
-        bank_account_number: slip.bank_account_number || "-",
-        ifsc_code: slip.ifsc_code || "-",
         payment_date: slip.payment_date || null,
       }))
       .sort((a, b) => new Date(b.month + "-01") - new Date(a.month + "-01"));
@@ -166,19 +198,34 @@ const EmployeePayslip = () => {
     return periods;
   }, [payslips]);
 
+  const employeeOptions = useMemo(() => {
+    return employees.map((emp) => ({
+      value: emp.employee_id,
+      label: `${emp.full_name} (${emp.employee_id})`,
+    }));
+  }, [employees]);
+
   const totalPages = Math.ceil(totalRecords / itemsPerPage);
 
   const handleDownload = async (employeeId, month) => {
     if (!employeeId || !month) {
-      setDownloadError("Please select a month");
-      toast.error("Please select a month");
+      setDownloadError("Please select an employee and month");
+      toast.error("Please select an employee and month");
       return;
     }
     setIsLoadingDownload(true);
     setDownloadError(null);
     try {
       console.log("Downloading payslip for:", { employeeId, month });
-      await dispatch(downloadPayslip({ employeeId, month })).unwrap();
+      const response = await dispatch(downloadPayslip({ employeeId, month })).unwrap();
+      const url = window.URL.createObjectURL(new Blob([response]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Payslip_${employeeId}_${month}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
       toast.success("Payslip downloaded successfully");
     } catch (err) {
       const errorMessage = err?.error || "Failed to download payslip";
@@ -190,7 +237,6 @@ const EmployeePayslip = () => {
     }
   };
 
-  // Detailed error messages
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
@@ -202,27 +248,26 @@ const EmployeePayslip = () => {
       </div>
     );
   }
-  if (role?.toLowerCase() !== "employee") {
+  if (!["employee", "dept_head", "manager", "hr", "super_admin"].includes(role?.toLowerCase())) {
     return (
       <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
         <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-md p-4 sm:p-6">
           <p className="text-red-600 font-semibold">
-            Access restricted: User role is '{role || "undefined"}', not
-            'employee'.
+            Access restricted: User role is '{role || "undefined"}', not allowed to view payslips.
           </p>
         </div>
       </div>
     );
   }
-  if (!employeeId) {
+  if (!employeeId || employeeError?.includes("Employee not found")) {
     return (
       <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
         <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-md p-4 sm:p-6">
           <p className="text-red-600 font-semibold">
-            Access restricted: Employee ID is missing.{" "}
+            Access restricted: Your employee profile was not found. Please contact HR.
             {employeeLoading
-              ? "Loading profile..."
-              : employeeError || "Please try again."}
+              ? " Loading profile..."
+              : employeeError || " Please try again."}
           </p>
         </div>
       </div>
@@ -234,22 +279,22 @@ const EmployeePayslip = () => {
       <div className="hidden sm:flex sm:justify-end sm:items-center mb-4">
         <PageMeta
           title="Employee Payslips"
-          description="View and download your payslips."
+          description="View and download payslips."
         />
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/emp-dashboard" },
-            { label: "My Payslips", link: "/employee-payslip" },
+            { label: "Payslips", link: "/employee-payslip" },
           ]}
         />
       </div>
       <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
         <div className="mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
-            My Payslips
+            {["hr", "super_admin"].includes(role?.toLowerCase()) ? "All Payslips" : "My Payslips"}
           </h1>
           <p className="text-gray-600 mt-2 text-sm sm:text-base">
-            View and download your payslips for any month.
+            View and download {["hr", "super_admin"].includes(role?.toLowerCase()) ? "employee payslips" : "your payslips"} for any month.
           </p>
         </div>
         {(error || downloadError || employeeError) && (
@@ -262,12 +307,24 @@ const EmployeePayslip = () => {
             Select Pay Period
           </h2>
           <div className="flex flex-col sm:flex-row items-center gap-4">
+            {["hr", "super_admin"].includes(role?.toLowerCase()) && (
+              <div className="w-full sm:w-1/2">
+                <CustomSelect
+                  value={selectedEmployee}
+                  onChange={(e) => setSelectedEmployee(e.target.value)}
+                  options={employeeOptions}
+                  label="Employee"
+                  placeholder="Select an employee (optional)"
+                />
+              </div>
+            )}
             <div className="w-full sm:w-1/2">
               <CustomSelect
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
                 options={payPeriods}
                 label="Pay Period"
+                placeholder="Select a month (optional)"
               />
             </div>
             <button
@@ -276,7 +333,7 @@ const EmployeePayslip = () => {
                 dispatch(
                   fetchPayslips({
                     month: selectedMonth,
-                    employeeId: employeeId,
+                    employeeId: ["hr", "super_admin"].includes(role?.toLowerCase()) ? selectedEmployee : employeeId,
                     page: 1,
                     limit: itemsPerPage,
                   })
@@ -325,6 +382,9 @@ const EmployeePayslip = () => {
                 <table className="w-full text-sm text-left text-gray-700">
                   <thead className="bg-teal-600 text-white text-xs sm:text-sm">
                     <tr>
+                      {["hr", "super_admin"].includes(role?.toLowerCase()) && (
+                        <th className="px-4 py-3 whitespace-nowrap">Employee Name</th>
+                      )}
                       <th className="px-4 py-3 whitespace-nowrap">Month</th>
                       <th className="px-4 py-3 whitespace-nowrap">Total Earnings</th>
                       <th className="px-4 py-3 whitespace-nowrap">Total Deductions</th>
@@ -343,6 +403,11 @@ const EmployeePayslip = () => {
                         }
                         className="hover:bg-gray-50"
                       >
+                        {["hr", "super_admin"].includes(role?.toLowerCase()) && (
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            {slip.employee_name}
+                          </td>
+                        )}
                         <td className="px-4 py-3 whitespace-nowrap">
                           {new Date(slip.month + "-01").toLocaleString(
                             "default",
