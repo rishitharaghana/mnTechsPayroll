@@ -124,8 +124,9 @@ export const fetchTravelExpenseHistory = createAsyncThunk(
 );
 
 export const updateTravelExpenseStatus = createAsyncThunk(
-  "travelExpense/updateTravelExpenseStatus",
+  "travelExpenses/updateTravelExpenseStatus",
   async ({ id, status, admin_comment }, { rejectWithValue }) => {
+
     try {
       const userToken = localStorage.getItem("userToken");
       if (!userToken) {
@@ -139,25 +140,25 @@ export const updateTravelExpenseStatus = createAsyncThunk(
       }
 
       const response = await axios.put(
-        `http://localhost:3007/api/travel-expenses/${id}`,
-        { status, admin_comment },
-        { headers: { Authorization: `Bearer ${token}` } }
+        `http://localhost:3007/api/travel-expenses/${id}`, 
+        { status, admin_comment }, 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
       console.log("Update travel expense status response:", response.data);
-      return response.data;
+      return { ...response.data, metaId: id, metaStatus: status };  
     } catch (error) {
-      console.error("Update travel expense status error:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-      });
+      console.error("Update travel expense status error:", error.response?.data);
       return rejectWithValue(
-        error.response?.data?.error || "Failed to update travel expense"
+        error.response?.data?.error || "Failed to update travel expense status"
       );
     }
   }
 );
-
 const travelExpenseSlice = createSlice({
   name: "travelExpense",
   initialState: {
