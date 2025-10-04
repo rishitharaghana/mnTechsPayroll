@@ -148,7 +148,13 @@ const App = () => {
                 <Route path="/admin/assign-leave" element={<AssignLeave />} />
               </Route>
 
-              <Route element={<ProtectedRoute allowedRoles={["employee"]} />}>
+              <Route
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["employee", "dept_head", "manager", "hr"]}
+                  />
+                }
+              >
                 <Route path="/emp-dashboard" element={<EmployeeDashboard />} />
 
                 <Route path="/employee/viewgoals" element={<ViewGoals />} />
@@ -168,38 +174,18 @@ const App = () => {
                   element={<EmployeeTimeTracking />}
                 />
 
+                <Route path="/employee/employee-details" element={<EmployeeDetails />} />
+                <Route path="/employee/leave-application" element={<LeaveApplication />} />
+                <Route path="/employee/travel-expenses" element={<EmployeeTravelExpenses />} />
+                <Route path="/employee/leave-dashboard" element={<LeaveDashboard />} />
+                <Route path="/employee-payslip" element={<EmployeePayslip />} />
+
                 <Route
-                  element={
-                    <ProtectedRoute
-                      allowedRoles={["employee", "dept_head", "manager", "hr"]}
-                    />
-                  }
-                >
-                  
-                </Route>
-                <Route
-                  path="/employee/employee-details"
-                  element={<EmployeeDetails />}
-                />
-                <Route
-                  path="employee/leave-application"
-                  element={<LeaveApplication />}
+                  path="/employee/attendance-overview"
+                  element={<EmpAttendanceOverview />}
                 />
               </Route>
-<Route
-                    path="/employee/travel-expenses"
-                    element={<EmployeeTravelExpenses />}
-                  />
-              <Route
-                path="/employee/leave-dashboard"
-                element={<LeaveDashboard />}
-              />
-              <Route path="/employee-payslip" element={<EmployeePayslip />} />
 
-              <Route
-                path="/employee/attendance-overview"
-                element={<EmpAttendanceOverview />}
-              />
               <Route
                 element={
                   <ProtectedRoute
