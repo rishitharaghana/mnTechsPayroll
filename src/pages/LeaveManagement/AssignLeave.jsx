@@ -30,10 +30,10 @@ const AssignLeave = () => {
   } = useSelector((state) => state.leaves);
 
   const [formData, setFormData] = useState({
-    employee_id: "", // Empty for all employees, or specific employee_id
+    employee_id: "",
     leave_type: "paid",
-    days: 1, // Default to 1 paid leave per month
-    allocationMonth: new Date(), // Default to current month/year
+    days: 1,
+    allocationMonth: new Date(),
   });
 
   useEffect(() => {
@@ -54,10 +54,7 @@ const AssignLeave = () => {
     }
 
     if (storedToken !== token) {
-      console.log("Token mismatch, redirecting to login", {
-        storedToken,
-        token,
-      });
+      console.log("Token mismatch, redirecting to login", { storedToken, token });
       navigate("/login");
       return;
     }
@@ -68,11 +65,11 @@ const AssignLeave = () => {
       return;
     }
 
-    // Fetch employees
+    // Fetch employees, managers, and dept_heads
     dispatch(fetchEmployees())
       .unwrap()
       .catch((err) => {
-        console.error("Failed to fetch employees:", err);
+        console.error("Failed to fetch users:", err);
         if (err?.includes("No authentication token")) {
           navigate("/login");
         }
@@ -102,7 +99,7 @@ const AssignLeave = () => {
       toast.error(
         typeof employeeError === "string"
           ? employeeError
-          : employeeError.message || "Failed to fetch employees",
+          : employeeError.message || "Failed to fetch users",
         {
           autoClose: 3000,
           className: "bg-red-500 text-white font-medium rounded-xl shadow-lg",
@@ -149,7 +146,7 @@ const AssignLeave = () => {
         const payload = { year, month };
         console.log("Sending payload to allocateMonthlyLeaves:", payload);
         await dispatch(allocateMonthlyLeaves(payload)).unwrap();
-        console.log("Monthly leave allocation triggered for all employees");
+        console.log("Monthly leave allocation triggered for all eligible users");
       } else {
         const daysNum = parseInt(formData.days, 10);
         if (isNaN(daysNum) || daysNum <= 0) {
@@ -194,23 +191,23 @@ const AssignLeave = () => {
       <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
         <PageMeta
           title="Assign Leave"
-          description="Allocate monthly or special leaves to employees"
+          description="Allocate monthly or special leaves to employees, managers, or department heads"
         />
-       <div className="flex justify-end mb-6">
-  <PageBreadcrumb
-    items={[
-      { label: "Home", link: "/" },
-      { label: "Assign Leave", link: "/admin/assign-leave" },
-    ]}
-  />
-</div>
+        <div className="flex justify-end mb-6">
+          <PageBreadcrumb
+            items={[
+              { label: "Home", link: "/" },
+              { label: "Assign Leave", link: "/admin/assign-leave" },
+            ]}
+          />
+        </div>
 
         <div className="mt-8 bg-white rounded-3xl shadow-xl p-8 transition-all duration-300 hover:shadow-2xl">
           <h1 className="text-3xl font-semibold text-gray-900 mb-3">
             Assign Leave
           </h1>
           <p className="text-gray-500 mb-8 text-sm">
-            Allocate monthly paid leaves or special leaves for employees
+            Allocate monthly paid leaves or special leaves for employees, managers, or department heads
           </p>
 
           <form onSubmit={handleAssignLeaves} className="space-y-6">
@@ -219,7 +216,7 @@ const AssignLeave = () => {
                 htmlFor="employee_id"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Select Employee
+                Select User
               </label>
               <div className="relative">
                 <select
@@ -230,10 +227,10 @@ const AssignLeave = () => {
                   className="block w-full rounded-xl border border-gray-200 bg-gray-50 py-3 px-4 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   disabled={employeeLoading || leaveLoading}
                 >
-                  <option value="all">All Employees</option>
+                  <option value="all">All Users</option>
                   {activeEmployees.map((emp) => (
                     <option key={emp.employee_id} value={emp.employee_id}>
-                      {emp.full_name} ({emp.employee_id})
+                      {emp.full_name} ({emp.employee_id} - {emp.role.charAt(0).toUpperCase() + emp.role.slice(1)})
                     </option>
                   ))}
                 </select>
@@ -241,7 +238,7 @@ const AssignLeave = () => {
               </div>
               {employeeLoading && (
                 <p className="mt-2 text-sm text-gray-400 animate-pulse">
-                  Loading employees...
+                  Loading users...
                 </p>
               )}
             </div>
@@ -324,8 +321,8 @@ const AssignLeave = () => {
               >
                 <UserPlus className="mr-2 h-4 w-4" />
                 {formData.employee_id === "all" || !formData.employee_id
-                  ? "Assign Monthly Leaves"
-                  : "Assign Leave"}
+                  ? "Assign Monthly Leaves to All"
+                  : "Assign Special Leave"}
               </button>
             </div>
           </form>
@@ -334,7 +331,6 @@ const AssignLeave = () => {
         <ToastContainer
           position="top-right"
           autoClose={3000}
-          hideProgressBar={false}
           newestOnTop
           closeOnClick
           rtl={false}
