@@ -68,11 +68,13 @@ const EmployeePayslip = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25;
 
+  const normalizedRole = role?.toLowerCase().trim();
+
   useEffect(() => {
     console.log("EmployeePayslip state:", {
       isAuthenticated,
-      role,
-      employee_id,
+      role: normalizedRole,  
+      employee_id,  
       employeeId,
       employeeLoading,
       employeeError,
@@ -85,7 +87,7 @@ const EmployeePayslip = () => {
     });
   }, [
     isAuthenticated,
-    role,
+    normalizedRole, 
     employee_id,
     employeeId,
     employeeLoading,
@@ -101,66 +103,76 @@ const EmployeePayslip = () => {
   useEffect(() => {
     if (
       isAuthenticated &&
-      ["employee", "dept_head", "manager", "hr", "super_admin"].includes(role?.toLowerCase()) &&
+      ["employee", "dept_head", "manager", "hr", "super_admin"].includes(normalizedRole) &&
       !employeeId &&
       !employeeError
     ) {
-      console.log("Fetching user profile for:", employee_id);
+      console.log("Fetching user profile for:", employee_id || "unknown ID");  
       dispatch(getCurrentUserProfile());
     }
-    if (["hr", "super_admin"].includes(role?.toLowerCase())) {
-      console.log("Fetching employees for:", role);
+    if (["hr", "super_admin"].includes(normalizedRole)) {  
+      console.log("Fetching employees for:", normalizedRole);
       dispatch(fetchEmployees());
     }
-  }, [dispatch, isAuthenticated, role, employeeId, employeeError]);
+  }, [dispatch, isAuthenticated, normalizedRole, employeeId, employeeError]); 
+
+  useEffect(() => {
+    if (profile && profile.employee_id && !employee_id) {
+      console.log("Syncing employee_id from profile:", profile.employee_id);  
+    }
+  }, [profile, employee_id]);
 
   useEffect(() => {
     if (
       isAuthenticated &&
-      ["employee", "dept_head", "manager", "hr", "super_admin"].includes(role?.toLowerCase()) &&
+      ["employee", "dept_head", "manager", "hr", "super_admin"].includes(normalizedRole) &&  // FIX: Use normalizedRole
       employeeId &&
       !employeeError
     ) {
-      console.log("Fetching payslips for:", {
-        employeeId: selectedEmployee || employeeId,
+      const dispatchEmployeeId = ["hr", "super_admin"].includes(normalizedRole) ? selectedEmployee || employeeId : employeeId;  // FIX: Fallback to own for HR if empty
+      console.log("Dispatching fetchPayslips with:", {  
+        normalizedRole,
+        dispatchEmployeeId,
         selectedMonth,
         page: currentPage,
       });
       dispatch(
         fetchPayslips({
           month: selectedMonth,
-          employeeId: ["hr", "super_admin"].includes(role?.toLowerCase()) ? selectedEmployee : employeeId,
+          employeeId: dispatchEmployeeId,
           page: currentPage,
           limit: itemsPerPage,
         })
       );
       dispatch(clearError());
     }
-  }, [dispatch, isAuthenticated, role, employeeId, selectedMonth, selectedEmployee, currentPage, employeeError]);
+  }, [dispatch, isAuthenticated, normalizedRole, employeeId, selectedMonth, selectedEmployee, currentPage, employeeError]);  // FIX: Use normalizedRole in deps
 
   useEffect(() => {
     if (error || downloadError || employeeError) {
       console.error("Error detected:", { error, downloadError, employeeError });
-      const errorMessage = error || downloadError || employeeError;
-      if (errorMessage.includes("Employee not found")) {
+      const errorMessage = (error || downloadError || employeeError)?.error || (error || downloadError || employeeError);  // FIX: Handle nested {error: '...'}
+      if (errorMessage?.includes("Employee not found")) {
         toast.error("Your employee profile was not found. Please contact HR.");
-      } else if (errorMessage.includes("HR users cannot view")) {
+      } else if (errorMessage?.includes("HR users cannot view")) {
         toast.error("Access denied: HR users cannot view other HR users' payslips.");
+      } else if (errorMessage === "Access denied") {
+        toast.error("Access denied. Check your permissions or contact admin.");  // FIX: Specific for 403
       } else {
-        toast.error(errorMessage);
+        toast.error(errorMessage || "An error occurred while fetching payslips.");
       }
+      if (error) dispatch(clearError());
+      setDownloadError(null);
     }
-  }, [error, downloadError, employeeError]);
+  }, [error, downloadError, employeeError, dispatch]);
 
   const filteredPayslips = useMemo(() => {
     const filtered = (Array.isArray(payslips) ? payslips : [])
       .filter((slip) => {
-        if (
-          !["employee", "dept_head", "manager", "hr", "super_admin"].includes(role?.toLowerCase())
-        ) {
+        if (!["employee", "dept_head", "manager", "hr", "super_admin"].includes(normalizedRole)) {  // FIX: Use normalizedRole
           return false;
         }
-        if (["employee", "dept_head", "manager"].includes(role?.toLowerCase()) && slip.employee_id !== employeeId) {
+        if (["employee", "dept_head", "manager"].includes(normalizedRole) && slip.employee_id !== employeeId) {  // FIX: Use normalizedRole
           return false;
         }
         return (
@@ -188,14 +200,20 @@ const EmployeePayslip = () => {
       .sort((a, b) => new Date(b.month + "-01") - new Date(a.month + "-01"));
     console.log("Filtered payslips:", filtered);
     return filtered;
-  }, [payslips, selectedMonth, role, employeeId]);
+  }, [payslips, selectedMonth, normalizedRole, employeeId]); 
 
   const payPeriods = useMemo(() => {
-    const periods = [...new Set(payslips.map((slip) => slip.month))].sort(
-      (a, b) => new Date(b + "-01") - new Date(a + "-01")
-    );
-    console.log("Pay periods:", periods);
-    return periods;
+    if (payslips.length > 0) {
+      return [...new Set(payslips.map((slip) => slip.month))]
+        .sort((a, b) => new Date(b + "-01") - new Date(a + "-01"));
+    }    const fallback = [];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      fallback.push(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`);
+    }
+    console.log("Using fallback pay periods:", fallback);
+    return fallback;
   }, [payslips]);
 
   const employeeOptions = useMemo(() => {
@@ -209,14 +227,15 @@ const EmployeePayslip = () => {
 
   const handleDownload = async (employeeId, month) => {
     if (!employeeId || !month) {
-      setDownloadError("Please select an employee and month");
-      toast.error("Please select an employee and month");
+      const msg = "Please select an employee and month";
+      setDownloadError(msg);
+      toast.error(msg);
       return;
     }
     setIsLoadingDownload(true);
     setDownloadError(null);
     try {
-      console.log("Downloading payslip for:", { employeeId, month });
+      console.log("Downloading payslip for:", { normalizedRole, employeeId, month });  
       const response = await dispatch(downloadPayslip({ employeeId, month })).unwrap();
       const url = window.URL.createObjectURL(new Blob([response]));
       const link = document.createElement("a");
@@ -230,7 +249,7 @@ const EmployeePayslip = () => {
     } catch (err) {
       const errorMessage = err?.error || "Failed to download payslip";
       setDownloadError(errorMessage);
-      toast.error(errorMessage);
+      toast.error(errorMessage); 
       console.error("Download error:", err);
     } finally {
       setIsLoadingDownload(false);
@@ -248,12 +267,12 @@ const EmployeePayslip = () => {
       </div>
     );
   }
-  if (!["employee", "dept_head", "manager", "hr", "super_admin"].includes(role?.toLowerCase())) {
+  if (!["employee", "dept_head", "manager", "hr", "super_admin"].includes(normalizedRole)) {  
     return (
       <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
         <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-md p-4 sm:p-6">
           <p className="text-red-600 font-semibold">
-            Access restricted: User role is '{role || "undefined"}', not allowed to view payslips.
+            Access restricted: User role is '{role || "undefined"}' ({normalizedRole}), not allowed to view payslips. 
           </p>
         </div>
       </div>
@@ -291,15 +310,15 @@ const EmployeePayslip = () => {
       <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
         <div className="mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
-            {["hr", "super_admin"].includes(role?.toLowerCase()) ? "All Payslips" : "My Payslips"}
+            {["hr", "super_admin"].includes(normalizedRole) ? "All Payslips" : "My Payslips"}  {/* FIX: Use normalizedRole */}
           </h1>
           <p className="text-gray-600 mt-2 text-sm sm:text-base">
-            View and download {["hr", "super_admin"].includes(role?.toLowerCase()) ? "employee payslips" : "your payslips"} for any month.
+            View and download {["hr", "super_admin"].includes(normalizedRole) ? "employee payslips" : "your payslips"} for any month.  {/* FIX: Use normalizedRole */}
           </p>
         </div>
-        {(error || downloadError || employeeError) && (
+        {(error && !downloadError && !employeeError) && (
           <div className="p-4 rounded-lg mb-6 bg-red-50 text-red-700 text-sm sm:text-base">
-            {error || downloadError || employeeError}
+            {error}
           </div>
         )}
         <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-6">
@@ -307,7 +326,7 @@ const EmployeePayslip = () => {
             Select Pay Period
           </h2>
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            {["hr", "super_admin"].includes(role?.toLowerCase()) && (
+            {["hr", "super_admin"].includes(normalizedRole) && (  
               <div className="w-full sm:w-1/2">
                 <CustomSelect
                   value={selectedEmployee}
@@ -330,10 +349,11 @@ const EmployeePayslip = () => {
             <button
               onClick={() => {
                 setCurrentPage(1);
+                const dispatchEmployeeId = ["hr", "super_admin"].includes(normalizedRole) ? selectedEmployee || employeeId : employeeId;  // FIX: Consistent fallback
                 dispatch(
                   fetchPayslips({
                     month: selectedMonth,
-                    employeeId: ["hr", "super_admin"].includes(role?.toLowerCase()) ? selectedEmployee : employeeId,
+                    employeeId: dispatchEmployeeId,
                     page: 1,
                     limit: itemsPerPage,
                   })
@@ -382,7 +402,7 @@ const EmployeePayslip = () => {
                 <table className="w-full text-sm text-left text-gray-700">
                   <thead className="bg-teal-600 text-white text-xs sm:text-sm">
                     <tr>
-                      {["hr", "super_admin"].includes(role?.toLowerCase()) && (
+                      {["hr", "super_admin"].includes(normalizedRole) && (  
                         <th className="px-4 py-3 whitespace-nowrap">Employee Name</th>
                       )}
                       <th className="px-4 py-3 whitespace-nowrap">Month</th>
@@ -403,7 +423,7 @@ const EmployeePayslip = () => {
                         }
                         className="hover:bg-gray-50"
                       >
-                        {["hr", "super_admin"].includes(role?.toLowerCase()) && (
+                        {["hr", "super_admin"].includes(normalizedRole) && (  
                           <td className="px-4 py-3 whitespace-nowrap">
                             {slip.employee_name}
                           </td>

@@ -511,49 +511,59 @@ const EmployeeDetails = () => {
       return false;
     }
   };
+const nextStep = async () => {
+  console.log("nextStep: Starting for currentStep", currentStep, "with formData keys:", Object.keys(formData));
+  if (currentStep >= steps.length - 1) {
+    console.log("nextStep: Already at last step");
+    return;
+  }
 
-  const nextStep = async () => {
-    console.log("nextStep: currentStep before", currentStep);
-    if (currentStep >= steps.length - 1) {
-      console.log("nextStep: Already at the last step");
-      return;
-    }
+  const isValid = validateStep(currentStep);
+  console.log("nextStep: Validation passed?", isValid, "Errors:", errors);
+  if (!isValid) return;
 
-    const isValid = validateStep(currentStep);
-    console.log("nextStep: Validation result", isValid);
-    if (!isValid) {
-      console.log("nextStep: Validation failed, errors:", errors);
-      return;
-    }
-
-    const success = await submitStep(currentStep);
-    console.log("nextStep: Submission result", success);
-    if (success) {
-      const nextStepIndex = currentStep + 1;
-      if (nextStepIndex === 1) {
-        try {
-          const employee_id = JSON.parse(localStorage.getItem("userToken"))?.employee_id || profile?.employee_id;
-          console.log("nextStep: Fetching education details for employee_id", employee_id);
-          await dispatch(fetchEmployeeEducationDetails(employee_id)).unwrap();
-          setCurrentStep(nextStepIndex);
-        } catch (err) {
-          console.warn("nextStep: Skipping Education Details due to access restriction:", err);
-          setErrors({
-            general: "Education details are restricted. Proceeding to Documents step.",
-          });
-          setCurrentStep(2); // Skip to Documents
-          return;
-        }
-      } else {
+  const success = await submitStep(currentStep);
+  console.log("nextStep: submitStep success?", success);
+  if (success) {
+    const nextStepIndex = currentStep + 1;
+    if (nextStepIndex === 1) { // Special handling for Education
+      try {
+        const employee_id = JSON.parse(localStorage.getItem("userToken"))?.employee_id || profile?.employee_id;
+        console.log("nextStep: Fetching education for employee_id", employee_id);
+        await dispatch(fetchEmployeeEducationDetails(employee_id)).unwrap();
         setCurrentStep(nextStepIndex);
+      } catch (err) {
+        console.warn("nextStep: Education fetch failed, skipping to step 2:", err.message);
+        setErrors({
+          general: "Education details are restricted. Proceeding to Documents step.",
+        });
+        setCurrentStep(2); // Skip to Documents
+        return;
       }
-      console.log("nextStep: Fetching progress");
-      await dispatch(getEmployeeProgress()).unwrap();
-      console.log("nextStep: Setting currentStep to", nextStepIndex);
     } else {
-      console.log("nextStep: Submission failed");
+      setCurrentStep(nextStepIndex);
     }
-  };
+    
+    // Refresh progress after advance
+    try {
+      await dispatch(getEmployeeProgress()).unwrap();
+      console.log("nextStep: Progress refreshed");
+    } catch (progressErr) {
+      console.warn("nextStep: Progress refresh failed (non-blocking):", progressErr);
+    }
+    
+    console.log("nextStep: Advanced to step", nextStepIndex);
+  } else {
+    console.log("nextStep: Blocked due to submission failure");
+    // Optional: Auto-retry once after 1s for transient errors (e.g., network)
+    // if (!errors.general?.includes("network") && !errors.general?.includes("server")) {
+    //   setTimeout(() => {
+    //     console.log("nextStep: Auto-retrying...");
+    //     nextStep();
+    //   }, 1000);
+    // }
+  }
+};
 
   const prevStep = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 0));

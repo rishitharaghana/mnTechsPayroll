@@ -39,11 +39,11 @@ const AssignEmployee = () => {
     hraPercentage: "",
     hraAmount: "",
     specialAllowances: "",
-    pfPercentage: "12", // Default PF percentage
+    pfPercentage: "12",
     pfAmount: "",
-    esiPercentage: "0.75", // Default ESI percentage
+    esiPercentage: "0.75",
     esiAmount: "",
-    bonus: "", // Bonus remains in state, can be empty
+    bonus: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -70,10 +70,15 @@ const AssignEmployee = () => {
   const genders = ["Male", "Female", "Others"];
 
   useEffect(() => {
-    console.log("Fetching departments and designations...");
+    if (!["super_admin", "hr"].includes(user?.role)) {
+      toast.error("Unauthorized access. Please log in with appropriate permissions.");
+      navigate("/login");
+      return;
+    }
+    dispatch(clearState());
     dispatch(fetchDepartments());
     dispatch(fetchDesignations());
-  }, [dispatch]);
+  }, [dispatch, navigate, user]);
 
   useEffect(() => {
     if (employee.emergencyPhone && employee.mobile && employee.emergencyPhone.trim() === employee.mobile.trim()) {
@@ -87,15 +92,13 @@ const AssignEmployee = () => {
     const basic = parseFloat(employee.basicSalary) || 0;
     const hra = parseFloat(employee.hraAmount) || 0;
     const allowances = parseFloat(employee.specialAllowances) || 0;
-    const bonus = parseFloat(employee.bonus) || 0; // Default to 0 if bonus is empty
+    const bonus = parseFloat(employee.bonus) || 0;
     const pf = parseFloat(employee.pfAmount) || 0;
     const esi = parseFloat(employee.esiAmount) || 0;
 
     const grossSalary = basic + hra + allowances + bonus;
     const totalDeductions = pf + esi;
     const netSalary = grossSalary - totalDeductions;
-
-    console.log("Real-time calculations:", { grossSalary, totalDeductions, netSalary });
 
     setRealTimeCalculations({
       grossSalary: grossSalary.toFixed(2),
@@ -118,13 +121,12 @@ const AssignEmployee = () => {
       });
       setErrors((prev) => ({ ...prev, [field]: "" }));
 
-      // Auto-calculate HRA, PF, and ESI amounts
       const basic = parseFloat(field === "basicSalary" ? value : employee.basicSalary) || 0;
       const gross =
         basic +
         parseFloat(employee.hraAmount || 0) +
         parseFloat(field === "specialAllowances" ? value : employee.specialAllowances || 0) +
-        parseFloat(field === "bonus" ? value : employee.bonus || 0); // Use 0 if bonus is empty
+        parseFloat(field === "bonus" ? value : employee.bonus || 0);
 
       if (field === "hraPercentage" || field === "basicSalary") {
         const hraPercent = parseFloat(field === "hraPercentage" ? value : employee.hraPercentage) || 0;
@@ -163,23 +165,18 @@ const AssignEmployee = () => {
   );
 
   useEffect(() => {
-    console.log("useEffect triggered with:", { successMessage, employeeId, error });
-    if (successMessage && employeeId) {
-      console.log("Success: Navigating to employees list");
+    if (isSubmitting && successMessage && employeeId) {
       toast.success(successMessage);
       navigate("/admin/employees");
       setTimeout(() => {
-        console.log("Clearing Redux state after navigation");
         dispatch(clearState());
       }, 1000);
-    } else if (successMessage && !employeeId) {
-      console.warn("Success message received but no employeeId, navigating to employees list");
+    } else if (isSubmitting && successMessage && !employeeId) {
       toast.success(successMessage);
       navigate("/admin/employees");
       dispatch(clearState());
     }
     if (error) {
-      console.error("Error in useEffect:", error);
       if (
         error.includes("Access token is required") ||
         error.includes("Invalid or expired token") ||
@@ -193,7 +190,7 @@ const AssignEmployee = () => {
         setIsSubmitting(false);
       }
     }
-  }, [successMessage, error, employeeId, dispatch, navigate]);
+  }, [successMessage, error, employeeId, dispatch, navigate, isSubmitting]);
 
   const getFilteredDepartments = () => {
     if (!departments) return [];
@@ -381,7 +378,6 @@ const AssignEmployee = () => {
       ) {
         newErrors.pfPercentage = "PF Percentage must be between 0 and 100";
       }
-      // Bonus validation: Only check if provided
       if (employee.bonus && (isNaN(employee.bonus) || Number(employee.bonus) < 0)) {
         newErrors.bonus = "Bonus must be a non-negative number";
       }
@@ -390,7 +386,7 @@ const AssignEmployee = () => {
         basic +
         parseFloat(employee.hraAmount || 0) +
         parseFloat(employee.specialAllowances || 0) +
-        parseFloat(employee.bonus || 0); // Use 0 if bonus is empty
+        parseFloat(employee.bonus || 0);
       if (basic <= 15000 && parseFloat(employee.pfPercentage) !== 12) {
         newErrors.pfPercentage = "PF must be 12% for basic salary ≤ ₹15,000";
       }
@@ -418,7 +414,6 @@ const AssignEmployee = () => {
 
       const userToken = localStorage.getItem("userToken");
       if (!userToken) {
-        console.error("No userToken found in localStorage");
         toast.error("No authentication token found. Please log in.");
         navigate("/login");
         setIsSubmitting(false);
@@ -432,14 +427,12 @@ const AssignEmployee = () => {
         userId = parsedToken.employee_id;
         userRole = parsedToken.role;
         if (!token || !["super_admin", "hr"].includes(userRole)) {
-          console.error("Invalid token or unauthorized role:", parsedToken);
           toast.error("Unauthorized. Please log in with appropriate permissions.");
           navigate("/login");
           setIsSubmitting(false);
           return;
         }
       } catch (parseError) {
-        console.error("Error parsing userToken:", parseError);
         toast.error("Invalid token format. Please log in again.");
         navigate("/login");
         setIsSubmitting(false);
@@ -481,21 +474,15 @@ const AssignEmployee = () => {
       formData.append("provident_fund", parseFloat(employee.pfAmount) || 0);
       formData.append("esic_percentage", parseFloat(employee.esiPercentage) || 0);
       formData.append("esic", parseFloat(employee.esiAmount) || 0);
-      formData.append("bonus", parseFloat(employee.bonus) || 0); // Default to 0 if bonus is empty
+      formData.append("bonus", parseFloat(employee.bonus) || 0);
       formData.append("created_by", userId || "");
 
       try {
-        console.log("Submitting formData...");
-        for (let [key, value] of formData.entries()) {
-          console.log(`FormData: ${key} = ${value instanceof File ? value.name : value}`);
-        }
         const resultAction = await dispatch(createEmployee(formData));
-        console.log("createEmployee result:", resultAction);
         if (!createEmployee.fulfilled.match(resultAction)) {
           throw new Error(resultAction.payload || "Failed to create employee");
         }
       } catch (err) {
-        console.error("createEmployee error:", err.message);
         toast.error(err.message);
         setErrors({ submit: err.message });
         setIsSubmitting(false);
@@ -522,7 +509,6 @@ const AssignEmployee = () => {
 
   useEffect(() => {
     return () => {
-      console.log("Cleaning up AssignEmployee component");
       dispatch(clearState());
       if (photoPreview) URL.revokeObjectURL(photoPreview);
     };
@@ -919,7 +905,7 @@ const AssignEmployee = () => {
                       label: "Bonus (₹)",
                       field: "bonus",
                       type: "number",
-                      required: false, // Bonus is not required
+                      required: false,
                       tooltip: "Optional monthly bonus amount",
                     },
                   ].map(({ label, field, type, required, tooltip, readOnly }) => (

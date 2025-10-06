@@ -104,7 +104,6 @@ const employmentTypeSelectStyles = {
   }),
 };
 
-// Updated gender options to match backend (title case)
 const genderOptions = [
   { value: "", label: "Select Gender" },
   { value: "Male", label: "Male" },
@@ -129,7 +128,6 @@ const employmentTypeOptions = [
 const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDateChange }) => {
   console.log("EmployeePersonaldetailsForm props:", { formData, errors });
 
-  // Handle react-select change
   const handleSelectChange = (name) => (selectedOption) => {
     console.log("handleSelectChange:", { name, value: selectedOption ? selectedOption.value : "" });
     handleChange({ target: { name, value: selectedOption ? selectedOption.value : "" } });
@@ -137,7 +135,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
-      {/* Full Name */}
       <div className="flex flex-col">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Full Name</label>
         <input
@@ -157,7 +154,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         )}
       </div>
 
-      {/* Father’s Name */}
       <div className="flex flex-col">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Father’s Name</label>
         <input
@@ -171,7 +167,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         {errors.fatherName && <span className="text-red-500 text-xs mt-1">{errors.fatherName}</span>}
       </div>
 
-      {/* Mother’s Name */}
       <div className="flex flex-col">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Mother’s Name</label>
         <input
@@ -185,7 +180,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         {errors.motherName && <span className="text-red-500 text-xs mt-1">{errors.motherName}</span>}
       </div>
 
-      {/* Phone */}
       <div className="flex flex-col">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Phone</label>
         <input
@@ -202,7 +196,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         {errors.phone && <span className="text-red-500 text-xs mt-1">{errors.phone}</span>}
       </div>
 
-      {/* Date of Birth */}
       <div className="flex flex-col">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Date of Birth</label>
         <div className="relative">
@@ -223,7 +216,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         {errors.dob && <span className="text-red-500 text-xs mt-1">{errors.dob}</span>}
       </div>
 
-      {/* Email */}
       <div className="flex flex-col">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Email</label>
         <input
@@ -240,7 +232,6 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         {errors.email && <span className="text-red-500 text-xs mt-1">{errors.email}</span>}
       </div>
 
-      {/* Gender */}
       <div className="flex flex-col">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Gender</label>
         <Select
@@ -256,50 +247,36 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         {errors.gender && <span className="text-red-500 text-xs mt-1">{errors.gender}</span>}
       </div>
 
-      {/* PAN Card Number */}
       <div className="flex flex-col">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">PAN Card Number</label>
         <input
           type="text"
-          name="panCard"
-          value={formData.panCard || ''}
+          name="pan_number"
+          value={formData.pan_number || ''}
           onChange={handleChange}
           className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
           placeholder="e.g., ABCDE1234F"
           maxLength={10}
         />
-        {errors.panCard && <span className="text-red-500 text-xs mt-1">{errors.panCard}</span>}
+        {errors.pan_number && <span className="text-red-500 text-xs mt-1">{errors.pan_number}</span>}
       </div>
 
       <div className="flex flex-col">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Aadhar Card Number</label>
         <input
           type="text"
-          name="aadharCard"
-          value={formData.aadharCard || ''}
+          name="aadhar_number"
+          value={formData.aadhar_number || ''}
           onChange={handleChange}
           className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
           placeholder="e.g., 123456789012"
           maxLength={12}
         />
-        {errors.aadharCard && <span className="text-red-500 text-xs mt-1">{errors.aadharCard}</span>}
+        {errors.aadhar_number && <span className="text-red-500 text-xs mt-1">{errors.aadhar_number}</span>}
       </div>
 
-      {/* Image Upload */}
-      <div className="flex flex-col col-span-1 sm:col-span-2">
-        <FileUpload
-          name="image"
-          onChange={handleChange}
-          accept="image/*"
-          label="Image Upload"
-          preview={formData.image ? URL.createObjectURL(formData.image) : null}
-          isPdf={false}
-          className="w-full"
-        />
-        {errors.image && <span className="text-red-500 text-xs mt-1">{errors.image}</span>}
-      </div>
+  
 
-      {/* Current Address */}
       <div className="flex flex-col col-span-1 sm:col-span-2">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Current Address</label>
         <input

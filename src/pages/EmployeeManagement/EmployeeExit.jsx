@@ -65,13 +65,15 @@ const ExitEmployee = () => {
       }
     }
   }, [formData.noticeStartDate, formData.exitType]);
-
-  useEffect(() => {
+ useEffect(() => {
     if (!['super_admin', 'hr'].includes(user?.role)) {
+      console.log("Unauthorized role, redirecting to /login");
       toast.error('Unauthorized access. Please log in with appropriate permissions.');
       navigate('/login');
       return;
     }
+    console.log("ExitEmployee mounted, clearing employee slice state");
+    dispatch(clearState()); // Clear state first
     dispatch(fetchEmployees());
   }, [dispatch, navigate, user]);
 
@@ -83,14 +85,16 @@ const ExitEmployee = () => {
       console.warn('No employees passed the filter. Check status field in employee data.');
     }
   }, [employees, filteredEmployees, employeeOptions]);
-
-  useEffect(() => {
-    if (successMessage) {
+useEffect(() => {
+    console.log("ExitEmployee useEffect triggered with:", { successMessage, error, isSubmitting });
+    if (isSubmitting && successMessage) {
+      console.log("Success: Navigating to /admin/employees");
       toast.success(successMessage);
-      navigate('/admin/employees');
+      navigate('/admin/employees'); // Revert to /admin/employees
       setTimeout(() => dispatch(clearState()), 1000);
     }
     if (error) {
+      console.error("Error in ExitEmployee:", error);
       if (error.includes('Access token') || error.includes('Invalid or expired token') || error.includes('Forbidden')) {
         toast.error('Session expired or unauthorized. Please log in again.');
         navigate('/login');
@@ -116,8 +120,7 @@ const ExitEmployee = () => {
       }
       setIsSubmitting(false);
     }
-  }, [successMessage, error, dispatch, navigate]);
-
+  }, [successMessage, error, dispatch, navigate, isSubmitting]);
   const handleInput = useCallback((field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setErrors(prev => ({ ...prev, [field]: '' }));

@@ -203,7 +203,6 @@ const GeneratePayroll = () => {
       .filter((employee) => {
         if (role === "super_admin") return true; // Show all employees for super_admin
         if (role === "hr") {
-          // HR can only select non-HR employees or themselves
           return employee.role !== "hr" || employee.employee_id === employee_id;
         }
         return false;

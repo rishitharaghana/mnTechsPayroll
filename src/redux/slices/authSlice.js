@@ -129,7 +129,7 @@ const authSlice = createSlice({
         state.user = {
           id: action.payload.id,
           employee_id: action.payload.employee_id, 
-          name: action.payload.full_name || "",
+          full_name: action.payload.full_name || "",
           mobile: action.payload.mobile,
           role: action.payload.role,
           email: action.payload.email || null,
@@ -146,6 +146,8 @@ const authSlice = createSlice({
             email: action.payload.email || null,
             id: action.payload.id,
             employee_id: action.payload.employee_id, 
+                full_name: action.payload.full_name || "",
+
             isTemporaryPassword: action.payload.isTemporaryPassword || false,
           })
         );

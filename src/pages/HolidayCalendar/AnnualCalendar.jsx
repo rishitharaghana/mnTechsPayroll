@@ -55,28 +55,29 @@ const yearOptions = Array.from({ length: 2051 - 2020 }, (_, i) => ({
 const customSelectStyles = {
   control: (provided) => ({
     ...provided,
-    minHeight: "36px",
+    minHeight: "44px",
     borderRadius: "8px",
     borderColor: "#e2e8f0",
     boxShadow: "none",
+    padding: "0 12px",
     "&:hover": {
-      borderColor: "#10b981",
+      borderColor: "#0d9488",
     },
   }),
   singleValue: (provided) => ({
     ...provided,
-    color: "#1f2937",
+    color: "#0f172a",
     fontSize: "0.875rem",
     fontWeight: 500,
   }),
   option: (provided, state) => ({
     ...provided,
     backgroundColor: state.isSelected
-      ? "#10b981"
+      ? "#0d9488"
       : state.isFocused
-      ? "#ecfdf5"
+      ? "#f0fdfa"
       : "white",
-    color: state.isSelected ? "white" : "#1f2937",
+    color: state.isSelected ? "white" : "#0f172a",
     fontSize: "0.875rem",
     fontWeight: 500,
     padding: "8px 12px",
@@ -271,7 +272,7 @@ const AnnualCalendar = () => {
       case "Islamic Festival":
         return "bg-purple-50 border-purple-200 text-purple-700";
       case "Public Holiday":
-        return "bg-gray-50 border-gray-200 text-gray-700";
+        return "bg-slate-50 border-slate-200 text-slate-700";
       default:
         return "bg-yellow-50 border-yellow-200 text-yellow-700";
     }
@@ -294,15 +295,15 @@ const AnnualCalendar = () => {
   const upcomingHolidays = getUpcomingHolidays();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 font-sans">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Calendar className="h-6 w-6 text-emerald-600" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-3 bg-gradient-to-r from-teal-600 to-teal-700 bg-clip-text text-transparent">
+            <Calendar className="h-6 w-6 text-teal-600" />
             {monthNames[selectedMonth]} {selectedYear}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             View and manage holidays and festivals
           </p>
         </div>
@@ -319,15 +320,15 @@ const AnnualCalendar = () => {
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+        <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-6 border border-slate-200">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <button
                 onClick={goToPreviousMonth}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-full hover:bg-slate-100 transition-colors"
                 aria-label="Previous Month"
               >
-                <ChevronLeft className="h-5 w-5 text-gray-600" />
+                <ChevronLeft className="h-5 w-5 text-slate-600" />
               </button>
               <div className="flex gap-2">
                 <Select
@@ -353,15 +354,15 @@ const AnnualCalendar = () => {
               </div>
               <button
                 onClick={goToNextMonth}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-full hover:bg-slate-100 transition-colors"
                 aria-label="Next Month"
               >
-                <ChevronRight className="h-5 w-5 text-gray-600" />
+                <ChevronRight className="h-5 w-5 text-slate-600" />
               </button>
             </div>
             <button
               onClick={goToToday}
-              className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium transition-colors"
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg hover:from-teal-700 hover:to-teal-800 text-sm font-medium transition-all shadow-md"
               aria-label="Go to Today"
             >
               <Calendar className="h-4 w-4 mr-2" />
@@ -374,15 +375,15 @@ const AnnualCalendar = () => {
             {dayNames.map((day) => (
               <div
                 key={day}
-                className="text-center text-sm font-medium text-gray-500"
+                className="text-center text-sm font-medium text-slate-500"
               >
                 {day}
               </div>
             ))}
             {loading ? (
               <div className="col-span-7 text-center py-8">
-                <div className="animate-spin h-8 w-8 mx-auto border-4 border-emerald-600 border-t-transparent rounded-full"></div>
-                <p className="mt-2 text-gray-500">Loading calendar...</p>
+                <div className="animate-spin h-8 w-8 mx-auto border-4 border-teal-600 border-t-transparent rounded-full"></div>
+                <p className="mt-2 text-slate-500">Loading calendar...</p>
               </div>
             ) : (
               calendarDays.map((day, index) => {
@@ -400,10 +401,10 @@ const AnnualCalendar = () => {
                     className={`relative p-2 h-12 sm:h-14 rounded-lg border transition-all duration-200
                       ${
                         isCurrentDay
-                          ? "bg-emerald-600 text-white border-emerald-600 shadow-md"
+                          ? "bg-gradient-to-r from-teal-600 to-teal-700 text-white border-teal-600 shadow-md"
                           : holiday
                           ? `${getHolidayColor(holiday.type)} hover:shadow-md`
-                          : "bg-white border-gray-100 hover:bg-gray-50 hover:border-gray-200"
+                          : "bg-white border-slate-100 hover:bg-slate-50 hover:border-slate-200"
                       }`}
                     onMouseEnter={() => setHoveredDay(day)}
                     onMouseLeave={() => setHoveredDay(null)}
@@ -426,14 +427,14 @@ const AnnualCalendar = () => {
                       </div>
                     )}
                     {hoveredDay === day && holiday && (
-                      <div className="absolute z-20 -top-20 left-1/2 transform -translate-x-1/2 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg max-w-xs">
+                      <div className="absolute z-20 -top-20 left-1/2 transform -translate-x-1/2 p-3 bg-slate-900 text-white text-xs rounded-lg shadow-lg max-w-xs">
                         <div className="font-semibold">{holiday.description}</div>
-                        <div className="text-gray-300">{holiday.type}</div>
+                        <div className="text-slate-300">{holiday.type}</div>
                         {isAdmin && (
                           <div className="mt-2 flex gap-2">
                             <button
                               onClick={() => handleEdit(holiday)}
-                              className="text-xs text-emerald-400 hover:underline"
+                              className="text-xs text-teal-400 hover:underline"
                               aria-label={`Edit ${holiday.description}`}
                             >
                               Edit
@@ -447,7 +448,7 @@ const AnnualCalendar = () => {
                             </button>
                           </div>
                         )}
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-gray-900"></div>
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-slate-900"></div>
                       </div>
                     )}
                   </div>
@@ -459,8 +460,8 @@ const AnnualCalendar = () => {
 
         {/* Sidebar - Holiday List */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm p-6 border border-slate-200">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">
               Upcoming Holidays
             </h3>
             {isAdmin && (
@@ -470,22 +471,22 @@ const AnnualCalendar = () => {
                   setEditHoliday(null);
                   setFormData({ holiday_date: "", description: "", type: null });
                 }}
-                className="w-full mb-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium transition-colors"
+                className="w-full mb-4 px-4 py-2 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg hover:from-teal-700 hover:to-teal-800 text-sm font-medium transition-all shadow-md"
               >
                 Add New Holiday
               </button>
             )}
             {loading ? (
               <div className="text-center py-6">
-                <div className="animate-spin h-8 w-8 mx-auto border-4 border-emerald-600 border-t-transparent rounded-full"></div>
-                <p className="mt-2 text-gray-500">Loading holidays...</p>
+                <div className="animate-spin h-8 w-8 mx-auto border-4 border-teal-600 border-t-transparent rounded-full"></div>
+                <p className="mt-2 text-slate-500">Loading holidays...</p>
               </div>
             ) : error ? (
               <div className="text-center text-red-500 py-6">
                 {error}
                 <button
                   onClick={() => dispatch(fetchHolidays({ year: selectedYear }))}
-                  className="mt-2 text-sm text-emerald-600 hover:underline"
+                  className="mt-2 text-sm text-teal-600 hover:underline"
                 >
                   Retry
                 </button>
@@ -501,20 +502,20 @@ const AnnualCalendar = () => {
                       .replace("border-", "border-l-")
                       .split(" ")[1]} bg-white shadow-sm hover:shadow-md transition-shadow`}
                   >
-                    <div className="text-sm font-semibold text-gray-900">
+                    <div className="text-sm font-semibold text-slate-900">
                       {monthNames[selectedMonth]} {holiday.day}
                     </div>
-                    <div className="text-sm font-medium text-gray-700">
+                    <div className="text-sm font-medium text-slate-700 " >
                       {holiday.description}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-slate-500 mt-1">
                       {holiday.type}
                     </div>
                     {isAdmin && (
                       <div className="mt-2 flex gap-2">
                         <button
                           onClick={() => handleEdit(holiday)}
-                          className="text-xs text-emerald-600 hover:underline"
+                          className="text-xs text-teal-600 hover:underline"
                           aria-label={`Edit ${holiday.description}`}
                         >
                           Edit
@@ -532,7 +533,7 @@ const AnnualCalendar = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-6 text-gray-500">
+              <div className="text-center py-6 text-slate-500">
                 <Calendar className="h-10 w-10 mx-auto mb-3 opacity-50" />
                 <p className="text-sm">No holidays this month</p>
               </div>
@@ -544,20 +545,20 @@ const AnnualCalendar = () => {
       {/* Custom Modal for Holiday Form */}
       {showForm && isAdmin && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-11/12 max-w-md shadow-xl">
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 w-11/12 max-w-md shadow-2xl border border-slate-200">
             <button
               onClick={() => setShowForm(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+              className="absolute top-4 right-4 text-slate-500 hover:text-slate-700"
               aria-label="Close Modal"
             >
               <X className="h-5 w-5" />
             </button>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4 bg-gradient-to-r from-teal-600 to-teal-700 bg-clip-text text-transparent">
               {editHoliday ? "Edit Holiday" : "Add Holiday"}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-slate-700">
                   Date
                 </label>
                 <input
@@ -566,7 +567,7 @@ const AnnualCalendar = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, holiday_date: e.target.value })
                   }
-                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm ${
+                  className={`mt-1 block w-full px-3 py-3 rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm ${
                     formErrors.holiday_date ? "border-red-500" : ""
                   }`}
                   required
@@ -578,7 +579,7 @@ const AnnualCalendar = () => {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-slate-700">
                   Description
                 </label>
                 <input
@@ -587,7 +588,7 @@ const AnnualCalendar = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm ${
+                  className={`mt-1 block w-full px-3 py-3 rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm ${
                     formErrors.description ? "border-red-500" : ""
                   }`}
                   required
@@ -600,7 +601,7 @@ const AnnualCalendar = () => {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-slate-700">
                   Type
                 </label>
                 <Select
@@ -619,7 +620,7 @@ const AnnualCalendar = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium transition-colors ${
+                  className={`flex-1 px-4 py-2 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg hover:from-teal-700 hover:to-teal-800 text-sm font-medium transition-all shadow-md ${
                     loading ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
@@ -628,7 +629,7 @@ const AnnualCalendar = () => {
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium transition-colors"
+                  className="flex-1 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 text-sm font-medium transition-colors"
                   disabled={loading}
                 >
                   Cancel

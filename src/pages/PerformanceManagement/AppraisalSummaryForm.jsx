@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"; // Added useEffect import
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import DatePicker from "../../Components/ui/date/DatePicker";
 import Select from "react-select";
@@ -74,7 +74,7 @@ const AppraisalSummaryForm = ({ formData, setFormData, formErrors, handleChange,
       appraisal: {
         ...prev.appraisal,
         bonuses: [
-          ...(prev.appraisal.bonuses || []),
+          ...(Array.isArray(prev.appraisal.bonuses) ? prev.appraisal.bonuses : []),
           {
             id: Date.now() + Math.random(),
             bonus_type: "one_time",
@@ -87,6 +87,25 @@ const AppraisalSummaryForm = ({ formData, setFormData, formErrors, handleChange,
     }));
   };
 
+  const addAchievement = () => {
+    setFormData((prev) => ({
+      ...prev,
+      appraisal: {
+        ...prev.appraisal,
+        achievements: [
+          ...(Array.isArray(prev.appraisal.achievements) ? prev.appraisal.achievements : []),
+          { id: Date.now() + Math.random(), title: "", date: "", type: "Achievement" },
+        ],
+      },
+    }));
+  };
+
+  // Determine if salary fields are required
+  const requiresSalaryFields =
+    formData.appraisal.promotion_recommended ||
+    (formData.appraisal.salary_hike_percentage && parseFloat(formData.appraisal.salary_hike_percentage) > 0) ||
+    (Array.isArray(formData.appraisal.bonuses) && formData.appraisal.bonuses.length > 0);
+
   return (
     <div className="space-y-8 min-h-screen">
       <div className="max-w-7xl mx-auto">
@@ -98,8 +117,8 @@ const AppraisalSummaryForm = ({ formData, setFormData, formErrors, handleChange,
         {/* Appraisal Section */}
         <div className="">
           <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">Appraisal</h3>
-          
-          {/* Performance Score Grid */}
+
+          {/* Performance Score and Manager Comments Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Performance Score (0-100)</label>
@@ -110,12 +129,13 @@ const AppraisalSummaryForm = ({ formData, setFormData, formErrors, handleChange,
                 onChange={(e) => handleChange(e, "appraisal", "performance_score")}
                 className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                 placeholder="Enter score"
+                min="0"
+                max="100"
               />
               {formErrors.performance_score && (
                 <p className="text-red-500 text-xs mt-2">{formErrors.performance_score}</p>
               )}
             </div>
-            {/* Manager Comments Grid */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Manager Comments</label>
               <textarea
@@ -131,6 +151,206 @@ const AppraisalSummaryForm = ({ formData, setFormData, formErrors, handleChange,
               )}
             </div>
           </div>
+
+          {/* Bonus Eligible and Promotion Recommended Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                name="bonus_eligible"
+                checked={formData.appraisal.bonus_eligible}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    appraisal: { ...prev.appraisal, bonus_eligible: e.target.checked },
+                  }))
+                }
+                className="h-5 w-5 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+              />
+              <label className="ml-3 text-sm font-medium text-gray-700">Bonus Eligible</label>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                name="promotion_recommended"
+                checked={formData.appraisal.promotion_recommended}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    appraisal: { ...prev.appraisal, promotion_recommended: e.target.checked },
+                  }))
+                }
+                className="h-5 w-5 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+              />
+              <label className="ml-3 text-sm font-medium text-gray-700">Promotion Recommended</label>
+            </div>
+          </div>
+
+          {/* Salary Hike Percentage and Promotion Fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Salary Hike Percentage</label>
+              <input
+                type="number"
+                name="salary_hike_percentage"
+                value={formData.appraisal.salary_hike_percentage}
+                onChange={(e) => handleChange(e, "appraisal", "salary_hike_percentage")}
+                className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                placeholder="Enter percentage"
+                min="0"
+                step="0.1"
+              />
+              {formErrors.salary_hike_percentage && (
+                <p className="text-red-500 text-xs mt-2">{formErrors.salary_hike_percentage}</p>
+              )}
+            </div>
+            {formData.appraisal.promotion_recommended && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">New Designation</label>
+                  <input
+                    type="text"
+                    name="new_designation_name"
+                    value={formData.appraisal.new_designation_name}
+                    onChange={(e) => handleChange(e, "appraisal", "new_designation_name")}
+                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                    placeholder="Enter new designation"
+                  />
+                  {formErrors.new_designation_name && (
+                    <p className="text-red-500 text-xs mt-2">{formErrors.new_designation_name}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">New Department</label>
+                  <input
+                    type="text"
+                    name="new_department_name"
+                    value={formData.appraisal.new_department_name}
+                    onChange={(e) => handleChange(e, "appraisal", "new_department_name")}
+                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                    placeholder="Enter new department"
+                  />
+                  {formErrors.new_department_name && (
+                    <p className="text-red-500 text-xs mt-2">{formErrors.new_department_name}</p>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Salary Structure Section (Conditional) */}
+          {requiresSalaryFields && (
+            <div className="mt-6">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                Salary Structure (Required due to promotion, salary hike, or bonuses)
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Basic Salary (₹)</label>
+                  <input
+                    type="number"
+                    name="basic_salary"
+                    value={formData.appraisal.basic_salary}
+                    onChange={(e) => handleChange(e, "appraisal", "basic_salary")}
+                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                    placeholder="Enter basic salary"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                  {formErrors.basic_salary && (
+                    <p className="text-red-500 text-xs mt-2">{formErrors.basic_salary}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">HRA Percentage (%)</label>
+                  <input
+                    type="number"
+                    name="hra_percentage"
+                    value={formData.appraisal.hra_percentage}
+                    onChange={(e) => handleChange(e, "appraisal", "hra_percentage")}
+                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                    placeholder="Enter HRA percentage"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    required
+                  />
+                  {formErrors.hra_percentage && (
+                    <p className="text-red-500 text-xs mt-2">{formErrors.hra_percentage}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">HRA (₹)</label>
+                  <input
+                    type="number"
+                    name="hra"
+                    value={formData.appraisal.hra}
+                    onChange={(e) => handleChange(e, "appraisal", "hra")}
+                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                    placeholder="Enter HRA amount"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                  {formErrors.hra && (
+                    <p className="text-red-500 text-xs mt-2">{formErrors.hra}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Special Allowances (₹)</label>
+                  <input
+                    type="number"
+                    name="special_allowances"
+                    value={formData.appraisal.special_allowances}
+                    onChange={(e) => handleChange(e, "appraisal", "special_allowances")}
+                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                    placeholder="Enter special allowances"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                  {formErrors.special_allowances && (
+                    <p className="text-red-500 text-xs mt-2">{formErrors.special_allowances}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Provident Fund Percentage (%)</label>
+                  <input
+                    type="number"
+                    name="provident_fund_percentage"
+                    value={formData.appraisal.provident_fund_percentage}
+                    onChange={(e) => handleChange(e, "appraisal", "provident_fund_percentage")}
+                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                    placeholder="Enter PF percentage"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                  {formErrors.provident_fund_percentage && (
+                    <p className="text-red-500 text-xs mt-2">{formErrors.provident_fund_percentage}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">ESIC Percentage (%)</label>
+                  <input
+                    type="number"
+                    name="esic_percentage"
+                    value={formData.appraisal.esic_percentage}
+                    onChange={(e) => handleChange(e, "appraisal", "esic_percentage")}
+                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                    placeholder="Enter ESIC percentage"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                  {formErrors.esic_percentage && (
+                    <p className="text-red-500 text-xs mt-2">{formErrors.esic_percentage}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Achievements Grid */}
           <div className="grid grid-cols-1 gap-6 mb-6">
@@ -197,22 +417,14 @@ const AppraisalSummaryForm = ({ formData, setFormData, formErrors, handleChange,
               ))}
               <button
                 type="button"
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    appraisal: {
-                      ...prev.appraisal,
-                      achievements: [
-                        ...prev.appraisal.achievements,
-                        { id: Date.now() + Math.random(), title: "", date: "", type: "Achievement" },
-                      ],
-                    },
-                  }))
-                }
+                onClick={addAchievement}
                 className="mt-4 text-teal-600 hover:text-teal-800 font-medium text-sm transition-colors flex items-center gap-2"
               >
                 <span className="text-lg">+</span> Add Achievement
               </button>
+              {formErrors.achievements && (
+                <p className="text-red-500 text-xs mt-2">{formErrors.achievements}</p>
+              )}
             </div>
           </div>
 
@@ -309,169 +521,126 @@ const AppraisalSummaryForm = ({ formData, setFormData, formErrors, handleChange,
             </div>
           )}
 
-          {/* Bonus Eligible Grid */}
-          <div className="grid grid-cols-1 gap-6 mb-6">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="bonus_eligible"
-                checked={formData.appraisal.bonus_eligible}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    appraisal: { ...prev.appraisal, bonus_eligible: e.target.checked },
-                  }))
-                }
-                className="h-5 w-5 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
-              />
-              <label className="ml-3 text-sm font-medium text-gray-700">Bonus Eligible</label>
-            </div>
-          </div>
+          {/* Summary Section */}
+          <div className="mt-8">
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">Summary</h3>
 
-          {/* Promotion Recommended Grid */}
-          <div className="grid grid-cols-1 gap-6 mb-6">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="promotion_recommended"
-                checked={formData.appraisal.promotion_recommended}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    appraisal: { ...prev.appraisal, promotion_recommended: e.target.checked },
-                  }))
-                }
-                className="h-5 w-5 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
-              />
-              <label className="ml-3 text-sm font-medium text-gray-700">Promotion Recommended</label>
-            </div>
-          </div>
-
-          {/* Salary Hike Percentage Grid */}
-          <div className="grid grid-cols-1 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Salary Hike Percentage</label>
-              <input
-                type="number"
-                name="salary_hike_percentage"
-                value={formData.appraisal.salary_hike_percentage}
-                onChange={(e) => handleChange(e, "appraisal", "salary_hike_percentage")}
-                className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
-                placeholder="Enter percentage"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Summary Section */}
-        <div className="mt-8">
-          <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">Summary</h3>
-          
-          {/* Employee Details Grid */}
-          <div className="grid grid-cols-1 gap-6 mb-6">
-            <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Employee Details</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
-                <p><strong>ID:</strong> {formData.employeeDetails.employee_id}</p>
-                <p><strong>Name:</strong> {formData.employeeDetails.name}</p>
-                <p><strong>Email:</strong> {formData.employeeDetails.email}</p>
-                <p><strong>Job Title:</strong> {formData.employeeDetails.jobTitle}</p>
-                <p><strong>Department:</strong> {formData.employeeDetails.department}</p>
-                <p><strong>Review Date:</strong> {formData.employeeDetails.reviewDate}</p>
+            {/* Employee Details Grid */}
+            <div className="grid grid-cols-1 gap-6 mb-6">
+              <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Employee Details</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
+                  <p><strong>ID:</strong> {formData.employeeDetails.employee_id}</p>
+                  <p><strong>Name:</strong> {formData.employeeDetails.name}</p>
+                  <p><strong>Email:</strong> {formData.employeeDetails.email}</p>
+                  <p><strong>Job Title:</strong> {formData.employeeDetails.jobTitle}</p>
+                  <p><strong>Department:</strong> {formData.employeeDetails.department}</p>
+                  <p><strong>Review Date:</strong> {formData.employeeDetails.reviewDate}</p>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Goals & Tasks Grid */}
-          <div className="grid grid-cols-1 gap-6 mb-6">
-            <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Goals & Tasks</h4>
-              {(Array.isArray(formData.goals) ? formData.goals : []).map((goal, index) => (
-                <div key={goal.id} className="mb-4 text-sm text-gray-700">
-                  <p className="font-medium">
-                    <strong>Goal {index + 1}:</strong> {goal.title} (Due: {goal.due_date})
-                  </p>
-                  <p className="mt-1">{goal.description || "No description"}</p>
-                  <ul className="list-disc pl-6 mt-2">
-                    {(Array.isArray(goal.tasks) ? goal.tasks : []).map((task) => (
-                      <li key={task.id}>
-                        {task.title} (Due: {task.due_date}, Priority: {task.priority})
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Competencies Grid */}
-          <div className="grid grid-cols-1 gap-6 mb-6">
-            <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Competencies</h4>
-              <div className="text-sm text-gray-700">
-                {(Array.isArray(formData.competencies) ? formData.competencies : []).map((comp) => (
-                  <p key={comp.id} className="mb-2">
-                    <strong>{comp.skill}:</strong> Rating {comp.manager_rating}/10, {comp.feedback || "No feedback"}
-                  </p>
+            {/* Goals & Tasks Grid */}
+            <div className="grid grid-cols-1 gap-6 mb-6">
+              <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Goals & Tasks</h4>
+                {(Array.isArray(formData.goals) ? formData.goals : []).map((goal, index) => (
+                  <div key={goal.id} className="mb-4 text-sm text-gray-700">
+                    <p className="font-medium">
+                      <strong>Goal {index + 1}:</strong> {goal.title} (Due: {goal.due_date})
+                    </p>
+                    <p className="mt-1">{goal.description || "No description"}</p>
+                    <ul className="list-disc pl-6 mt-2">
+                      {(Array.isArray(goal.tasks) ? goal.tasks : []).map((task) => (
+                        <li key={task.id}>
+                          {task.title} (Due: {task.due_date}, Priority: {task.priority})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
               </div>
             </div>
-          </div>
 
-          {/* Learning Progress Grid */}
-          <div className="grid grid-cols-1 gap-6 mb-6">
-            <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Learning Progress</h4>
-              <div className="text-sm text-gray-700">
-                {(Array.isArray(formData.learningGrowth) && formData.learningGrowth.length > 0) ? (
-                  <ul className="list-disc pl-6">
-                    {formData.learningGrowth.map((lg) => (
-                      <li key={lg.id}>
-                        {lg.title} (Progress: {lg.progress}%, Completed: {lg.completed ? "Yes" : "No"})
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No learning progress data available.</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Bonuses Summary (Super Admin Only) */}
-          {role === "super_admin" && (
+            {/* Competencies Grid */}
             <div className="grid grid-cols-1 gap-6 mb-6">
               <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Bonuses</h4>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Competencies</h4>
                 <div className="text-sm text-gray-700">
-                  {(Array.isArray(formData.appraisal.bonuses) ? formData.appraisal.bonuses : []).map((bonus) => (
-                    <p key={bonus.id} className="mb-2">
-                      <strong>{bonus.bonus_type === "one_time" ? "One-Time" : "Recurring"} Bonus:</strong> ₹{bonus.amount}, Effective: {bonus.effective_date}, Remarks: {bonus.remarks || "None"}
+                  {(Array.isArray(formData.competencies) ? formData.competencies : []).map((comp) => (
+                    <p key={comp.id} className="mb-2">
+                      <strong>{comp.skill}:</strong> Rating {comp.manager_rating}/10, {comp.feedback || "No feedback"}
                     </p>
                   ))}
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Appraisal Summary Grid */}
-          <div className="grid grid-cols-1 gap-6">
-            <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Appraisal</h4>
-              <div className="text-sm text-gray-700">
-                <p><strong>Performance Score:</strong> {formData.appraisal.performance_score}</p>
-                <p><strong>Manager Comments:</strong> {formData.appraisal.manager_comments}</p>
-                <p className="mt-2"><strong>Achievements:</strong></p>
-                <ul className="list-disc pl-6">
-                  {(Array.isArray(formData.appraisal.achievements) ? formData.appraisal.achievements : []).map((ach) => (
-                    <li key={ach.id}>
-                      {ach.title} ({ach.date}, {ach.type})
-                    </li>
-                  ))}
-                </ul>
-                <p><strong>Bonus Eligible:</strong> {formData.appraisal.bonus_eligible ? "Yes" : "No"}</p>
-                <p><strong>Promotion Recommended:</strong> {formData.appraisal.promotion_recommended ? "Yes" : "No"}</p>
-                <p><strong>Salary Hike:</strong> {formData.appraisal.salary_hike_percentage || 0}%</p>
+            {/* Learning Progress Grid */}
+            <div className="grid grid-cols-1 gap-6 mb-6">
+              <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Learning Progress</h4>
+                <div className="text-sm text-gray-700">
+                  {(Array.isArray(formData.learningGrowth) && formData.learningGrowth.length > 0) ? (
+                    <ul className="list-disc pl-6">
+                      {formData.learningGrowth.map((lg) => (
+                        <li key={lg.id}>
+                          {lg.title} (Progress: {lg.progress}%, Completed: {lg.completed ? "Yes" : "No"})
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No learning progress data available.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Bonuses Summary (Super Admin Only) */}
+            {role === "super_admin" && (
+              <div className="grid grid-cols-1 gap-6 mb-6">
+                <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Bonuses</h4>
+                  <div className="text-sm text-gray-700">
+                    {(Array.isArray(formData.appraisal.bonuses) ? formData.appraisal.bonuses : []).map((bonus) => (
+                      <p key={bonus.id} className="mb-2">
+                        <strong>{bonus.bonus_type === "one_time" ? "One-Time" : "Recurring"} Bonus:</strong> ₹{bonus.amount}, Effective: {bonus.effective_date}, Remarks: {bonus.remarks || "None"}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Appraisal Summary Grid */}
+            <div className="grid grid-cols-1 gap-6">
+              <div className="p-5 bg-gray-50 rounded-lg shadow-sm">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Appraisal</h4>
+                <div className="text-sm text-gray-700">
+                  <p><strong>Performance Score:</strong> {formData.appraisal.performance_score}</p>
+                  <p><strong>Manager Comments:</strong> {formData.appraisal.manager_comments}</p>
+                  <p className="mt-2"><strong>Achievements:</strong></p>
+                  <ul className="list-disc pl-6">
+                    {(Array.isArray(formData.appraisal.achievements) ? formData.appraisal.achievements : []).map((ach) => (
+                      <li key={ach.id}>
+                        {ach.title} ({ach.date}, {ach.type})
+                      </li>
+                    ))}
+                  </ul>
+                  <p><strong>Bonus Eligible:</strong> {formData.appraisal.bonus_eligible ? "Yes" : "No"}</p>
+                  <p><strong>Promotion Recommended:</strong> {formData.appraisal.promotion_recommended ? "Yes" : "No"}</p>
+                  <p><strong>Salary Hike:</strong> {formData.appraisal.salary_hike_percentage || 0}%</p>
+                  {requiresSalaryFields && (
+                    <>
+                      <p><strong>Basic Salary:</strong> ₹{formData.appraisal.basic_salary || "N/A"}</p>
+                      <p><strong>HRA Percentage:</strong> {formData.appraisal.hra_percentage || "N/A"}%</p>
+                      <p><strong>HRA:</strong> ₹{formData.appraisal.hra || "N/A"}</p>
+                      <p><strong>Special Allowances:</strong> ₹{formData.appraisal.special_allowances || "N/A"}</p>
+                      <p><strong>Provident Fund Percentage:</strong> {formData.appraisal.provident_fund_percentage || "N/A"}%</p>
+                      <p><strong>ESIC Percentage:</strong> {formData.appraisal.esic_percentage || "N/A"}%</p>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>

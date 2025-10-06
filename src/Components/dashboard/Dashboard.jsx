@@ -15,8 +15,7 @@ const AdminDashboard = () => {
   const fullName = profile?.full_name || user?.full_name || role.toUpperCase();
 
   useEffect(() => {
-    console.log('Auth State:', { user, isAuthenticated, authLoading });
-    console.log('Employee Profile:', profile);
+    
     if (!isAuthenticated && !authLoading) {
       navigate('/login');
     } else if (!profile?.full_name) {

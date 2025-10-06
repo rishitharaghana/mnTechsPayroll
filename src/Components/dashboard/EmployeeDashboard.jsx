@@ -6,8 +6,8 @@ import { toast } from 'react-toastify';
 import { getCurrentUserProfile } from '../../redux/slices/employeeSlice';
 import { fetchEmployeeAttendance } from '../../redux/slices/attendanceSlice';
 import { fetchLeaveBalances } from '../../redux/slices/leaveSlice';
-import { fetchRecentPayslip } from '../../redux/slices/payslipSlice';
 import MiniCalendar from '../common/MiniCalendar';
+import { format } from 'date-fns';
 
 const iconMap = {
   FileText: FileText,
@@ -22,7 +22,7 @@ const quickActions = [
   { label: 'Leave Request', icon: 'FileText', color: 'bg-gradient-to-r from-teal-600 to-slate-700 hover:from-teal-500 hover:to-slate-600', focusRing: 'focus:ring-teal-600', to: '/employee/leave-application' },
   { label: 'Leave Dashboard', icon: 'Calendar', color: 'bg-gradient-to-r from-teal-600 to-slate-700 hover:from-teal-500 hover:to-slate-600', focusRing: 'focus:ring-teal-600', to: '/employee/leave-dashboard' },
   { label: 'Attendance', icon: 'Clock', color: 'bg-gradient-to-r from-teal-600 to-slate-700 hover:from-teal-500 hover:to-slate-600', focusRing: 'focus:ring-teal-600', to: '/employee/employee-attendance' },
-  { label: 'PF', icon: 'PiggyBank', color: 'bg-gradient-to-r from-teal-600 to-slate-700 hover:from-teal-500 hover:to-slate-600', focusRing: 'focus:ring-teal-600', to: '/pf' },
+  // { label: 'PF', icon: 'PiggyBank', color: 'bg-gradient-to-r from-teal-600 to-slate-700 hover:from-teal-500 hover:to-slate-600', focusRing: 'focus:ring-teal-600', to: '/pf' },
 ];
 
 const EmployeeDashboard = () => {
@@ -32,12 +32,10 @@ const EmployeeDashboard = () => {
   const { employeeId, profile, loading: employeeLoading, error: employeeError } = useSelector((state) => state.employee);
   const { leaveBalances, loading: leaveLoading, error: leaveError } = useSelector((state) => state.leaves);
   const { submissions: attendance, loading: attendanceLoading, error: attendanceError } = useSelector((state) => state.attendance);
-  const { recentPayslip, loading: payrollLoading, error: payrollError } = useSelector((state) => state.payslip);
   const [dashboardData, setDashboardData] = useState({
     leaveBalances: [],
     attendance: [],
     attendanceStatus: { today: 'Not Recorded', lastUpdated: 'N/A' },
-    recentPayslip: null,
     profile: null,
     workSummary: null,
   });
@@ -45,8 +43,7 @@ const EmployeeDashboard = () => {
   const [activeTab, setActiveTab] = useState('workSummary');
 
   useEffect(() => {
-    console.log('Auth State:', { user, role, isAuthenticated, authLoading });
-    console.log('Employee Profile:', profile);
+
     if (!isAuthenticated && !authLoading) {
       navigate('/login');
     } else if (!profile?.full_name || !employeeId) {
@@ -55,10 +52,9 @@ const EmployeeDashboard = () => {
       const fetchData = async () => {
         setLoading(true);
         try {
-          const [leaveBalancesResult, attendanceResult, payslipResult] = await Promise.all([
+          const [leaveBalancesResult, attendanceResult] = await Promise.all([
             dispatch(fetchLeaveBalances()).unwrap(),
             dispatch(fetchEmployeeAttendance()).unwrap(),
-            dispatch(fetchRecentPayslip({ employeeId })).unwrap().catch(() => null), // Allow payslip fetch to fail gracefully
           ]);
 
           const attendanceData = attendanceResult.data?.attendance || [];
@@ -68,12 +64,13 @@ const EmployeeDashboard = () => {
           const holidays = attendanceData.filter(a => a.status === "Holiday").length;
 
           const workSummaryFallback = {
-            month: new Date().toLocaleString("default", { month: "long", year: "numeric" }),
+            month: format(new Date(), 'yyyy-MM'), // Format as "YYYY-MM" for MiniCalendar
             total_working_days: attendanceData.length,
             present_days: presentDays,
             paid_leave_days: paidLeave,
             unpaid_leave_days: unpaidLeave,
             holidays: holidays,
+            attendance: attendanceData, // Include actual attendance records
           };
 
           setDashboardData({
@@ -89,9 +86,8 @@ const EmployeeDashboard = () => {
               timeOut: record.logout_time || 'N/A',
             })),
             attendanceStatus: attendanceResult.data?.attendanceStatus || { today: 'Not Recorded', lastUpdated: 'N/A' },
-            recentPayslip: payslipResult?.data[0] || null,
             profile: profile || null,
-            workSummary: workSummaryFallback, // Use fallback instead of payslip
+            workSummary: workSummaryFallback,
           });
         } catch (error) {
           console.error('Error fetching dashboard data:', error);
@@ -107,15 +103,15 @@ const EmployeeDashboard = () => {
   }, [dispatch, navigate, isAuthenticated, authLoading, user, role, employeeId, profile]);
 
   useEffect(() => {
-    if (authError || employeeError || leaveError || attendanceError || payrollError) {
-      toast.error(authError || employeeError || leaveError || attendanceError || payrollError, {
+    if (authError || employeeError || leaveError || attendanceError) {
+      toast.error(authError || employeeError || leaveError || attendanceError, {
         position: 'top-right',
         autoClose: 3000,
       });
     }
-  }, [authError, employeeError, leaveError, attendanceError, payrollError]);
+  }, [authError, employeeError, leaveError, attendanceError]);
 
-  if (authLoading || employeeLoading || loading || leaveLoading || attendanceLoading || payrollLoading) {
+  if (authLoading || employeeLoading || loading || leaveLoading || attendanceLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex justify-center items-center">
         <div className="flex items-center space-x-2 text-gray-600">
@@ -196,7 +192,7 @@ const EmployeeDashboard = () => {
                 {profile?.designation_name || 'Employee'} | {profile?.department_name || 'N/A'}
               </p>
               <NavLink
-                to="/employee/profile"
+                to="/userprofile"
                 className="text-white text-sm font-medium hover:underline mt-2 inline-block"
                 aria-label="View full profile"
               >
@@ -206,7 +202,6 @@ const EmployeeDashboard = () => {
           </div>
         </div>
 
-        {/* Rest of the component remains the same */}
         <div className="flex justify-center mb-8">
           <div className="inline-flex bg-white/90 backdrop-blur-sm rounded-full border border-teal-200/50 p-2 shadow-sm">
             {quickActions.map((action, index) => {
@@ -303,7 +298,7 @@ const EmployeeDashboard = () => {
               {dashboardData.workSummary ? (
                 <div className="space-y-2">
                   <h2 className="text-xl font-bold text-gray-900 mb-4">Work Summary</h2>
-                  <p className="text-gray-600 text-sm">Month: {dashboardData.workSummary.month || 'N/A'}</p>
+                  <p className="text-gray-600 text-sm">Month: {format(new Date(dashboardData.workSummary.month), 'MMMM yyyy')}</p>
                   <p className="text-gray-600 text-sm">Total Working Days: {dashboardData.workSummary.total_working_days || 0}</p>
                   <p className="text-gray-600 text-sm">Days Present: {dashboardData.workSummary.present_days || 0}</p>
                   <p className="text-gray-600 text-sm">Paid Leave: {dashboardData.workSummary.paid_leave_days || 0}</p>
@@ -366,7 +361,7 @@ const EmployeeDashboard = () => {
             <h2 className="text-xl font-bold text-gray-900 mb-4">Attendance Insights</h2>
             <div className="flex flex-col lg:flex-row gap-6">
               <div className="flex-1">
-                <p className="text-gray-600 text-sm mb-4">Month: {dashboardData.workSummary.month || 'N/A'}</p>
+                <p className="text-gray-600 text-sm mb-4">Month: {format(new Date(dashboardData.workSummary.month), 'MMMM yyyy')}</p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center">
                     <span className="w-3 h-3 bg-teal-600 rounded-full mr-2"></span>

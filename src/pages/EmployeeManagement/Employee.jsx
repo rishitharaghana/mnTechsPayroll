@@ -73,7 +73,6 @@ const Employee = () => {
         : status.charAt(0).toUpperCase() + status.slice(1).replace("_", " "),
   }));
 
-  // Define filtered employees
   const filtered = employees?.filter((emp) => {
     const name = emp.full_name || emp.name || "";
     const matchesSearch = name.toLowerCase().includes(search.toLowerCase());
@@ -127,13 +126,11 @@ const Employee = () => {
     return matchesSearch && matchesDepartment && matchesRole && matchesStatus;
   }) || [];
 
-  // Define pagination
   const totalPages = Math.ceil(filtered.length / employeesPerPage);
   const indexOfLastEmployee = currentPage * employeesPerPage;
   const indexOfFirstEmployee = indexOfLastEmployee - employeesPerPage;
   const currentEmployees = filtered.slice(indexOfFirstEmployee, indexOfLastEmployee);
 
-  // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -146,14 +143,12 @@ const Employee = () => {
     fetchData();
   }, [dispatch]);
 
-  // Set department filter for dept_head
   useEffect(() => {
     if (user?.role === "dept_head" && (profile?.department || profile?.department_name)) {
       setDepartmentFilter(profile?.department || profile?.department_name);
     }
   }, [user, profile]);
 
-  // Debug logs
   useEffect(() => {
     console.log("User (auth):", user);
     console.log("Profile (employee):", profile);

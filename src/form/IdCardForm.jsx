@@ -17,7 +17,6 @@ const IdCardForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Add logic to save ID card (e.g., to localStorage or state)
     console.log("ID Card generated:", formData);
     navigate("/idcard");
   };
@@ -30,7 +29,7 @@ const IdCardForm = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData({ ...formData, photo: file }); // Store the file object
+      setFormData({ ...formData, photo: file }); 
     }
   };
 
