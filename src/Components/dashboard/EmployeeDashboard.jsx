@@ -45,9 +45,11 @@ const EmployeeDashboard = () => {
   const [activeTab, setActiveTab] = useState('workSummary');
 
   useEffect(() => {
+    console.log('Auth State:', { user, role, isAuthenticated, authLoading });
+    console.log('Employee Profile:', profile);
     if (!isAuthenticated && !authLoading) {
       navigate('/login');
-    } else if (!user || !employeeId) {
+    } else if (!profile?.full_name || !employeeId) {
       dispatch(getCurrentUserProfile());
     } else if (isAuthenticated && role?.toLowerCase() === 'employee' && employeeId) {
       const fetchData = async () => {
@@ -56,8 +58,23 @@ const EmployeeDashboard = () => {
           const [leaveBalancesResult, attendanceResult, payslipResult] = await Promise.all([
             dispatch(fetchLeaveBalances()).unwrap(),
             dispatch(fetchEmployeeAttendance()).unwrap(),
-            dispatch(fetchRecentPayslip({ employeeId })).unwrap(),
+            dispatch(fetchRecentPayslip({ employeeId })).unwrap().catch(() => null), // Allow payslip fetch to fail gracefully
           ]);
+
+          const attendanceData = attendanceResult.data?.attendance || [];
+          const presentDays = attendanceData.filter(a => a.status === "Present").length;
+          const paidLeave = attendanceData.filter(a => a.status === "Paid Leave").length;
+          const unpaidLeave = attendanceData.filter(a => a.status === "Unpaid Leave").length;
+          const holidays = attendanceData.filter(a => a.status === "Holiday").length;
+
+          const workSummaryFallback = {
+            month: new Date().toLocaleString("default", { month: "long", year: "numeric" }),
+            total_working_days: attendanceData.length,
+            present_days: presentDays,
+            paid_leave_days: paidLeave,
+            unpaid_leave_days: unpaidLeave,
+            holidays: holidays,
+          };
 
           setDashboardData({
             leaveBalances: [
@@ -65,20 +82,23 @@ const EmployeeDashboard = () => {
               { type: 'Sick Leave (SL)', backendType: 'sick', remaining: leaveBalancesResult.sick || 0, total: 12, bgColor: 'bg-white/90 backdrop-blur-sm', color: 'bg-gradient-to-r from-teal-600 to-slate-700', textColor: 'text-gray-600', icon: 'FileText' },
               { type: 'Earned Leave (EL)', backendType: 'vacation', remaining: leaveBalancesResult.vacation || 0, total: 15, bgColor: 'bg-white/90 backdrop-blur-sm', color: 'bg-gradient-to-r from-teal-600 to-slate-700', textColor: 'text-gray-600', icon: 'FileText' },
             ],
-            attendance: attendanceResult.data?.attendance.map((record) => ({
+            attendance: attendanceData.map((record) => ({
               date: record.date,
               status: record.status,
               timeIn: record.login_time || 'N/A',
               timeOut: record.logout_time || 'N/A',
-            })) || [],
+            })),
             attendanceStatus: attendanceResult.data?.attendanceStatus || { today: 'Not Recorded', lastUpdated: 'N/A' },
             recentPayslip: payslipResult?.data[0] || null,
             profile: profile || null,
-            workSummary: payslipResult?.data[0] || null,
+            workSummary: workSummaryFallback, // Use fallback instead of payslip
           });
         } catch (error) {
           console.error('Error fetching dashboard data:', error);
-          toast.error(error || 'Failed to load dashboard data', { position: 'top-right', autoClose: 3000 });
+          toast.error(error.message || 'Failed to load dashboard data', {
+            position: 'top-right',
+            autoClose: 3000,
+          });
         }
         setLoading(false);
       };
@@ -95,7 +115,7 @@ const EmployeeDashboard = () => {
     }
   }, [authError, employeeError, leaveError, attendanceError, payrollError]);
 
-  if (authLoading || employeeLoading || loading || payrollLoading) {
+  if (authLoading || employeeLoading || loading || leaveLoading || attendanceLoading || payrollLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex justify-center items-center">
         <div className="flex items-center space-x-2 text-gray-600">
@@ -135,12 +155,12 @@ const EmployeeDashboard = () => {
     );
   }
 
-  if (!employeeId) {
+  if (!employeeId || !profile) {
     return (
       <div className="min-h-screen bg-gray-100 flex justify-center items-center">
         <div className="text-center">
           <p className="text-red-600 font-semibold mb-4">
-            Access restricted: Employee ID is missing. {employeeError || 'Please try again.'}
+            Access restricted: Employee profile is missing. {employeeError || 'Please try again.'}
           </p>
           <button
             onClick={() => dispatch(getCurrentUserProfile())}
@@ -165,15 +185,15 @@ const EmployeeDashboard = () => {
                 <User className="text-teal-600" size={40} aria-hidden="true" />
               </div>
               <div className="absolute -bottom-2 -right-2 bg-teal-600 text-white text-xs font-semibold rounded-full px-2 py-1 shadow-md">
-                {dashboardData.profile?.employee_id || 'N/A'}
+                {profile?.employee_id || 'N/A'}
               </div>
             </div>
             <div className="text-center sm:text-left">
               <h1 className="text-3xl font-extrabold text-white tracking-tight">
-                Welcome, {dashboardData.profile?.full_name || user?.full_name || 'Employee'}!
+                Welcome, {profile?.full_name || 'Employee'}!
               </h1>
               <p className="text-gray-200 text-sm mt-1">
-                {dashboardData.profile?.designation_name || 'Employee'} | {dashboardData.profile?.department_name || 'N/A'}
+                {profile?.designation_name || 'Employee'} | {profile?.department_name || 'N/A'}
               </p>
               <NavLink
                 to="/employee/profile"
@@ -186,6 +206,7 @@ const EmployeeDashboard = () => {
           </div>
         </div>
 
+        {/* Rest of the component remains the same */}
         <div className="flex justify-center mb-8">
           <div className="inline-flex bg-white/90 backdrop-blur-sm rounded-full border border-teal-200/50 p-2 shadow-sm">
             {quickActions.map((action, index) => {

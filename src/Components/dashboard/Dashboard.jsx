@@ -9,23 +9,25 @@ const AdminDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, token, isAuthenticated, loading: authLoading, error: authError } = useSelector((state) => state.auth);
+  const { profile, loading: employeeLoading, error: employeeError } = useSelector((state) => state.employee);
   const { dashboardData, loading, error } = useSelector((state) => state.dashboard);
-  const role = user?.role || '';
+  const role = profile?.role || user?.role || '';
+  const fullName = profile?.full_name || user?.full_name || role.toUpperCase();
 
   useEffect(() => {
+    console.log('Auth State:', { user, isAuthenticated, authLoading });
+    console.log('Employee Profile:', profile);
     if (!isAuthenticated && !authLoading) {
       navigate('/login');
-    } else if (!user) {
+    } else if (!profile?.full_name) {
       dispatch(getCurrentUserProfile());
     } else if (role && token) {
       dispatch(fetchDashboardData({ role }));
     }
     return () => dispatch(clearState());
-  }, [dispatch, navigate, isAuthenticated, authLoading, user, role, token]);
+  }, [dispatch, navigate, isAuthenticated, authLoading, profile, user, role, token]);
 
-
-
-  if (authLoading || loading) {
+  if (authLoading || employeeLoading || loading) {
     return <div className="flex justify-center items-center min-h-screen text-slate-500">Loading...</div>;
   }
 
@@ -45,18 +47,20 @@ const AdminDashboard = () => {
     );
   }
 
-  if (authError || error) {
+  if (authError || employeeError || error) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-red-500 text-center">
-          <p>{authError || error}</p>
+          <p>{authError || employeeError || error}</p>
           <button
-            onClick={() => dispatch(fetchDashboardData({ role }))}
+            onClick={() => {
+              dispatch(getCurrentUserProfile());
+              if (role && token) dispatch(fetchDashboardData({ role }));
+            }}
             className="bg-teal-600 text-white p-2 rounded mt-2 hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-400"
           >
             Retry
           </button>
-          
         </div>
       </div>
     );
@@ -71,13 +75,12 @@ const AdminDashboard = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="md:text-3xl sm:text-2xl text-xl font-extrabold text-white tracking-tight">
-              Welcome Back, {user?.full_name || role.toUpperCase()}!
+              Welcome Back, {fullName}!
             </h1>
             <p className="text-gray-200 md:text-lg sm:text-md text-sm mt-1">
               Manage your {role === 'dept_head' ? 'team' : 'organization'} with ease.
             </p>
           </div>
-        
         </div>
       </div>
 
