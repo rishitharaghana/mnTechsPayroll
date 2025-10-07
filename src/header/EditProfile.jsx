@@ -16,7 +16,7 @@ import {
   fetchEmployeeDocuments,
   fetchEmployeeBankDetails,
   fetchEmployeeById,
-} from "../redux/slices/employeeSlice"; // Adjust the import path as needed
+} from "../redux/slices/employeeSlice"; 
 
 const EditProfile = () => {
   const dispatch = useDispatch();
@@ -33,12 +33,10 @@ const EditProfile = () => {
   } = useSelector((state) => state.employee);
   const [activeTab, setActiveTab] = useState(0);
 
-  // Fetch profile and employee details on component mount
   useEffect(() => {
     dispatch(getCurrentUserProfile());
   }, [dispatch]);
 
-  // Fetch additional details when employeeId is available
   useEffect(() => {
     if (employeeId) {
       dispatch(fetchEmployeeById(employeeId));
@@ -49,7 +47,6 @@ const EditProfile = () => {
     }
   }, [employeeId, dispatch]);
 
-  // Define steps dynamically based on Redux state
   const steps = [
     {
       title: "Personal Details",
@@ -66,8 +63,8 @@ const EditProfile = () => {
             Gender: personalDetails.gender || "N/A",
             "Present Address": personalDetails.present_address || "N/A",
             "Previous Address": personalDetails.previous_address || "N/A",
-            "PAN Card Number": personalDetails.pan_card_number || "N/A",
-            "Aadhar Card Number": personalDetails.aadhar_card_number || "N/A",
+            "PAN Card Number": personalDetails.pan_number || "N/A",
+            "Aadhar Card Number": personalDetails.aadhar_number || "N/A",
           }
         : {},
     },
@@ -78,7 +75,7 @@ const EditProfile = () => {
         ? {
             "Employee ID": currentEmployee.employee_id || "N/A",
             "Position Title": currentEmployee.designation || "N/A",
-            "Joining Date": currentEmployee.joining_date || "N/A",
+            "Joining Date": currentEmployee.join_date || "N/A",
             "Position Type": currentEmployee.position_type || "N/A",
             "Employment Type": currentEmployee.employment_type || "N/A",
             "Contract End Date": currentEmployee.contract_end_date || "N/A",
@@ -115,8 +112,8 @@ const EditProfile = () => {
       icon: <Banknote size={18} />,
       details: bankDetails
         ? {
-            "IFSC Number": bankDetails.ifsc_code || "N/A",
-            "Bank Account Number": bankDetails.account_number || "N/A",
+            "IFSC Number": bankDetails.ifsc_number || "N/A",
+            "Bank Account Number": bankDetails.bank_account_number || "N/A",
           }
         : {},
     },
