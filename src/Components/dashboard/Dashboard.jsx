@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Users, Clock, CreditCard, Calendar, BarChart } from 'lucide-react';
+import { Users, Clock, CreditCard, Calendar, BarChart, TrendingUp, Activity, Clock as ClockIcon } from 'lucide-react';
 import { fetchDashboardData, clearState } from '../../redux/slices/dashboardSlice';
 import { getCurrentUserProfile } from '../../redux/slices/employeeSlice';
 
@@ -67,6 +67,34 @@ const AdminDashboard = () => {
 
   const { stats = [], quickActions = [], recentActivities = [], performanceMetrics = [], leaveBalances = {} } = dashboardData || {};
 
+  // Role-specific insights title
+  const getInsightsTitle = () => {
+    if (role === 'super_admin') return 'Organization Insights';
+    if (role === 'hr') return 'HR Insights';
+    if (role === 'dept_head') return 'Team Insights';
+    return 'Insights';
+  };
+
+  // Simple layout logic for sparse data
+  const totalItems = performanceMetrics.length + Object.keys(leaveBalances).length;
+  const isSingleItem = totalItems === 1;
+  const isTwoItems = totalItems === 2;
+  const isHRorDeptHead = role === 'hr' || role === 'dept_head';
+
+  // Helper to render progress bar for rates (e.g., attendance)
+  const ProgressBar = ({ value, color = 'teal' }) => {
+    const percentage = parseFloat(value) || 0;
+    const bgColor = color === 'teal' ? 'bg-teal-500' : 'bg-emerald-500';
+    return (
+      <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
+        <div
+          className={`h-2 rounded-full transition-all duration-300 ${bgColor}`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-8 bg-white rounded-2xl min-h-screen sm:p-6 p-4">
       {/* Header */}
@@ -77,7 +105,7 @@ const AdminDashboard = () => {
               Welcome Back, {fullName}!
             </h1>
             <p className="text-gray-200 md:text-lg sm:text-md text-sm mt-1">
-              Manage your {role === 'dept_head' ? 'team' : 'organization'} with ease.
+              Manage your {role === 'dept_head' ? 'team' : role === 'hr' ? 'HR operations' : 'organization'} with ease.
             </p>
           </div>
         </div>
@@ -171,35 +199,98 @@ const AdminDashboard = () => {
         )}
       </div>
 
+      {/* Role-Specific Insights Section - Circles for HR/Dept Head, Horizontal for Super Admin */}
       {(performanceMetrics.length > 0 || Object.keys(leaveBalances).length > 0) && (
-        <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
-          <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-t-lg -mx-4 -mt-4 p-3">
-            <h2 className="text-lg font-bold text-white">
-              {role === 'dept_head' ? 'Team Insights' : 'Organization Insights'}
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            {performanceMetrics.map((metric, index) => (
-              <div key={index} className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-teal-600 to-slate-700 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-lg font-bold text-white">{metric.value}</span>
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+            <Activity className="text-teal-600" size={20} />
+            {getInsightsTitle()}
+          </h2>
+          {isHRorDeptHead ? (
+            // Circle Cards for HR/Dept Head
+            <div className={`grid ${isSingleItem ? 'grid-cols-1 justify-items-center' : isTwoItems ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-6`}>
+              {/* Performance Metrics */}
+              {performanceMetrics.map((metric, index) => (
+                <div key={index} className="text-center group cursor-default transition-all duration-300 hover:scale-105">
+                  <div className="relative inline-block">
+                    <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center mb-3 shadow-lg group-hover:shadow-xl">
+                      <span className="text-lg font-bold text-white">{metric.value}</span>
+                    </div>
+                    {metric.title.toLowerCase().includes('attendance') && (
+                      <ProgressBar value={metric.value.replace('%', '')} color="teal" />
+                    )}
+                  </div>
+                  <h3 className="text-sm font-semibold text-slate-900 mt-2">{metric.title}</h3>
+                  <p className="text-xs text-slate-500">{metric.description}</p>
                 </div>
-                <h3 className="text-sm font-semibold text-slate-900">{metric.title}</h3>
-                <p className="text-xs text-slate-500">{metric.description}</p>
-              </div>
-            ))}
-            {Object.keys(leaveBalances).map((type, index) => (
-              <div key={`leave-${index}`} className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-teal-600 to-slate-700 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-lg font-bold text-white">{leaveBalances[type]}</span>
+              ))}
+              
+              {/* Leave Balances */}
+              {Object.keys(leaveBalances).map((type, index) => {
+                if (role === 'super_admin' && type !== 'paid_leave_balance') return null;
+                const label = type === 'paid_leave_balance' ? 'Paid Leave' : type.charAt(0).toUpperCase() + type.slice(1);
+                return (
+                  <div key={`leave-${index}`} className="text-center group cursor-default transition-all duration-300 hover:scale-105">
+                    <div className="relative inline-block">
+                      <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mb-3 shadow-lg group-hover:shadow-xl">
+                        <span className="text-lg font-bold text-white">{leaveBalances[type]}</span>
+                      </div>
+                      <p className="text-xs text-emerald-600 mt-1 font-medium">days</p>
+                    </div>
+                    <h3 className="text-sm font-semibold text-slate-900 mt-2">{label} Balance</h3>
+                    <p className="text-xs text-slate-500">Available for {new Date().getFullYear()}</p>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            // Horizontal Layout for Super Admin
+            <div className={`space-y-4 ${isSingleItem ? 'max-w-md mx-auto' : ''}`}>
+              {/* Performance Metrics */}
+              {performanceMetrics.map((metric, index) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="p-3 bg-teal-100 rounded-lg">
+                      <ClockIcon className="text-teal-600" size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900">{metric.title}</h3>
+                      <p className="text-xs text-slate-500">{metric.description}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end w-32">
+                    <span className="text-lg font-bold text-teal-600 mb-2">{metric.value}</span>
+                    {metric.title.toLowerCase().includes('attendance') && (
+                      <ProgressBar value={metric.value.replace('%', '')} color="teal" />
+                    )}
+                  </div>
                 </div>
-                <h3 className="text-sm font-semibold text-slate-900">
-                  {type.charAt(0).toUpperCase() + type.slice(1)} Balance
-                </h3>
-                <p className="text-xs text-slate-500">Available for {new Date().getFullYear()}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+              
+              {/* Leave Balances */}
+              {Object.keys(leaveBalances).map((type, index) => {
+                if (role === 'super_admin' && type !== 'paid_leave_balance') return null;
+                const label = type === 'paid_leave_balance' ? 'Paid Leave' : type.charAt(0).toUpperCase() + type.slice(1);
+                return (
+                  <div key={`leave-${index}`} className="flex items-center justify-between p-4 bg-emerald-50 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="p-3 bg-emerald-100 rounded-lg">
+                        <Calendar className="text-emerald-600" size={20} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-slate-900">{label} Balance</h3>
+                        <p className="text-xs text-slate-500">Org-Wide</p>
+                      </div>
+                    </div>
+                    <div className="text-right w-32">
+                      <span className="text-xl font-bold text-emerald-600">{leaveBalances[type]}</span>
+                      <p className="text-xs text-emerald-600 mt-1">days</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
