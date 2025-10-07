@@ -1,7 +1,11 @@
-const EmployeeFileUpload = ({ name, onChange, accept, label, preview, isPdf }) => (
+const EmployeeFileUpload = ({ name, onChange, accept, label, preview, isPdf, isSubmitted }) => (
   <div className="flex flex-col">
     <label className="mb-1 text-sm font-bold text-black tracking-tight">{label}</label>
-    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+    <div
+      className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center ${
+        isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
+      }`}
+    >
       <input
         type="file"
         name={name}
@@ -9,10 +13,18 @@ const EmployeeFileUpload = ({ name, onChange, accept, label, preview, isPdf }) =
         accept={accept}
         className="hidden"
         id={`${name}-upload`}
+        disabled={isSubmitted}
       />
-      <label htmlFor={`${name}-upload`} className="cursor-pointer text-gray-600">
+      <label
+        htmlFor={`${name}-upload`}
+        className={`${
+          isSubmitted ? 'cursor-not-allowed text-gray-400' : 'cursor-pointer text-gray-600'
+        }`}
+      >
         <span className="text-gray-500">Drag and drop files here or </span>
-        <span className="underline text-black">Browse Files</span>
+        <span className={`${isSubmitted ? 'text-gray-400' : 'underline text-black'}`}>
+          Browse Files
+        </span>
       </label>
       {preview && (
         <div className="mt-4">

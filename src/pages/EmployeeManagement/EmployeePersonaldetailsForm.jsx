@@ -3,7 +3,6 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar } from "lucide-react";
 import Select from "react-select";
-import FileUpload from "./EmployeeFileUpload";
 
 // Custom styles for Select components (unchanged)
 const genderSelectStyles = {
@@ -125,10 +124,11 @@ const employmentTypeOptions = [
   { value: "contract", label: "Contract" },
 ];
 
-const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDateChange }) => {
-  console.log("EmployeePersonaldetailsForm props:", { formData, errors });
+const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDateChange, isSubmitted }) => {
+  console.log("EmployeePersonaldetailsForm props:", { formData, errors, isSubmitted });
 
   const handleSelectChange = (name) => (selectedOption) => {
+    if (isSubmitted) return; // Prevent changes if submitted
     console.log("handleSelectChange:", { name, value: selectedOption ? selectedOption.value : "" });
     handleChange({ target: { name, value: selectedOption ? selectedOption.value : "" } });
   };
@@ -143,10 +143,11 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           value={formData.fullName || ''}
           onChange={handleChange}
           className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
-            formData.fullName ? 'bg-gray-100 cursor-not-allowed' : ''
+            formData.fullName || isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
           }`}
           placeholder="Enter full name"
-          disabled={!!formData.fullName}
+          disabled={formData.fullName || isSubmitted}
+          readOnly={isSubmitted}
           aria-describedby={errors.fullName ? 'fullName-error' : undefined}
         />
         {errors.fullName && (
@@ -161,8 +162,12 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           name="fatherName"
           value={formData.fatherName || ''}
           onChange={handleChange}
-          className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
+          className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
+            isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
+          }`}
           placeholder="Enter father’s name"
+          disabled={isSubmitted}
+          readOnly={isSubmitted}
         />
         {errors.fatherName && <span className="text-red-500 text-xs mt-1">{errors.fatherName}</span>}
       </div>
@@ -174,8 +179,12 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           name="motherName"
           value={formData.motherName || ''}
           onChange={handleChange}
-          className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
+          className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
+            isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
+          }`}
           placeholder="Enter mother’s name"
+          disabled={isSubmitted}
+          readOnly={isSubmitted}
         />
         {errors.motherName && <span className="text-red-500 text-xs mt-1">{errors.motherName}</span>}
       </div>
@@ -188,10 +197,11 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           value={formData.phone || ''}
           onChange={handleChange}
           className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
-            formData.phone ? 'bg-gray-100 cursor-not-allowed' : ''
+            formData.phone || isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
           }`}
           placeholder="Enter phone number"
-          disabled={!!formData.phone}
+          disabled={formData.phone || isSubmitted}
+          readOnly={isSubmitted}
         />
         {errors.phone && <span className="text-red-500 text-xs mt-1">{errors.phone}</span>}
       </div>
@@ -201,11 +211,13 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
         <div className="relative">
           <DatePicker
             selected={formData.dob ? new Date(formData.dob) : null}
-            onChange={(date) => handleDateChange("dob", date)} 
-            className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 pr-10"
+            onChange={(date) => !isSubmitted && handleDateChange("dob", date)}
+            className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 pr-10 ${
+              isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
+            }`}
             dateFormat="yyyy-MM-dd"
             placeholderText="Select date of birth"
-            disabled
+            disabled={isSubmitted}
             showYearDropdown
             scrollableYearDropdown
             yearDropdownItemNumber={100}
@@ -224,10 +236,11 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           value={formData.email || ''}
           onChange={handleChange}
           className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
-            formData.email ? 'bg-gray-100 cursor-not-allowed' : ''
+            formData.email || isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
           }`}
           placeholder="Enter email"
-          disabled={!!formData.email}
+          disabled={formData.email || isSubmitted}
+          readOnly={isSubmitted}
         />
         {errors.email && <span className="text-red-500 text-xs mt-1">{errors.email}</span>}
       </div>
@@ -242,7 +255,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           styles={genderSelectStyles}
           className="w-full"
           placeholder="Select Gender"
-          isDisabled={!!formData.gender}
+          isDisabled={formData.gender || isSubmitted}
         />
         {errors.gender && <span className="text-red-500 text-xs mt-1">{errors.gender}</span>}
       </div>
@@ -254,9 +267,13 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           name="pan_number"
           value={formData.pan_number || ''}
           onChange={handleChange}
-          className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
+          className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
+            isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
+          }`}
           placeholder="e.g., ABCDE1234F"
           maxLength={10}
+          disabled={isSubmitted}
+          readOnly={isSubmitted}
         />
         {errors.pan_number && <span className="text-red-500 text-xs mt-1">{errors.pan_number}</span>}
       </div>
@@ -268,14 +285,16 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           name="aadhar_number"
           value={formData.aadhar_number || ''}
           onChange={handleChange}
-          className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
+          className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
+            isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
+          }`}
           placeholder="e.g., 123456789012"
           maxLength={12}
+          disabled={isSubmitted}
+          readOnly={isSubmitted}
         />
         {errors.aadhar_number && <span className="text-red-500 text-xs mt-1">{errors.aadhar_number}</span>}
       </div>
-
-  
 
       <div className="flex flex-col col-span-1 sm:col-span-2">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Current Address</label>
@@ -284,15 +303,18 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           name="presentAddress"
           value={formData.presentAddress || ''}
           onChange={handleChange}
-          className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
+          className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
+            isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
+          }`}
           placeholder="Enter present address"
+          disabled={isSubmitted}
+          readOnly={isSubmitted}
         />
         {errors.presentAddress && (
           <span className="text-red-500 text-xs mt-1">{errors.presentAddress}</span>
         )}
       </div>
 
-      {/* Permanent Address */}
       <div className="flex flex-col col-span-1 sm:col-span-2">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Permanent Address</label>
         <input
@@ -300,15 +322,18 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           name="previousAddress"
           value={formData.previousAddress || ''}
           onChange={handleChange}
-          className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
+          className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
+            isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
+          }`}
           placeholder="Enter permanent address"
+          disabled={isSubmitted}
+          readOnly={isSubmitted}
         />
         {errors.previousAddress && (
           <span className="text-red-500 text-xs mt-1">{errors.previousAddress}</span>
         )}
       </div>
 
-      {/* Position Information */}
       <div className="flex flex-col col-span-1 sm:col-span-2">
         <label className="mb-1 text-xs sm:text-sm font-bold text-black tracking-tight">Position Information</label>
         <Select
@@ -319,6 +344,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
           styles={positionTypeSelectStyles}
           className="w-full"
           placeholder="Select Position Type"
+          isDisabled={isSubmitted}
         />
         {errors.positionType && (
           <span className="text-red-500 text-xs mt-1">{errors.positionType}</span>
@@ -334,8 +360,12 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
               name="employerIdName"
               value={formData.employerIdName || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
+              className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
+                isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
+              }`}
               placeholder="Enter employer ID or name"
+              disabled={isSubmitted}
+              readOnly={isSubmitted}
             />
             {errors.employerIdName && (
               <span className="text-red-500 text-xs mt-1">{errors.employerIdName}</span>
@@ -349,8 +379,12 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
               name="positionTitle"
               value={formData.positionTitle || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300"
+              className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 ${
+                isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
+              }`}
               placeholder="Enter position title"
+              disabled={isSubmitted}
+              readOnly={isSubmitted}
             />
             {errors.positionTitle && (
               <span className="text-red-500 text-xs mt-1">{errors.positionTitle}</span>
@@ -367,6 +401,7 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
               styles={employmentTypeSelectStyles}
               className="w-full"
               placeholder="Select Employment Type"
+              isDisabled={isSubmitted}
             />
             {errors.employmentType && (
               <span className="text-red-500 text-xs mt-1">{errors.employmentType}</span>
@@ -378,10 +413,13 @@ const EmployeePersonaldetailsForm = ({ formData, errors, handleChange, handleDat
             <div className="relative">
               <DatePicker
                 selected={formData.contractEndDate ? new Date(formData.contractEndDate) : null}
-                onChange={(date) => handleDateChange("contractEndDate", date)}
-                className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 pr-10"
+                onChange={(date) => !isSubmitted && handleDateChange("contractEndDate", date)}
+                className={`w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent text-gray-900 text-sm sm:text-base transition-all duration-300 pr-10 ${
+                  isSubmitted ? 'bg-gray-100 cursor-not-allowed readonly-field' : ''
+                }`}
                 dateFormat="yyyy-MM-dd"
                 placeholderText="Select contract end date"
+                disabled={isSubmitted}
               />
               <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
             </div>

@@ -5,7 +5,6 @@ const StepNavigation = ({ steps, currentStep, goToStep, handleKeyDown }) => {
 
   return (
     <div className="relative mb-6 sm:mb-8 md:mb-10 w-full">
-      {/* Toggle labels on mobile */}
       <button
         className="sm:hidden mb-4 text-sm text-teal-600 font-semibold focus:outline-none focus:ring-2 focus:ring-teal-600"
         onClick={() => setShowLabels(!showLabels)}
@@ -14,7 +13,6 @@ const StepNavigation = ({ steps, currentStep, goToStep, handleKeyDown }) => {
         {showLabels ? "Hide Labels" : "Show Labels"}
       </button>
 
-      {/* Step container */}
       <div
         className="
           flex items-center justify-between relative 

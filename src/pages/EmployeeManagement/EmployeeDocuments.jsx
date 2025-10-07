@@ -1,7 +1,7 @@
 import React from 'react';
 import FileUpload from './EmployeeFileUpload';
 
-const EmployeeDocuments = ({ formData, errors, handleChange }) => {
+const EmployeeDocuments = ({ formData, errors, handleChange, isSubmitted }) => {
   const documentFields = [
     { name: 'tenthClassDoc', label: '10th Class Document', type: 'tenth_class' },
     { name: 'intermediateDoc', label: 'Intermediate Document', type: 'intermediate' },
@@ -36,6 +36,11 @@ const EmployeeDocuments = ({ formData, errors, handleChange }) => {
     return { preview: null, isPdf: false };
   };
 
+  const handleFileChange = (e) => {
+    if (isSubmitted) return; // Prevent changes if submitted
+    handleChange(e);
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {documentFields.map(({ name, label }) => {
@@ -44,11 +49,12 @@ const EmployeeDocuments = ({ formData, errors, handleChange }) => {
           <div key={name} className="flex flex-col col-span-2">
             <FileUpload
               name={name}
-              onChange={handleChange}
+              onChange={handleFileChange}
               accept=".pdf,.jpg,.png"
               label={label}
               preview={preview}
               isPdf={isPdf}
+              isSubmitted={isSubmitted}
             />
             {formData[name] && typeof formData[name] === 'string' && (
               <p className="mt-2 text-sm text-gray-600">

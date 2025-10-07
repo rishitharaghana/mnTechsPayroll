@@ -50,170 +50,155 @@ const EmployeeDetails = () => {
   } = useSelector((state) => state.employee);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    employee_id: "",
-    fullName: "",
-    fatherName: "",
-    motherName: "",
-    phone: "",
-    email: "",
-    gender: "",
-    pan_number: "",
-    aadhar_number: "",
-    image: null,
-    presentAddress: "",
-    previousAddress: "",
-    positionType: "",
-    employerIdName: "",
-    positionTitle: "",
-    employmentType: "",
-    contractEndDate: "",
-    dob: "",
-    bloodGroup: "",
-    basicSalary: "",
-    allowances: "",
-    bonuses: "",
-    department: "",
-    position: "",
-    tenthClassName: "",
-    tenthClassMarks: "",
-    intermediateName: "",
-    intermediateMarks: "",
-    graduationName: "",
-    graduationMarks: "",
-    postgraduationName: "",
-    postgraduationMarks: "",
-    tenthClassDoc: null,
-    intermediateDoc: null,
-    graduationDoc: null,
-    postgraduationDoc: null,
-    aadharDoc: null,
-    panDoc: null,
-    ifscNumber: "",
-    bankACnumber: "",
+  const [isSubmitted, setIsSubmitted] = useState(() => {
+    // Check localStorage for submission status
+    const savedEmployeeId = localStorage.getItem("employee_id");
+    return savedEmployeeId
+      ? localStorage.getItem(`form_submitted_${savedEmployeeId}`) === "true"
+      : false;
+  });
+  const [formData, setFormData] = useState(() => {
+    const savedEmployeeId = localStorage.getItem("employee_id");
+    return {
+      employee_id: savedEmployeeId || `TEMP_${Date.now()}`,
+      fullName: "",
+      fatherName: "",
+      motherName: "",
+      phone: "",
+      email: "",
+      gender: "",
+      pan_number: "",
+      aadhar_number: "",
+      image: null,
+      presentAddress: "",
+      previousAddress: "",
+      positionType: "",
+      employerIdName: "",
+      positionTitle: "",
+      employmentType: "",
+      contractEndDate: "",
+      dob: "",
+      bloodGroup: "",
+      basicSalary: "",
+      allowances: "",
+      bonuses: "",
+      department: "",
+      position: "",
+      tenthClassName: "",
+      tenthClassMarks: "",
+      intermediateName: "",
+      intermediateMarks: "",
+      graduationName: "",
+      graduationMarks: "",
+      postgraduationName: "",
+      postgraduationMarks: "",
+      tenthClassDoc: null,
+      intermediateDoc: null,
+      graduationDoc: null,
+      postgraduationDoc: null,
+      aadharDoc: null,
+      panDoc: null,
+      ifscNumber: "",
+      bankACnumber: "",
+    };
   });
   const [errors, setErrors] = useState({});
   const isInitialFetchDone = useRef(false);
 
-  // Initial data fetch with error handling
+  // Persist employee_id in localStorage
+  useEffect(() => {
+    localStorage.setItem("employee_id", formData.employee_id);
+  }, [formData.employee_id]);
+
+  // Initial data fetch
   useEffect(() => {
     if (isInitialFetchDone.current) return;
 
-    const userToken = localStorage.getItem("userToken");
-    if (!userToken) {
-      setErrors({ general: "You are not logged in. Redirecting to login page..." });
-      setTimeout(() => navigate("/login"), 2000);
-      return;
-    }
-    try {
-      const parsedToken = JSON.parse(userToken);
-      const { employee_id, role } = parsedToken;
-      const effectiveEmployeeId = employee_id || profile?.employee_id;
-      if (!effectiveEmployeeId) {
-        setErrors({
-          general: "Authentication error: Employee ID is missing. Redirecting to login page...",
-        });
-        localStorage.removeItem("userToken");
-        setTimeout(() => navigate("/login"), 2000);
-        return;
-      }
-      console.log("Dispatching profile, progress, and details fetches", {
-        employee_id: effectiveEmployeeId,
-        role,
-      });
+    const employee_id = formData.employee_id;
+    console.log("Dispatching profile, progress, and details fetches", { employee_id });
 
-      dispatch(getCurrentUserProfile());
-      dispatch(getEmployeeProgress());
-      dispatch(fetchEmployeePersonalDetails(effectiveEmployeeId)).catch((err) => {
-        console.error("Personal details fetch failed:", err);
+    dispatch(getCurrentUserProfile());
+    dispatch(getEmployeeProgress());
+    dispatch(fetchEmployeePersonalDetails(employee_id)).catch((err) => {
+      console.error("Personal details fetch failed:", err);
+      setErrors((prev) => ({
+        ...prev,
+        personalDetails: "Unable to fetch personal details. You can still proceed.",
+      }));
+    });
+    Promise.all([
+      dispatch(fetchEmployeeEducationDetails(employee_id)).catch((err) => {
+        console.error("Education details fetch failed:", err);
         setErrors((prev) => ({
           ...prev,
-          personalDetails: "Unable to fetch personal details. Please try again.",
+          educationDetails: "Education details not found. Please add them.",
         }));
-      });
-      Promise.all([
-        dispatch(fetchEmployeeEducationDetails(effectiveEmployeeId)).catch((err) => {
-          console.error("Education details fetch failed:", err);
-          setErrors((prev) => ({
-            ...prev,
-            educationDetails: "Education details are restricted for your role.",
-          }));
-        }),
-        dispatch(fetchEmployeeDocuments(effectiveEmployeeId)).catch((err) => {
-          console.error("Documents fetch failed:", err);
-          setErrors((prev) => ({
-            ...prev,
-            documents: "Unable to fetch documents. Please try again.",
-          }));
-        }),
-        dispatch(fetchEmployeeBankDetails(effectiveEmployeeId)).catch((err) => {
-          console.error("Bank details fetch failed:", err);
-          setErrors((prev) => ({
-            ...prev,
-            bankDetails: "Unable to fetch bank details. Please try again.",
-          }));
-        }),
-      ]).then(() => {
-        isInitialFetchDone.current = true;
-      });
-    } catch (err) {
-      setErrors({
-        general: "Authentication error: Invalid token format. Redirecting to login page...",
-      });
-      localStorage.removeItem("userToken");
-      setTimeout(() => navigate("/login"), 2000);
-      console.error("Token parsing error:", err);
-    }
-  }, [dispatch, navigate, profile]);
+      }),
+      dispatch(fetchEmployeeDocuments(employee_id)).catch((err) => {
+        console.error("Documents fetch failed:", err);
+        setErrors((prev) => ({
+          ...prev,
+          documents: "Unable to fetch documents. You can still proceed.",
+        }));
+      }),
+      dispatch(fetchEmployeeBankDetails(employee_id)).catch((err) => {
+        console.error("Bank details fetch failed:", err);
+        setErrors((prev) => ({
+          ...prev,
+          bankDetails: "Unable to fetch bank details. You can still proceed.",
+        }));
+      }),
+    ]).then(() => {
+      isInitialFetchDone.current = true;
+    });
+  }, [dispatch, formData.employee_id]);
 
-  // Populate formData with robust logging
+  // Populate formData with fetched data
   useEffect(() => {
     if (!profile && !personalDetails && !educationDetails && !documents && !bankDetails) {
       console.log("No data available yet for formData update");
       return;
     }
-    console.log("Raw personalDetails:", JSON.stringify(personalDetails, null, 2));
-    console.log("personalDetails keys:", Object.keys(personalDetails || {}));
     const newFormData = {
-      employee_id: profile?.employee_id || "",
-      fullName: profile?.full_name || "",
-      email: profile?.email || "",
-      phone: profile?.mobile || "",
-      gender: profile?.gender || "",
-      dob: profile?.dob || "",
-      bloodGroup: profile?.blood_group || "",
-      department: profile?.department_name || "",
-      position: profile?.designation_name || "",
-      basicSalary: profile?.basic_salary || "",
-      allowances: profile?.allowances || "",
-      bonuses: profile?.bonuses || "",
-      fatherName: personalDetails?.father_name || "",
-      motherName: personalDetails?.mother_name || "",
-      presentAddress: personalDetails?.present_address || "",
-      previousAddress: personalDetails?.previous_address || "",
-      positionType: personalDetails?.position_type || "",
-      employerIdName: personalDetails?.employer_id_name || "",
-      positionTitle: personalDetails?.position_title || "",
-      employmentType: personalDetails?.employment_type || "",
-      contractEndDate: personalDetails?.contract_end_date || "",
-      pan_number: personalDetails?.pan_number || "",
-      aadhar_number: personalDetails?.aadhar_number || "",
-      tenthClassName: educationDetails?.tenth_class_name || "",
-      tenthClassMarks: educationDetails?.tenth_class_marks || "",
-      intermediateName: educationDetails?.intermediate_name || "",
-      intermediateMarks: educationDetails?.intermediate_marks || "",
-      graduationName: educationDetails?.graduation_name || "",
-      graduationMarks: educationDetails?.graduation_marks || "",
-      postgraduationName: educationDetails?.postgraduation_name || "",
-      postgraduationMarks: educationDetails?.postgraduation_marks || "",
-      ifscNumber: bankDetails?.ifsc_number || "",
-      bankACnumber: bankDetails?.bank_account_number || "",
-      tenthClassDoc: documents?.find(doc => doc.document_type === "tenth_class")?.file_path || null,
-      intermediateDoc: documents?.find(doc => doc.document_type === "intermediate")?.file_path || null,
-      graduationDoc: documents?.find(doc => doc.document_type === "graduation")?.file_path || null,
-      postgraduationDoc: documents?.find(doc => doc.document_type === "postgraduation")?.file_path || null,
-      aadharDoc: documents?.find(doc => doc.document_type === "aadhar")?.file_path || null,
-      panDoc: documents?.find(doc => doc.document_type === "pan")?.file_path || null,
+      employee_id: profile?.employee_id || formData.employee_id,
+      fullName: profile?.full_name || formData.fullName,
+      email: profile?.email || formData.email,
+      phone: profile?.mobile || formData.phone,
+      gender: profile?.gender || formData.gender,
+      dob: profile?.dob || formData.dob,
+      bloodGroup: profile?.blood_group || formData.bloodGroup,
+      department: profile?.department_name || formData.department,
+      position: profile?.designation_name || formData.position,
+      basicSalary: profile?.basic_salary || formData.basicSalary,
+      allowances: profile?.allowances || formData.allowances,
+      bonuses: profile?.bonuses || formData.bonuses,
+      fatherName: personalDetails?.father_name || formData.fatherName,
+      motherName: personalDetails?.mother_name || formData.motherName,
+      presentAddress: personalDetails?.present_address || formData.presentAddress,
+      previousAddress: personalDetails?.previous_address || formData.previousAddress,
+      positionType: personalDetails?.position_type || formData.positionType,
+      employerIdName: personalDetails?.employer_id_name || formData.employerIdName,
+      positionTitle: personalDetails?.position_title || formData.positionTitle,
+      employmentType: personalDetails?.employment_type || formData.employmentType,
+      contractEndDate: personalDetails?.contract_end_date || formData.contractEndDate,
+      pan_number: personalDetails?.pan_number || formData.pan_number,
+      aadhar_number: personalDetails?.aadhar_number || formData.aadhar_number,
+      tenthClassName: educationDetails?.tenth_class_name || formData.tenthClassName,
+      tenthClassMarks: educationDetails?.tenth_class_marks || formData.tenthClassMarks,
+      intermediateName: educationDetails?.intermediate_name || formData.intermediateName,
+      intermediateMarks: educationDetails?.intermediate_marks || formData.intermediateMarks,
+      graduationName: educationDetails?.graduation_name || formData.graduationName,
+      graduationMarks: educationDetails?.graduation_marks || formData.graduationMarks,
+      postgraduationName: educationDetails?.postgraduation_name || formData.postgraduationName,
+      postgraduationMarks: educationDetails?.postgraduation_marks || formData.postgraduationMarks,
+      ifscNumber: bankDetails?.ifsc_number || formData.ifscNumber,
+      bankACnumber: bankDetails?.bank_account_number || formData.bankACnumber,
+      tenthClassDoc: documents?.find(doc => doc.document_type === "tenth_class")?.file_path || formData.tenthClassDoc,
+      intermediateDoc: documents?.find(doc => doc.document_type === "intermediate")?.file_path || formData.intermediateDoc,
+      graduationDoc: documents?.find(doc => doc.document_type === "graduation")?.file_path || formData.graduationDoc,
+      postgraduationDoc: documents?.find(doc => doc.document_type === "postgraduation")?.file_path || formData.postgraduationDoc,
+      aadharDoc: documents?.find(doc => doc.document_type === "aadhar")?.file_path || formData.aadharDoc,
+      panDoc: documents?.find(doc => doc.document_type === "pan")?.file_path || formData.panDoc,
     };
     if (JSON.stringify(newFormData) !== JSON.stringify(formData)) {
       setFormData(newFormData);
@@ -221,20 +206,8 @@ const EmployeeDetails = () => {
     }
   }, [profile, personalDetails, educationDetails, documents, bankDetails]);
 
-  // Handle progress navigation only on initial load
-  useEffect(() => {
-    if (progress && !isInitialFetchDone.current) {
-      let stepIndex = 0;
-      if (progress.personalDetails) stepIndex = 1;
-      if (progress.educationDetails) stepIndex = 2;
-      if (progress.documents) stepIndex = 3;
-      if (progress.bankDetails) stepIndex = 4;
-      console.log("Setting initial step based on progress:", stepIndex);
-      setCurrentStep(stepIndex);
-    }
-  }, [progress]);
-
   const handleChange = (e) => {
+    if (isSubmitted) return; // Prevent changes after submission
     const { name, value, type, files } = e.target;
     console.log("handleChange:", { name, value, type, files: files ? files[0] : null });
     if (type === "file" && files[0]) {
@@ -247,6 +220,7 @@ const EmployeeDetails = () => {
   };
 
   const handleDateChange = (name, date) => {
+    if (isSubmitted) return; // Prevent changes after submission
     if (date && !isNaN(date)) {
       const updatedFormData = {
         ...formData,
@@ -262,6 +236,7 @@ const EmployeeDetails = () => {
   };
 
   const validateStep = (stepIndex) => {
+    if (isSubmitted) return true; // Skip validation if already submitted
     const newErrors = {};
     switch (stepIndex) {
       case 0: {
@@ -339,6 +314,7 @@ const EmployeeDetails = () => {
         docFields.forEach((field) => {
           if (
             formData[field] &&
+            formData[field] instanceof File &&
             !["image/jpeg", "image/png", "application/pdf"].includes(
               formData[field].type
             )
@@ -373,233 +349,168 @@ const EmployeeDetails = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const submitStep = async (stepIndex) => {
+  const submitAllSteps = async () => {
     try {
-      const userToken = JSON.parse(localStorage.getItem("userToken"));
-      const employee_id = userToken?.employee_id || profile?.employee_id;
+      const employee_id = formData.employee_id;
       if (!employee_id) {
-        setErrors({ general: "Employee ID not found. Please log in again." });
-        console.error("submitStep: No employee_id found");
-        return false;
+        throw new Error("Employee ID is required and cannot be undefined");
       }
 
-      switch (stepIndex) {
-        case 0: {
-          const personalData = {
-            employee_id,
-            fullName: formData.fullName,
-            fatherName: formData.fatherName,
-            motherName: formData.motherName,
-            phone: formData.phone,
-            email: formData.email,
-            gender: formData.gender,
-            pan_number: formData.pan_number,
-            aadhar_number: formData.aadhar_number,
-            presentAddress: formData.presentAddress,
-            previousAddress: formData.previousAddress,
-            positionType: formData.positionType,
-            employerIdName: formData.employerIdName,
-            positionTitle: formData.positionTitle,
-            employmentType: formData.employmentType,
-            contractEndDate: formData.contractEndDate,
-            dob: formData.dob,
-            bloodGroup: formData.bloodGroup,
-          };
-          console.log("submitStep: Submitting personal details:", personalData);
-          let action;
-          if (progress?.personalDetails) {
-            console.log("submitStep: Updating personal details");
-            action = await dispatch(updateEmployeePersonalDetails(personalData)).unwrap();
-          } else {
-            console.log("submitStep: Creating personal details");
-            action = await dispatch(createEmployeePersonalDetails(personalData)).unwrap();
-          }
-          console.log("submitStep: Submission response:", action);
-          await dispatch(fetchEmployeePersonalDetails(employee_id)).unwrap();
-          setErrors({ general: action.message });
-          return true;
-        }
-        case 1: {
-          try {
-            const educationData = {
-              employee_id,
-              tenthClassName: formData.tenthClassName,
-              tenthClassMarks: formData.tenthClassMarks,
-              intermediateName: formData.intermediateName,
-              intermediateMarks: formData.intermediateMarks,
-              graduationName: formData.graduationName,
-              graduationMarks: formData.graduationMarks,
-              postgraduationName: formData.postgraduationName,
-              postgraduationMarks: formData.postgraduationMarks,
-            };
-            console.log("submitStep: Submitting education details:", educationData);
-            let action;
-            if (progress?.educationDetails) {
-              action = await dispatch(updateEducationDetails(educationData)).unwrap();
-            } else {
-              action = await dispatch(createEducationDetails(educationData)).unwrap();
-            }
-            await dispatch(fetchEmployeeEducationDetails(employee_id)).unwrap();
-            setErrors({ general: action.message });
-            return true;
-          } catch (err) {
-            console.error("submitStep: Education submission error:", err);
-            if (err.message?.includes("Access denied")) {
-              setErrors({
-                general: "Education details are restricted. Proceeding to Documents step.",
-              });
-              return true; // Allow progression to next step
-            }
-            throw err;
-          }
-        }
-        case 2: {
-          const docFields = [
-            { field: "tenthClassDoc", documentType: "tenth_class" },
-            { field: "intermediateDoc", documentType: "intermediate" },
-            { field: "graduationDoc", documentType: "graduation" },
-            { field: "postgraduationDoc", documentType: "postgraduation" },
-            { field: "aadharDoc", documentType: "aadhar" },
-            { field: "panDoc", documentType: "pan" },
-          ];
-          let hasNewDocuments = false;
-          for (const { field, documentType } of docFields) {
-            if (formData[field] && formData[field] instanceof File) {
-              console.log("submitStep: Submitting document:", { documentType, file: formData[field] });
-              await dispatch(
-                createDocuments({
-                  employeeId: employee_id,
-                  documentType,
-                  file: formData[field],
-                })
-              ).unwrap();
-              hasNewDocuments = true;
-            }
-          }
-          if (hasNewDocuments) {
-            await dispatch(fetchEmployeeDocuments(employee_id)).unwrap();
-            setErrors({ general: "Documents saved successfully!" });
-          } else {
-            setErrors({ general: "No new documents to submit." });
-          }
-          return true;
-        }
-        case 3: {
-          const bankData = {
-            employee_id,
-            bankAccountNumber: formData.bankACnumber,
-            ifscCode: formData.ifscNumber,
-          };
-          console.log("submitStep: Submitting bank details:", bankData);
-          let action;
-          if (progress?.bankDetails) {
-            action = await dispatch(updateBankDetails(bankData)).unwrap();
-          } else {
-            action = await dispatch(createBankDetails(bankData)).unwrap();
-          }
-          await dispatch(fetchEmployeeBankDetails(employee_id)).unwrap();
-          setErrors({ general: action.message });
-          return true;
-        }
-        default:
-          return true;
+      // Submit Personal Details
+      const personalData = {
+        employee_id,
+        fullName: formData.fullName,
+        fatherName: formData.fatherName,
+        motherName: formData.motherName,
+        phone: formData.phone,
+        email: formData.email,
+        gender: formData.gender,
+        pan_number: formData.pan_number,
+        aadhar_number: formData.aadhar_number,
+        presentAddress: formData.presentAddress,
+        previousAddress: formData.previousAddress,
+        positionType: formData.positionType,
+        employerIdName: formData.employerIdName,
+        positionTitle: formData.positionTitle,
+        employmentType: formData.employmentType,
+        contractEndDate: formData.contractEndDate,
+        dob: formData.dob,
+        bloodGroup: formData.bloodGroup,
+      };
+      let personalAction;
+      if (progress?.personalDetails) {
+        personalAction = await dispatch(updateEmployeePersonalDetails(personalData)).unwrap();
+      } else {
+        personalAction = await dispatch(createEmployeePersonalDetails(personalData)).unwrap();
       }
+
+      // Submit Education Details
+      const educationData = {
+        employee_id,
+        tenthClassName: formData.tenthClassName,
+        tenthClassMarks: formData.tenthClassMarks,
+        intermediateName: formData.intermediateName,
+        intermediateMarks: formData.intermediateMarks,
+        graduationName: formData.graduationName,
+        graduationMarks: formData.graduationMarks,
+        postgraduationName: formData.postgraduationName,
+        postgraduationMarks: formData.postgraduationMarks,
+      };
+      let educationAction;
+      if (progress?.educationDetails) {
+        educationAction = await dispatch(updateEducationDetails(educationData)).unwrap();
+      } else {
+        educationAction = await dispatch(createEducationDetails(educationData)).unwrap();
+      }
+
+      // Submit Documents
+      const docFields = [
+        { field: "tenthClassDoc", documentType: "tenth_class" },
+        { field: "intermediateDoc", documentType: "intermediate" },
+        { field: "graduationDoc", documentType: "graduation" },
+        { field: "postgraduationDoc", documentType: "postgraduation" },
+        { field: "aadharDoc", documentType: "aadhar" },
+        { field: "panDoc", documentType: "pan" },
+      ];
+      let hasNewDocuments = false;
+      for (const { field, documentType } of docFields) {
+        if (formData[field] && formData[field] instanceof File) {
+          await dispatch(
+            createDocuments({
+              employeeId: employee_id,
+              documentType,
+              file: formData[field],
+            })
+          ).unwrap();
+          hasNewDocuments = true;
+        }
+      }
+
+      const bankData = {
+        employee_id,
+        bankAccountNumber: formData.bankACnumber,
+        ifscCode: formData.ifscNumber,
+      };
+      let bankAction;
+      if (progress?.bankDetails) {
+        bankAction = await dispatch(updateBankDetails(bankData)).unwrap();
+      } else {
+        bankAction = await dispatch(createBankDetails(bankData)).unwrap();
+      }
+
+      // Refresh all data after submission
+      await Promise.all([
+        dispatch(fetchEmployeePersonalDetails(employee_id)),
+        dispatch(fetchEmployeeEducationDetails(employee_id)),
+        dispatch(fetchEmployeeDocuments(employee_id)),
+        dispatch(fetchEmployeeBankDetails(employee_id)),
+        dispatch(getEmployeeProgress()),
+      ]);
+
+      // Mark form as submitted
+      setIsSubmitted(true);
+      localStorage.setItem(`form_submitted_${employee_id}`, "true");
+
+      setErrors({ general: "All details submitted successfully!" });
+      return true;
     } catch (err) {
-      const errorMessage = err.message || "Failed to submit step";
+      const errorMessage = err.message || "Failed to submit all details. Please try again.";
       setErrors({ general: errorMessage });
-      console.error("submitStep: Submission error:", err);
+      console.error("submitAllSteps: Submission error:", err);
       return false;
     }
   };
-const nextStep = async () => {
-  console.log("nextStep: Starting for currentStep", currentStep, "with formData keys:", Object.keys(formData));
-  if (currentStep >= steps.length - 1) {
-    console.log("nextStep: Already at last step");
-    return;
-  }
 
-  const isValid = validateStep(currentStep);
-  console.log("nextStep: Validation passed?", isValid, "Errors:", errors);
-  if (!isValid) return;
-
-  const success = await submitStep(currentStep);
-  console.log("nextStep: submitStep success?", success);
-  if (success) {
-    const nextStepIndex = currentStep + 1;
-    if (nextStepIndex === 1) { // Special handling for Education
-      try {
-        const employee_id = JSON.parse(localStorage.getItem("userToken"))?.employee_id || profile?.employee_id;
-        console.log("nextStep: Fetching education for employee_id", employee_id);
-        await dispatch(fetchEmployeeEducationDetails(employee_id)).unwrap();
-        setCurrentStep(nextStepIndex);
-      } catch (err) {
-        console.warn("nextStep: Education fetch failed, skipping to step 2:", err.message);
-        setErrors({
-          general: "Education details are restricted. Proceeding to Documents step.",
-        });
-        setCurrentStep(2); // Skip to Documents
-        return;
-      }
-    } else {
-      setCurrentStep(nextStepIndex);
+  const nextStep = () => {
+    if (isSubmitted || currentStep >= steps.length - 1) {
+      console.log("nextStep: Blocked - Form submitted or at last step");
+      return;
     }
-    
-    // Refresh progress after advance
-    try {
-      await dispatch(getEmployeeProgress()).unwrap();
-      console.log("nextStep: Progress refreshed");
-    } catch (progressErr) {
-      console.warn("nextStep: Progress refresh failed (non-blocking):", progressErr);
-    }
-    
-    console.log("nextStep: Advanced to step", nextStepIndex);
-  } else {
-    console.log("nextStep: Blocked due to submission failure");
-    // Optional: Auto-retry once after 1s for transient errors (e.g., network)
-    // if (!errors.general?.includes("network") && !errors.general?.includes("server")) {
-    //   setTimeout(() => {
-    //     console.log("nextStep: Auto-retrying...");
-    //     nextStep();
-    //   }, 1000);
-    // }
-  }
-};
 
-  const prevStep = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 0));
+    const isValid = validateStep(currentStep);
+    if (!isValid) return;
+
+    setCurrentStep(currentStep + 1);
+    setErrors({});
+    console.log("nextStep: Advanced to step", currentStep + 1);
   };
 
-  const goToStep = async (index) => {
+  const prevStep = () => {
+    if (isSubmitted) {
+      console.log("prevStep: Blocked - Form submitted");
+      return;
+    }
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+    setErrors({});
+    console.log("prevStep: Moved to step", Math.max(currentStep - 1, 0));
+  };
+
+  const goToStep = (index) => {
+    if (isSubmitted && index !== steps.length - 1) {
+      console.log("goToStep: Blocked - Form submitted, only preview allowed");
+      return;
+    }
+
     if (index === steps.length - 1) {
       setIsPreviewOpen(true);
-    } else {
-      if (currentStep !== index && validateStep(currentStep)) {
-        const success = await submitStep(currentStep);
-        if (success) {
-          if (index === 1) {
-            try {
-              const employee_id = JSON.parse(localStorage.getItem("userToken"))?.employee_id || profile?.employee_id;
-              console.log("goToStep: Fetching education details for employee_id", employee_id);
-              await dispatch(fetchEmployeeEducationDetails(employee_id)).unwrap();
-              setCurrentStep(index);
-            } catch (err) {
-              console.warn("goToStep: Cannot navigate to Education Details due to access restriction:", err);
-              setErrors({
-                general: "Education details are restricted. Please select another step.",
-              });
-              return;
-            }
-          } else {
-            setCurrentStep(index);
-          }
-        }
-      } else {
-        setCurrentStep(index);
+      return;
+    }
+
+    if (currentStep !== index) {
+      const isValid = validateStep(currentStep);
+      if (!isValid) {
+        console.log("goToStep: Validation failed for current step", currentStep);
+        return;
       }
     }
+
+    setCurrentStep(index);
+    setErrors({});
+    console.log("goToStep: Moved to step", index);
   };
 
   const handleKeyDown = (e, index) => {
+    if (isSubmitted) return;
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       goToStep(index);
@@ -608,16 +519,27 @@ const nextStep = async () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const employee_id = profile?.employee_id || formData.employee_id;
-    if (!employee_id) {
-      setErrors({ general: "Please log in to submit details." });
+    if (isSubmitted) {
+      console.log("handleSubmit: Blocked - Form already submitted");
+      setIsPreviewOpen(true);
       return;
     }
-    if (validateStep(currentStep)) {
-      const success = await submitStep(currentStep);
-      if (success) {
-        setIsPreviewOpen(true);
-      }
+
+    console.log("handleSubmit: Starting submission for step", currentStep);
+    if (currentStep !== steps.length - 1) {
+      nextStep();
+      return;
+    }
+
+    const isValid = validateStep(currentStep);
+    if (!isValid) return;
+
+    const success = await submitAllSteps();
+    if (success) {
+      setIsPreviewOpen(true);
+      console.log("handleSubmit: Submission successful, opening preview");
+    } else {
+      console.log("handleSubmit: Submission failed");
     }
   };
 
@@ -628,6 +550,7 @@ const nextStep = async () => {
 
   const closePreview = () => {
     setIsPreviewOpen(false);
+    console.log("closePreview: Preview closed");
   };
 
   return (
@@ -684,6 +607,11 @@ const nextStep = async () => {
           <h2 className="text-xl sm:text-2xl font-bold text-center text-gray-900 mb-8 tracking-tight">
             Employee Details Form
           </h2>
+          {/* {isSubmitted && (
+            <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg text-center">
+              Form has been successfully submitted and is now locked for editing.
+            </div>
+          )} */}
           {errors.general && errors.general.includes("successfully") ? (
             <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg text-center">
               {errors.general}
@@ -694,18 +622,13 @@ const nextStep = async () => {
                 {errors.general}
                 <button
                   onClick={() => {
-                    const userToken = JSON.parse(localStorage.getItem("userToken"));
-                    const effectiveEmployeeId = userToken?.employee_id || profile?.employee_id;
-                    if (effectiveEmployeeId) {
-                      dispatch(getCurrentUserProfile());
-                      dispatch(fetchEmployeePersonalDetails(effectiveEmployeeId));
-                      dispatch(fetchEmployeeEducationDetails(effectiveEmployeeId));
-                      dispatch(fetchEmployeeDocuments(effectiveEmployeeId));
-                      dispatch(fetchEmployeeBankDetails(effectiveEmployeeId));
-                      setErrors({});
-                    } else {
-                      navigate("/login");
-                    }
+                    const employee_id = formData.employee_id;
+                    dispatch(getCurrentUserProfile());
+                    dispatch(fetchEmployeePersonalDetails(employee_id));
+                    dispatch(fetchEmployeeEducationDetails(employee_id));
+                    dispatch(fetchEmployeeDocuments(employee_id));
+                    dispatch(fetchEmployeeBankDetails(employee_id));
+                    setErrors({});
                   }}
                   className="text-blue-600 underline hover:text-blue-800"
                 >
@@ -756,16 +679,11 @@ const nextStep = async () => {
               Loading...
             </div>
           )}
-          {!loading && !error && !profile && (
-            <div className="mb-4 p-4 bg-yellow-100 text-yellow-700 rounded-lg text-center">
-              No employee data available. Please ensure you are logged in.
-            </div>
-          )}
           <StepNavigation
             steps={steps}
             currentStep={currentStep}
-            goToStep={goToStep}
-            handleKeyDown={handleKeyDown}
+            goToStep={isSubmitted && currentStep !== steps.length - 1 ? () => {} : goToStep}
+            handleKeyDown={isSubmitted ? () => {} : handleKeyDown}
           />
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="step-transition" key={currentStep}>
@@ -775,6 +693,7 @@ const nextStep = async () => {
                   errors={errors}
                   handleChange={handleChange}
                   handleDateChange={handleDateChange}
+                  isSubmitted={isSubmitted}
                 />
               )}
               {currentStep === 1 && (
@@ -782,6 +701,7 @@ const nextStep = async () => {
                   formData={formData}
                   errors={errors}
                   handleChange={handleChange}
+                  isSubmitted={isSubmitted}
                 />
               )}
               {currentStep === 2 && (
@@ -789,6 +709,7 @@ const nextStep = async () => {
                   formData={formData}
                   errors={errors}
                   handleChange={handleChange}
+                  isSubmitted={isSubmitted}
                 />
               )}
               {currentStep === 3 && (
@@ -796,52 +717,43 @@ const nextStep = async () => {
                   formData={formData}
                   errors={errors}
                   handleChange={handleChange}
+                  isSubmitted={isSubmitted}
                 />
               )}
               {currentStep === 4 && (
                 <div className="col-span-2 flex justify-center items-center">
                   <button
-                    type="button"
-                    onClick={openPreview}
-                    className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 text-sm font-medium"
-                    disabled={!profile}
+                    type="submit"
+                    disabled={loading || isSubmitted}
+                    className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   >
-                    View Preview
+                    {loading ? "Submitting..." : isSubmitted ? "View Preview" : "Submit and Preview"}
                   </button>
                 </div>
               )}
             </div>
-            <div className="flex justify-between mt-8">
-              <button
-                type="button"
-                onClick={prevStep}
-                disabled={currentStep === 0}
-                className="px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-800 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 text-sm font-medium"
-                aria-label="Previous step"
-              >
-                Back
-              </button>
-              {currentStep < steps.length - 1 ? (
+            {currentStep < steps.length - 1 && (
+              <div className="flex justify-between mt-8">
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  disabled={currentStep === 0 || isSubmitted}
+                  className="px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-800 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 text-sm font-medium"
+                  aria-label="Previous step"
+                >
+                  Back
+                </button>
                 <button
                   type="button"
                   onClick={nextStep}
-                  disabled={loading || !profile}
+                  disabled={loading || isSubmitted}
                   className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   aria-label="Next step"
                 >
                   {loading ? "Processing..." : "Next"}
                 </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={loading || !profile}
-                  className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                  aria-label="Submit form"
-                >
-                  {loading ? "Submitting..." : "Submit"}
-                </button>
-              )}
-            </div>
+              </div>
+            )}
           </form>
         </div>
       </div>
