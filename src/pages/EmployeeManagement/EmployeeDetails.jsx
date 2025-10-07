@@ -51,16 +51,16 @@ const EmployeeDetails = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(() => {
-    // Check localStorage for submission status
     const savedEmployeeId = localStorage.getItem("employee_id");
     return savedEmployeeId
       ? localStorage.getItem(`form_submitted_${savedEmployeeId}`) === "true"
       : false;
   });
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false); // New state for success message
   const [formData, setFormData] = useState(() => {
-    const savedEmployeeId = localStorage.getItem("employee_id");
+    const savedEmployeeId = localStorage.getItem("employee_id") || `TEMP_${Date.now()}`;
     return {
-      employee_id: savedEmployeeId || `TEMP_${Date.now()}`,
+      employee_id: savedEmployeeId,
       fullName: "",
       fatherName: "",
       motherName: "",
@@ -108,7 +108,19 @@ const EmployeeDetails = () => {
   // Persist employee_id in localStorage
   useEffect(() => {
     localStorage.setItem("employee_id", formData.employee_id);
+    console.log("useEffect: employee_id set", { employee_id: formData.employee_id, isSubmitted });
   }, [formData.employee_id]);
+
+  // Auto-hide success message after 5 seconds
+  useEffect(() => {
+    if (showSuccessMessage) {
+      const timer = setTimeout(() => {
+        setShowSuccessMessage(false);
+        console.log("Success message hidden after timeout");
+      }, 5000); // 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessMessage]);
 
   // Initial data fetch
   useEffect(() => {
@@ -207,7 +219,7 @@ const EmployeeDetails = () => {
   }, [profile, personalDetails, educationDetails, documents, bankDetails]);
 
   const handleChange = (e) => {
-    if (isSubmitted) return; // Prevent changes after submission
+    if (isSubmitted) return;
     const { name, value, type, files } = e.target;
     console.log("handleChange:", { name, value, type, files: files ? files[0] : null });
     if (type === "file" && files[0]) {
@@ -220,7 +232,7 @@ const EmployeeDetails = () => {
   };
 
   const handleDateChange = (name, date) => {
-    if (isSubmitted) return; // Prevent changes after submission
+    if (isSubmitted) return;
     if (date && !isNaN(date)) {
       const updatedFormData = {
         ...formData,
@@ -236,7 +248,7 @@ const EmployeeDetails = () => {
   };
 
   const validateStep = (stepIndex) => {
-    if (isSubmitted) return true; // Skip validation if already submitted
+    if (isSubmitted) return true;
     const newErrors = {};
     switch (stepIndex) {
       case 0: {
@@ -344,7 +356,7 @@ const EmployeeDetails = () => {
       default:
         break;
     }
-    console.log("Validation errors:", newErrors);
+    console.log("Validation errors for step", stepIndex, ":", newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -426,6 +438,7 @@ const EmployeeDetails = () => {
         }
       }
 
+      // Submit Bank Details
       const bankData = {
         employee_id,
         bankAccountNumber: formData.bankACnumber,
@@ -447,11 +460,12 @@ const EmployeeDetails = () => {
         dispatch(getEmployeeProgress()),
       ]);
 
-      // Mark form as submitted
+      // Mark form as submitted and show success message
       setIsSubmitted(true);
       localStorage.setItem(`form_submitted_${employee_id}`, "true");
-
+      setShowSuccessMessage(true);
       setErrors({ general: "All details submitted successfully!" });
+      console.log("submitAllSteps: Submission successful");
       return true;
     } catch (err) {
       const errorMessage = err.message || "Failed to submit all details. Please try again.";
@@ -462,41 +476,44 @@ const EmployeeDetails = () => {
   };
 
   const nextStep = () => {
-    if (isSubmitted || currentStep >= steps.length - 1) {
-      console.log("nextStep: Blocked - Form submitted or at last step");
+    if (isSubmitted && currentStep >= steps.length - 1) {
+      console.log("nextStep: Blocked - At last step");
       return;
     }
 
-    const isValid = validateStep(currentStep);
-    if (!isValid) return;
+    if (!isSubmitted) {
+      const isValid = validateStep(currentStep);
+      if (!isValid) return;
+    }
 
     setCurrentStep(currentStep + 1);
+    setShowSuccessMessage(false);
     setErrors({});
     console.log("nextStep: Advanced to step", currentStep + 1);
   };
 
   const prevStep = () => {
-    if (isSubmitted) {
-      console.log("prevStep: Blocked - Form submitted");
+    if (currentStep === 0) {
+      console.log("prevStep: Blocked - At first step");
       return;
     }
     setCurrentStep((prev) => Math.max(prev - 1, 0));
+    setShowSuccessMessage(false);
     setErrors({});
     console.log("prevStep: Moved to step", Math.max(currentStep - 1, 0));
   };
 
   const goToStep = (index) => {
-    if (isSubmitted && index !== steps.length - 1) {
-      console.log("goToStep: Blocked - Form submitted, only preview allowed");
-      return;
-    }
+    console.log("goToStep: Attempting to navigate to step", index, { isSubmitted, currentStep });
 
     if (index === steps.length - 1) {
       setIsPreviewOpen(true);
+      setCurrentStep(index);
+      console.log("goToStep: Opening preview, set currentStep to", index);
       return;
     }
 
-    if (currentStep !== index) {
+    if (!isSubmitted && currentStep !== index) {
       const isValid = validateStep(currentStep);
       if (!isValid) {
         console.log("goToStep: Validation failed for current step", currentStep);
@@ -505,12 +522,12 @@ const EmployeeDetails = () => {
     }
 
     setCurrentStep(index);
+    setShowSuccessMessage(false);
     setErrors({});
     console.log("goToStep: Moved to step", index);
   };
 
   const handleKeyDown = (e, index) => {
-    if (isSubmitted) return;
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       goToStep(index);
@@ -519,38 +536,39 @@ const EmployeeDetails = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isSubmitted) {
-      console.log("handleSubmit: Blocked - Form already submitted");
+    console.log("handleSubmit: Starting submission for step", currentStep, { isSubmitted });
+
+    if (isSubmitted && currentStep === steps.length - 1) {
+      console.log("handleSubmit: Already submitted, opening preview");
       setIsPreviewOpen(true);
       return;
     }
 
-    console.log("handleSubmit: Starting submission for step", currentStep);
     if (currentStep !== steps.length - 1) {
       nextStep();
       return;
     }
 
-    const isValid = validateStep(currentStep);
-    if (!isValid) return;
+    if (!isSubmitted) {
+      const isValid = validateStep(currentStep);
+      if (!isValid) return;
 
-    const success = await submitAllSteps();
-    if (success) {
-      setIsPreviewOpen(true);
-      console.log("handleSubmit: Submission successful, opening preview");
-    } else {
-      console.log("handleSubmit: Submission failed");
+      const success = await submitAllSteps();
+      if (success) {
+        setIsPreviewOpen(true);
+        setCurrentStep(steps.length - 1);
+        console.log("handleSubmit: Submission successful, opening preview");
+      } else {
+        console.log("handleSubmit: Submission failed");
+      }
     }
-  };
-
-  const openPreview = () => {
-    console.log("Opening preview with formData:", formData);
-    setIsPreviewOpen(true);
   };
 
   const closePreview = () => {
     setIsPreviewOpen(false);
-    console.log("closePreview: Preview closed");
+    setCurrentStep(0);
+    setShowSuccessMessage(false);
+    console.log("closePreview: Preview closed, returned to step 0");
   };
 
   return (
@@ -591,10 +609,7 @@ const EmployeeDetails = () => {
         `}
       </style>
       <div className="hidden sm:flex sm:justify-end sm:items-center">
-        <PageMeta
-          title="Employee Details"
-          description="Add or update employee details"
-        />
+        <PageMeta title="Employee Details" description="Add or update employee details" />
         <PageBreadcrumb
           items={[
             { label: "Home", link: "/emp-dashboard" },
@@ -607,35 +622,29 @@ const EmployeeDetails = () => {
           <h2 className="text-xl sm:text-2xl font-bold text-center text-gray-900 mb-8 tracking-tight">
             Employee Details Form
           </h2>
-          {/* {isSubmitted && (
+          {showSuccessMessage && (
             <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg text-center">
               Form has been successfully submitted and is now locked for editing.
             </div>
-          )} */}
-          {errors.general && errors.general.includes("successfully") ? (
-            <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg text-center">
+          )}
+          {errors.general && !errors.general.includes("successfully") && (
+            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg flex justify-between items-center">
               {errors.general}
+              <button
+                onClick={() => {
+                  const employee_id = formData.employee_id;
+                  dispatch(getCurrentUserProfile());
+                  dispatch(fetchEmployeePersonalDetails(employee_id));
+                  dispatch(fetchEmployeeEducationDetails(employee_id));
+                  dispatch(fetchEmployeeDocuments(employee_id));
+                  dispatch(fetchEmployeeBankDetails(employee_id));
+                  setErrors({});
+                }}
+                className="text-blue-600 underline hover:text-blue-800"
+              >
+                Retry
+              </button>
             </div>
-          ) : (
-            errors.general && (
-              <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg flex justify-between items-center">
-                {errors.general}
-                <button
-                  onClick={() => {
-                    const employee_id = formData.employee_id;
-                    dispatch(getCurrentUserProfile());
-                    dispatch(fetchEmployeePersonalDetails(employee_id));
-                    dispatch(fetchEmployeeEducationDetails(employee_id));
-                    dispatch(fetchEmployeeDocuments(employee_id));
-                    dispatch(fetchEmployeeBankDetails(employee_id));
-                    setErrors({});
-                  }}
-                  className="text-blue-600 underline hover:text-blue-800"
-                >
-                  Retry
-                </button>
-              </div>
-            )
           )}
           {errors.personalDetails && (
             <div className="mb-4 p-4 bg-yellow-100 text-yellow-700 rounded-lg text-center">
@@ -682,8 +691,8 @@ const EmployeeDetails = () => {
           <StepNavigation
             steps={steps}
             currentStep={currentStep}
-            goToStep={isSubmitted && currentStep !== steps.length - 1 ? () => {} : goToStep}
-            handleKeyDown={isSubmitted ? () => {} : handleKeyDown}
+            goToStep={goToStep}
+            handleKeyDown={handleKeyDown}
           />
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="step-transition" key={currentStep}>
@@ -724,7 +733,7 @@ const EmployeeDetails = () => {
                 <div className="col-span-2 flex justify-center items-center">
                   <button
                     type="submit"
-                    disabled={loading || isSubmitted}
+                    disabled={loading}
                     className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   >
                     {loading ? "Submitting..." : isSubmitted ? "View Preview" : "Submit and Preview"}
@@ -737,7 +746,7 @@ const EmployeeDetails = () => {
                 <button
                   type="button"
                   onClick={prevStep}
-                  disabled={currentStep === 0 || isSubmitted}
+                  disabled={currentStep === 0}
                   className="px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-800 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 text-sm font-medium"
                   aria-label="Previous step"
                 >
@@ -746,7 +755,7 @@ const EmployeeDetails = () => {
                 <button
                   type="button"
                   onClick={nextStep}
-                  disabled={loading || isSubmitted}
+                  disabled={loading || currentStep === steps.length - 1}
                   className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   aria-label="Next step"
                 >
