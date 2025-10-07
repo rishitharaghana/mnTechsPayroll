@@ -7,6 +7,7 @@ export const fetchDashboardData = createAsyncThunk(
     try {
       const { auth } = getState();
       const userToken = auth.token || JSON.parse(localStorage.getItem('userToken'))?.token;
+      console.log('Fetching dashboard data for role:', role, 'with token:', userToken);
       if (!userToken) {
         return rejectWithValue('No authentication token found. Please log in.');
       }
@@ -14,10 +15,10 @@ export const fetchDashboardData = createAsyncThunk(
       const response = await axios.get(`http://localhost:3007/api/dashboard/${role}`, {
         headers: { Authorization: `Bearer ${userToken}` },
       });
-      console.log('Fetch dashboard data response:', response.data);
+      console.log('Fetch dashboard data response:', JSON.stringify(response.data.recentActivities, null, 2));
       return response.data;
     } catch (error) {
-      console.error('Fetch dashboard data error:', error.response?.data);
+      console.error('Fetch dashboard data error:', error.response?.data || error.message);
       return rejectWithValue(error.response?.data?.error || 'Failed to fetch dashboard data');
     }
   }
