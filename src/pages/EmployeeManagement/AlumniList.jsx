@@ -213,7 +213,6 @@ const AlumniList = () => {
               </div>
             </div>
 
-            {/* Pagination */}
             {totalPages > 1 && renderPagination()}
           </>
         )}
