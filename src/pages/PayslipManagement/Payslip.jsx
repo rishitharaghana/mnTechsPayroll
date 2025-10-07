@@ -275,12 +275,11 @@ const Payslip = () => {
           </p>
         </div>
 
-        {/* Notifications */}
-        {(error || payrollError || employeesError) && (
+        {/* {(error || payrollError || employeesError) && (
           <div className="p-4 rounded-lg mb-6 bg-red-50 text-red-700">
             {error || payrollError || employeesError}
           </div>
-        )}
+        )} */}
 
         {/* Filters Section */}
         <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 sm:p-6 p-4 mb-6">

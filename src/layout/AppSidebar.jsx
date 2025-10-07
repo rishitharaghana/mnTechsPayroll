@@ -230,9 +230,6 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
           allowedRoles: [
             "super_admin",
             "hr",
-            "dept_head",
-            "manager",
-            "employee",
           ],
         },
         {
