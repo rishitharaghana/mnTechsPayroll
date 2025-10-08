@@ -55,6 +55,7 @@ import TerminateEmployee from "./pages/EmployeeManagement/TerminateEmployee";
 import ExitEmployee from "./pages/EmployeeManagement/EmployeeExit";
 import AlumniList from "./pages/EmployeeManagement/AlumniList";
 import AssignLeave from "./pages/LeaveManagement/AssignLeave";
+import ViewEmployeeDetails from "./pages/EmployeeManagement/ViewEmployeeDetails";
 
 const App = () => {
   return (
@@ -126,6 +127,7 @@ const App = () => {
                   path="/admin/add-performance"
                   element={<AddEmployeeReview />}
                 />
+                <Route path='/admin/view-details/:employee_id' element={<ViewEmployeeDetails/>} />
                 <Route path="/admin/leave-tracker" element={<LeaveTracker />} />
                 <Route path="/admin/visitingcards" element={<VisitingCard />} />
                 <Route path="/admin/time-tracking" element={<TimeTracking />} />

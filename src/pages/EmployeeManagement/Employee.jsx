@@ -337,7 +337,7 @@ const Employee = () => {
                       <Edit size={14} className="sm:w-4 sm:h-4" />
                     </Link>
                     <Link
-                      to={`/admin/employees/preview/${emp.id}`}
+                      to={`/admin/view-details/${emp.employee_id}`}
                       state={{ employee: emp }}
                       className="p-1.5 sm:p-2 text-gray-600 hover:text-indigo-600 bg-green-100 hover:bg-indigo-50 rounded-lg"
                     >
