@@ -244,14 +244,14 @@ const Employee = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Employees</h1>
             <p className="text-gray-500 text-sm sm:text-base">Manage your team members</p>
           </div>
-          {canManage && (
+          {/* {canManage && (
             <Link
               to="/admin/employees/terminate"
               className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center"
             >
               <UserPlus size={16} className="mr-2" /> Termination Dashboard
             </Link>
-          )}
+          )} */}
         </div>
 
         {/* {successMessage && <div className="alert alert-success">{successMessage}</div>} */}
