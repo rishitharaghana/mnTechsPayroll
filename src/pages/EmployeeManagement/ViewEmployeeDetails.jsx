@@ -7,37 +7,54 @@ import {
   fetchEmployeeDocuments,
   fetchEmployeeBankDetails,
   getCurrentUserProfile,
+  fetchEmployees,
 } from "../../redux/slices/employeeSlice";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 
-const normalizeData = (personalDetails, educationDetails, documents, bankDetails) => {
-  if (!personalDetails) return null;
+const normalizeData = (personalDetails, hrmsUserData, educationDetails, documents, bankDetails) => {
+  if (!personalDetails && !hrmsUserData) return null;
+  // Merge personal_details and hrms_users data, prioritizing hrms_users for specific fields
+  const data = {
+    ...personalDetails,
+    ...hrmsUserData,
+    // Prioritize hrms_users for fields that are N/A
+    dob: hrmsUserData?.dob || personalDetails?.dob || "N/A",
+    blood_group: hrmsUserData?.blood_group || personalDetails?.blood_group || "N/A",
+    department_name: hrmsUserData?.department_name || personalDetails?.department_name || "N/A",
+    designation_name: hrmsUserData?.designation_name || personalDetails?.designation_name || "N/A",
+    photo_url: hrmsUserData?.photo_url || personalDetails?.photo_url || null,
+    mobile: hrmsUserData?.mobile || personalDetails?.phone || "N/A",
+    address: hrmsUserData?.address || personalDetails?.present_address || "N/A",
+    position_title: hrmsUserData?.designation_name || personalDetails?.position_title || "N/A",
+    email: hrmsUserData?.email || personalDetails?.email || "N/A",
+    gender: hrmsUserData?.gender || personalDetails?.gender || "N/A",
+  };
   return {
-    employeeId: personalDetails.employee_id || "N/A",
-    fullName: personalDetails.full_name || personalDetails.name || "N/A",
-    fatherName: personalDetails.father_name || "N/A",
-    motherName: personalDetails.mother_name || "N/A",
-    phone: personalDetails.phone || personalDetails.mobile || "N/A",
-    email: personalDetails.email || "N/A",
-    gender: personalDetails.gender || "N/A",
-    panNumber: personalDetails.pan_number || "N/A",
-    aadharNumber: personalDetails.aadhar_number || "N/A",
-    presentAddress: personalDetails.present_address || personalDetails.address || "N/A",
-    previousAddress: personalDetails.previous_address || "N/A",
-    positionType: personalDetails.position_type || "fresher",
-    employerIdName: personalDetails.employee_id || personalDetails.employer_id_name || "N/A",
-    positionTitle: personalDetails.designation_name || personalDetails.position_title || "N/A",
-    employmentType: personalDetails.employment_type || "N/A",
-    joiningDate: personalDetails.join_date || "N/A",
-    contractEndDate: personalDetails.contract_end_date || "N/A",
-    dob: personalDetails.dob || personalDetails.date_of_birth || "N/A",
-    bloodGroup: personalDetails.blood_group || "N/A",
-    department: personalDetails.department_name || personalDetails.department || "N/A",
-    position: personalDetails.designation_name || personalDetails.position || "N/A",
-    role: personalDetails.role || "employee",
-    emergencyPhone: personalDetails.emergency_phone || "N/A",
-    photoUrl: personalDetails.photo_url || null,
+    employeeId: data.employee_id || "N/A",
+    fullName: data.full_name || data.name || "N/A",
+    fatherName: data.father_name || "N/A",
+    motherName: data.mother_name || "N/A",
+    phone: data.phone || data.mobile || "N/A",
+    email: data.email || "N/A",
+    gender: data.gender || "N/A",
+    panNumber: data.pan_number || "N/A",
+    aadharNumber: data.aadhar_number || "N/A",
+    presentAddress: data.present_address || data.address || "N/A",
+    previousAddress: data.previous_address || "N/A",
+    positionType: data.position_type || "fresher",
+    employerIdName: data.employee_id || data.employer_id_name || "N/A",
+    positionTitle: data.designation_name || data.position_title || "N/A",
+    employmentType: data.employment_type || "N/A",
+    joiningDate: data.join_date || "N/A",
+    contractEndDate: data.contract_end_date || "N/A",
+    dob: data.dob || "N/A",
+    bloodGroup: data.blood_group || "N/A",
+    department: data.department_name || data.department || "N/A",
+    position: data.designation_name || data.position || "N/A",
+    role: data.role || "employee",
+    emergencyPhone: data.emergency_phone || "N/A",
+    photoUrl: data.photo_url || null,
     tenthClassName: educationDetails?.tenth_class_name || "N/A",
     tenthClassMarks: educationDetails?.tenth_class_marks || "N/A",
     intermediateName: educationDetails?.intermediate_name || "N/A",
@@ -73,10 +90,10 @@ const formatDate = (dateString) => {
 };
 
 const ViewEmployeeDetails = () => {
-  const { employee_id } = useParams(); 
+  const { employee_id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { profile, loading } = useSelector((state) => state.employee);
+  const { profile, employees, loading } = useSelector((state) => state.employee);
   const [formData, setFormData] = useState(null);
   const [fetchError, setFetchError] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
@@ -98,24 +115,50 @@ const ViewEmployeeDetails = () => {
         console.log("Profile fetched:", result.payload);
       }
     });
+    console.log("Fetching employees...");
+    dispatch(fetchEmployees()).then((result) => {
+      if (result.error) {
+        console.error("Employees fetch failed:", result.error);
+      } else {
+        console.log("Employees fetched:", result.payload);
+      }
+    });
   }, [dispatch]);
 
   useEffect(() => {
     const handleViewDetails = async (employeeId) => {
       try {
         console.log("Fetching details for employeeId:", employeeId);
-        const [personalDetailsRes, educationDetailsRes, documentsRes, bankDetailsRes] = await Promise.all([
-          dispatch(fetchEmployeePersonalDetails(employeeId))
-            .unwrap()
-            .catch((err) => {
-              console.error("Personal details fetch failed:", err);
-              throw new Error(`Personal details: ${err.message || "User not found"}`);
-            }),
+        // Fetch personal_details
+        const personalDetailsRes = await dispatch(fetchEmployeePersonalDetails(employeeId))
+          .unwrap()
+          .catch((err) => {
+            console.error("Personal details fetch failed:", err);
+            throw new Error(`Personal details: ${err.message || "User not found"}`);
+          });
+
+        // Fetch hrms_users data for N/A fields
+        let hrmsUserData = {};
+        if (profile?.employee_id === employeeId) {
+          // Use profile for logged-in user
+          hrmsUserData = profile;
+        } else {
+          // Find employee in employees list
+          hrmsUserData = employees.find((emp) => emp.employee_id === employeeId) || {};
+          if (!hrmsUserData.employee_id) {
+            // Fallback to fetchEmployees if not found
+            const employeesRes = await dispatch(fetchEmployees()).unwrap();
+            hrmsUserData = employeesRes.find((emp) => emp.employee_id === employeeId) || {};
+          }
+        }
+
+        // Fetch additional details
+        const [educationDetailsRes, documentsRes, bankDetailsRes] = await Promise.all([
           dispatch(fetchEmployeeEducationDetails(employeeId))
             .unwrap()
             .catch((err) => {
               console.error("Education details fetch failed:", err);
-              return {}; 
+              return {};
             }),
           dispatch(fetchEmployeeDocuments(employeeId))
             .unwrap()
@@ -127,17 +170,21 @@ const ViewEmployeeDetails = () => {
             .unwrap()
             .catch((err) => {
               console.error("Bank details fetch failed:", err);
-              return {}; 
+              return {};
             }),
         ]);
+
         console.log("Raw API responses:", {
           personalDetails: personalDetailsRes,
+          hrmsUserData,
           educationDetails: educationDetailsRes,
           documents: documentsRes,
           bankDetails: bankDetailsRes,
         });
+
         const normalizedData = normalizeData(
           personalDetailsRes,
+          hrmsUserData,
           educationDetailsRes,
           documentsRes,
           bankDetailsRes
@@ -159,7 +206,7 @@ const ViewEmployeeDetails = () => {
     } else {
       setFetchError("Invalid employee ID");
     }
-  }, [dispatch, employee_id]);
+  }, [dispatch, employee_id, profile, employees]);
 
   useEffect(() => {
     console.log("Current formData:", formData);
@@ -170,7 +217,7 @@ const ViewEmployeeDetails = () => {
   const canViewEmployee = (employeeRole) => {
     if (userRole === "super_admin") return true;
     if (userRole === "hr" && employeeRole !== "hr") return true;
-    return false;
+    return userRole === "employee" && profile?.employee_id === employee_id;
   };
 
   useEffect(() => {
@@ -178,7 +225,7 @@ const ViewEmployeeDetails = () => {
       console.log("Access denied: Redirecting to /admin/employees");
       navigate("/admin/employees");
     }
-  }, [formData, navigate]);
+  }, [formData, navigate, employee_id]);
 
   const closeDetails = () => {
     navigate("/admin/employees");
@@ -195,6 +242,7 @@ const ViewEmployeeDetails = () => {
               src={formData.photoUrl}
               alt="Employee Photo"
               className="w-32 h-32 rounded-lg shadow-md object-cover"
+              onError={(e) => (e.target.src = "/default-photo.png")} // Fallback image
             />
           ) : (
             "N/A"
@@ -588,15 +636,14 @@ const ViewEmployeeDetails = () => {
               </button>
             </div>
           ) : !formData ? (
-            <div className="error-message">
-              No employee details available.
-            </div>
+            <div className="error-message">No employee details available.</div>
           ) : (
             <div
               className="bg-white rounded-lg sm:p-6 p-5 shadow-md transition-all duration-300 animate-fade-in"
               style={{ animationDelay: `${activeTab * 100}ms` }}
             >
-              <h4 className="text-xl font-bold text-slate-700 mb-6">
+              <h4 className="text-xl font-bold text-slate-7
+00 mb-6">
                 {currentTab.title}
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 sm:gap-6 gap-4 text-gray-700">
