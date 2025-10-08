@@ -266,7 +266,6 @@ const Payroll = () => {
         />
       </div>
 
-      {/* Buttons for HR and Super Admin */}
       {["hr", "super_admin"].includes(role) && (
         <div className="flex sm:flex-row justify-between gap-2 sm:gap-3 w-full sm:w-auto">
           <button

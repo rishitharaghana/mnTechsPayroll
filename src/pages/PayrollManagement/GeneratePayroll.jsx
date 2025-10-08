@@ -201,7 +201,7 @@ const GeneratePayroll = () => {
     { value: "", label: "Select an employee" },
     ...employees
       .filter((employee) => {
-        if (role === "super_admin") return true; // Show all employees for super_admin
+        if (role === "super_admin") return true;
         if (role === "hr") {
           return employee.role !== "hr" || employee.employee_id === employee_id;
         }
