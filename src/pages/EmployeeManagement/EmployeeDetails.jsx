@@ -48,6 +48,7 @@ const EmployeeDetails = () => {
     successMessage,
     progress,
   } = useSelector((state) => state.employee);
+
   const [currentStep, setCurrentStep] = useState(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(() => {
@@ -56,9 +57,10 @@ const EmployeeDetails = () => {
       ? localStorage.getItem(`form_submitted_${savedEmployeeId}`) === "true"
       : false;
   });
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false); // New state for success message
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [formData, setFormData] = useState(() => {
-    const savedEmployeeId = localStorage.getItem("employee_id") || `TEMP_${Date.now()}`;
+    const savedEmployeeId = localStorage.getItem("employee_id") || profile?.employee_id || `TEMP_${Date.now()}`;
+    localStorage.setItem("employee_id", savedEmployeeId);
     return {
       employee_id: savedEmployeeId,
       fullName: "",
@@ -105,19 +107,29 @@ const EmployeeDetails = () => {
   const [errors, setErrors] = useState({});
   const isInitialFetchDone = useRef(false);
 
-  // Persist employee_id in localStorage
+  // Sync isSubmitted with progress
   useEffect(() => {
-    localStorage.setItem("employee_id", formData.employee_id);
-    console.log("useEffect: employee_id set", { employee_id: formData.employee_id, isSubmitted });
-  }, [formData.employee_id]);
+    if (isInitialFetchDone.current && progress) {
+      const isFormComplete =
+        progress.personalDetails &&
+        progress.educationDetails &&
+        progress.documents &&
+        progress.bankDetails;
+      if (isFormComplete !== isSubmitted) {
+        setIsSubmitted(isFormComplete);
+        localStorage.setItem(`form_submitted_${formData.employee_id}`, isFormComplete.toString());
+        console.log("useEffect: Synced isSubmitted with progress", { isFormComplete, employee_id: formData.employee_id });
+      }
+    }
+  }, [progress, formData.employee_id, isSubmitted]);
 
-  // Auto-hide success message after 5 seconds
+  // Auto-hide success message
   useEffect(() => {
     if (showSuccessMessage) {
       const timer = setTimeout(() => {
         setShowSuccessMessage(false);
         console.log("Success message hidden after timeout");
-      }, 5000); // 5 seconds
+      }, 5000);
       return () => clearTimeout(timer);
     }
   }, [showSuccessMessage]);
@@ -125,10 +137,8 @@ const EmployeeDetails = () => {
   // Initial data fetch
   useEffect(() => {
     if (isInitialFetchDone.current) return;
-
     const employee_id = formData.employee_id;
     console.log("Dispatching profile, progress, and details fetches", { employee_id });
-
     dispatch(getCurrentUserProfile());
     dispatch(getEmployeeProgress());
     dispatch(fetchEmployeePersonalDetails(employee_id)).catch((err) => {
@@ -569,6 +579,58 @@ const EmployeeDetails = () => {
     setCurrentStep(0);
     setShowSuccessMessage(false);
     console.log("closePreview: Preview closed, returned to step 0");
+  };
+
+  const handleResetForm = () => {
+    const employee_id = formData.employee_id;
+    localStorage.removeItem(`form_submitted_${employee_id}`);
+    setIsSubmitted(false);
+    setFormData({
+      employee_id: profile?.employee_id || `TEMP_${Date.now()}`,
+      fullName: "",
+      fatherName: "",
+      motherName: "",
+      phone: "",
+      email: "",
+      gender: "",
+      pan_number: "",
+      aadhar_number: "",
+      image: null,
+      presentAddress: "",
+      previousAddress: "",
+      positionType: "",
+      employerIdName: "",
+      positionTitle: "",
+      employmentType: "",
+      contractEndDate: "",
+      dob: "",
+      bloodGroup: "",
+      basicSalary: "",
+      allowances: "",
+      bonuses: "",
+      department: "",
+      position: "",
+      tenthClassName: "",
+      tenthClassMarks: "",
+      intermediateName: "",
+      intermediateMarks: "",
+      graduationName: "",
+      graduationMarks: "",
+      postgraduationName: "",
+      postgraduationMarks: "",
+      tenthClassDoc: null,
+      intermediateDoc: null,
+      graduationDoc: null,
+      postgraduationDoc: null,
+      aadharDoc: null,
+      panDoc: null,
+      ifscNumber: "",
+      bankACnumber: "",
+    });
+    dispatch(clearState());
+    setErrors({});
+    setCurrentStep(0);
+    console.log("handleResetForm: Form and localStorage reset", { employee_id });
   };
 
   return (
