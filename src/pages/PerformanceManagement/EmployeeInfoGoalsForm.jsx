@@ -1,8 +1,8 @@
 import { useSelector } from "react-redux";
-import Select from "react-select"; // Import react-select
+import Select from "react-select";
 import DatePicker from "../../Components/ui/date/DatePicker";
+import { endOfQuarter } from "date-fns";
 
-// Custom styles for each Select component
 const employeeSelectStyles = {
   control: (provided) => ({
     ...provided,
@@ -84,11 +84,7 @@ const taskPrioritySelectStyles = {
   }),
   option: (provided, state) => ({
     ...provided,
-    backgroundColor: state.isSelected
-      ? "#14b8a6"
-      : state.isFocused
-      ? "#fee2e2"
-      : "#fff",
+    backgroundColor: state.isSelected ? "#14b8a6" : state.isFocused ? "#fee2e2" : "#fff",
     color: state.isSelected ? "#fff" : "#374151",
     padding: "0.5rem",
     fontSize: "0.875rem",
@@ -109,25 +105,25 @@ const taskPrioritySelectStyles = {
 };
 
 const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange, handleDateChange, addItem, addTask, employees, performance }) => {
+  const today = new Date();
+  const defaultDueDate = endOfQuarter(today).toISOString().split("T")[0];
+
   const goalTemplates = [
-    { id: "1", title: "Increase Sales by 10%", description: "Achieve a 10% increase in quarterly sales.", due_date: "" },
-    { id: "2", title: "Complete Project X", description: "Deliver project X by end of quarter.", due_date: "" },
-    { id: "3", title: "Complete Course", description: "Complete any 2 courses by the end of quarter", due_date: "" },
+    { id: "1", title: "Increase Sales by 10%", description: "Achieve a 10% increase in quarterly sales.", due_date: defaultDueDate },
+    { id: "2", title: "Complete Project X", description: "Deliver project X by end of quarter.", due_date: defaultDueDate },
+    { id: "3", title: "Complete Course", description: "Complete any 2 courses by the end of quarter", due_date: defaultDueDate },
   ];
 
-  // Transform employees for react-select
   const employeeOptions = employees.map((emp) => ({
     value: emp.employee_id,
     label: `${emp.employee_id} - ${emp.full_name}`,
   }));
 
-  // Transform goal templates for react-select
   const goalTemplateOptions = goalTemplates.map((t) => ({
     value: t.id,
     label: t.title,
   }));
 
-  // Task priority options for react-select
   const priorityOptions = [
     { value: "Low", label: "Low" },
     { value: "Medium", label: "Medium" },
@@ -143,9 +139,7 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
             <label className="block text-sm font-medium text-gray-700">Employee</label>
             <Select
               name="employee_id"
-              value={employeeOptions.find(
-                (option) => option.value === formData.employeeDetails.employee_id
-              )}
+              value={employeeOptions.find((option) => option.value === formData.employeeDetails.employee_id)}
               onChange={(selectedOption) =>
                 handleChange(
                   { target: { name: "employee_id", value: selectedOption ? selectedOption.value : "" } },
@@ -221,7 +215,15 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
             if (template) {
               setFormData((prev) => ({
                 ...prev,
-                goals: [...prev.goals, { ...template, id: Date.now() + Math.random(), tasks: [] }],
+                goals: [
+                  ...prev.goals,
+                  {
+                    ...template,
+                    id: Date.now() + Math.random(),
+                    tasks: [],
+                    due_date: template.due_date,
+                  },
+                ],
               }));
             }
           }}
@@ -231,6 +233,7 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
           isClearable
           className="mt-1 mb-4"
         />
+        {formErrors.form && <p className="text-red-600 text-xs mb-2">{formErrors.form}</p>}
         {(Array.isArray(formData.goals) ? formData.goals : []).map((goal, index) => (
           <div key={goal.id} className="mb-6 p-4 border rounded-lg bg-gray-50">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -242,6 +245,7 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
                   value={goal.title}
                   onChange={(e) => handleChange(e, "goals", null, index, "title")}
                   className="mt-1 w-full block border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
+                  placeholder="Enter goal title"
                 />
                 {formErrors[`goal_title_${index}`] && (
                   <p className="text-red-600 text-xs mt-1">{formErrors[`goal_title_${index}`]}</p>
@@ -263,10 +267,11 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
                 <label className="block text-sm font-medium text-gray-700">Description</label>
                 <textarea
                   name={`goal_description_${index}`}
-                  value={goal.description}
+                  value={goal.description || ""}
                   onChange={(e) => handleChange(e, "goals", null, index, "description")}
                   className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
                   rows="3"
+                  placeholder="Enter goal description"
                 />
               </div>
               {performance?.goals?.find((g) => g.id === goal.id) && (
@@ -291,11 +296,10 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
                       value={task.title}
                       onChange={(e) => handleChange(e, "goals", "tasks", index, "title", taskIndex)}
                       className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
+                      placeholder="Enter task title"
                     />
                     {formErrors[`task_title_${index}_${taskIndex}`] && (
-                      <p className="text-red-600 text-xs mt-1">
-                        {formErrors[`task_title_${index}_${taskIndex}`]}
-                      </p>
+                      <p className="text-red-600 text-xs mt-1">{formErrors[`task_title_${index}_${taskIndex}`]}</p>
                     )}
                   </div>
                   <div>
@@ -307,9 +311,7 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
                       className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-teal-600"
                     />
                     {formErrors[`task_due_date_${index}_${taskIndex}`] && (
-                      <p className="text-red-600 text-xs mt-1">
-                        {formErrors[`task_due_date_${index}_${taskIndex}`]}
-                      </p>
+                      <p className="text-red-600 text-xs mt-1">{formErrors[`task_due_date_${index}_${taskIndex}`]}</p>
                     )}
                   </div>
                   <div>
@@ -322,7 +324,7 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
                           {
                             target: {
                               name: `task_priority_${index}_${taskIndex}`,
-                              value: selectedOption ? selectedOption.value : "",
+                              value: selectedOption ? selectedOption.value : "Medium",
                             },
                           },
                           "goals",
@@ -338,6 +340,9 @@ const EmployeeInfoGoalsForm = ({ formData, setFormData, formErrors, handleChange
                       isClearable
                       className="mt-1"
                     />
+                    {formErrors[`task_priority_${index}_${taskIndex}`] && (
+                      <p className="text-red-600 text-xs mt-1">{formErrors[`task_priority_${index}_${taskIndex}`]}</p>
+                    )}
                   </div>
                 </div>
               </div>

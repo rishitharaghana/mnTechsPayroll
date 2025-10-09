@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { isAfter, endOfQuarter, startOfQuarter } from "date-fns";
 import {
   setEmployeeGoal,
   conductAppraisal,
@@ -22,20 +23,9 @@ const steps = [
 
 const AddEmployeeReview = () => {
   const dispatch = useDispatch();
-  const {
-    employees,
-    loading: empLoading,
-    error: empError,
-  } = useSelector((state) => state.employee);
-  const {
-    loading: perfLoading,
-    error: perfError,
-    successMessage,
-    performance,
-  } = useSelector((state) => state.performance);
-  const { role, employee_id: loggedInUserId } = useSelector(
-    (state) => state.auth
-  );
+  const { employees, loading: empLoading, error: empError } = useSelector((state) => state.employee);
+  const { loading: perfLoading, error: perfError, successMessage, performance } = useSelector((state) => state.performance);
+  const { role, employee_id: loggedInUserId } = useSelector((state) => state.auth);
 
   const initialFormData = {
     employeeDetails: {
@@ -48,6 +38,7 @@ const AddEmployeeReview = () => {
     },
     goals: [],
     competencies: [],
+    learningGrowth: [],
     appraisal: {
       performance_score: "",
       manager_comments: "",
@@ -55,7 +46,15 @@ const AddEmployeeReview = () => {
       bonus_eligible: false,
       promotion_recommended: false,
       salary_hike_percentage: "",
-      bonuses: [], // Added bonuses
+      new_designation_name: "",
+      new_department_name: "",
+      basic_salary: "",
+      hra_percentage: "",
+      hra: "",
+      special_allowances: "",
+      provident_fund_percentage: "",
+      esic_percentage: "",
+      bonuses: [],
     },
   };
 
@@ -65,14 +64,12 @@ const AddEmployeeReview = () => {
 
   useEffect(() => {
     const today = new Date();
-    const quarterEnd = new Date(today);
-    quarterEnd.setMonth(today.getMonth() + 3 - (today.getMonth() % 3));
-    quarterEnd.setDate(0);
+    const quarterEnd = endOfQuarter(today);
     setFormData((prev) => ({
       ...prev,
       employeeDetails: {
         ...prev.employeeDetails,
-        reviewDate: quarterEnd.toLocaleDateString("en-CA"),
+        reviewDate: quarterEnd.toISOString().split("T")[0],
       },
     }));
   }, []);
@@ -85,10 +82,10 @@ const AddEmployeeReview = () => {
   }, [dispatch, formData.employeeDetails.employee_id]);
 
   useEffect(() => {
-    if (performance) {
+    if (performance && currentStep === 0 && formData.goals.length === 0) {
       setFormData((prev) => ({
         ...prev,
-        goals: Array.isArray(performance.goals)
+        goals: Array.isArray(performance.goals) && performance.goals.length > 0
           ? performance.goals.map((goal) => ({
               id: goal.id || Date.now() + Math.random(),
               title: goal.title || "",
@@ -117,6 +114,14 @@ const AddEmployeeReview = () => {
               feedback: comp.feedback || "",
             }))
           : prev.competencies,
+        learningGrowth: Array.isArray(performance.learningGrowth)
+          ? performance.learningGrowth.map((lg) => ({
+              id: lg.id || Date.now() + Math.random(),
+              title: lg.title || "",
+              progress: lg.progress || 0,
+              completed: lg.completed || false,
+            }))
+          : prev.learningGrowth,
         appraisal: {
           ...prev.appraisal,
           achievements: Array.isArray(performance.achievements)
@@ -139,32 +144,20 @@ const AddEmployeeReview = () => {
         },
       }));
     }
-  }, [performance]);
+  }, [performance, currentStep]);
 
-  const handleChange = (
-    e,
-    section,
-    field,
-    index = null,
-    subField = null,
-    taskIndex = null
-  ) => {
+  const handleChange = (e, section, field, index = null, subField = null, taskIndex = null) => {
     const { name, value } = e.target;
     setFormData((prev) => {
       const newState = {
         ...prev,
         goals: Array.isArray(prev.goals) ? [...prev.goals] : [],
-        competencies: Array.isArray(prev.competencies)
-          ? [...prev.competencies]
-          : [],
+        competencies: Array.isArray(prev.competencies) ? [...prev.competencies] : [],
+        learningGrowth: Array.isArray(prev.learningGrowth) ? [...prev.learningGrowth] : [],
         appraisal: {
           ...prev.appraisal,
-          achievements: Array.isArray(prev.appraisal.achievements)
-            ? [...prev.appraisal.achievements]
-            : [],
-          bonuses: Array.isArray(prev.appraisal.bonuses)
-            ? [...prev.appraisal.bonuses]
-            : [],
+          achievements: Array.isArray(prev.appraisal.achievements) ? [...prev.appraisal.achievements] : [],
+          bonuses: Array.isArray(prev.appraisal.bonuses) ? [...prev.appraisal.bonuses] : [],
         },
       };
       if (section === "employeeDetails" && field === "employee_id") {
@@ -177,33 +170,17 @@ const AddEmployeeReview = () => {
           jobTitle: employee?.designation_name || "N/A",
           department: employee?.department_name || "N/A",
         };
-      } else if (
-        section === "appraisal" &&
-        field === "achievements" &&
-        index !== null &&
-        subField
-      ) {
+      } else if (section === "appraisal" && field === "achievements" && index !== null && subField) {
         newState.appraisal.achievements[index] = {
           ...newState.appraisal.achievements[index],
           [subField]: value,
         };
-      } else if (
-        section === "appraisal" &&
-        field === "bonuses" &&
-        index !== null &&
-        subField
-      ) {
+      } else if (section === "appraisal" && field === "bonuses" && index !== null && subField) {
         newState.appraisal.bonuses[index] = {
           ...newState.appraisal.bonuses[index],
           [subField]: value,
         };
-      } else if (
-        section === "goals" &&
-        field === "tasks" &&
-        index !== null &&
-        subField &&
-        taskIndex !== null
-      ) {
+      } else if (section === "goals" && field === "tasks" && index !== null && subField && taskIndex !== null) {
         newState.goals[index].tasks = Array.isArray(newState.goals[index].tasks)
           ? [...newState.goals[index].tasks]
           : [];
@@ -224,62 +201,31 @@ const AddEmployeeReview = () => {
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleDateChange = (
-    date,
-    section,
-    field,
-    index = null,
-    subField = null,
-    taskIndex = null
-  ) => {
-    const formattedDate =
-      date && !isNaN(new Date(date))
-        ? new Date(date).toLocaleDateString("en-CA")
-        : "";
+  const handleDateChange = (date, section, field, index = null, subField = null, taskIndex = null) => {
+    const formattedDate = date && !isNaN(new Date(date)) ? new Date(date).toISOString().split("T")[0] : "";
     setFormData((prev) => {
       const newState = {
         ...prev,
         goals: Array.isArray(prev.goals) ? [...prev.goals] : [],
-        competencies: Array.isArray(prev.competencies)
-          ? [...prev.competencies]
-          : [],
+        competencies: Array.isArray(prev.competencies) ? [...prev.competencies] : [],
+        learningGrowth: Array.isArray(prev.learningGrowth) ? [...prev.learningGrowth] : [],
         appraisal: {
           ...prev.appraisal,
-          achievements: Array.isArray(prev.appraisal.achievements)
-            ? [...prev.appraisal.achievements]
-            : [],
-          bonuses: Array.isArray(prev.appraisal.bonuses)
-            ? [...prev.appraisal.bonuses]
-            : [],
+          achievements: Array.isArray(prev.appraisal.achievements) ? [...prev.appraisal.achievements] : [],
+          bonuses: Array.isArray(prev.appraisal.bonuses) ? [...prev.appraisal.bonuses] : [],
         },
       };
-      if (
-        section === "appraisal" &&
-        field === "achievements" &&
-        index !== null &&
-        subField
-      ) {
+      if (section === "appraisal" && field === "achievements" && index !== null && subField) {
         newState.appraisal.achievements[index] = {
           ...newState.appraisal.achievements[index],
           [subField]: formattedDate,
         };
-      } else if (
-        section === "appraisal" &&
-        field === "bonuses" &&
-        index !== null &&
-        subField
-      ) {
+      } else if (section === "appraisal" && field === "bonuses" && index !== null && subField) {
         newState.appraisal.bonuses[index] = {
           ...newState.appraisal.bonuses[index],
           [subField]: formattedDate,
         };
-      } else if (
-        section === "goals" &&
-        field === "tasks" &&
-        index !== null &&
-        subField &&
-        taskIndex !== null
-      ) {
+      } else if (section === "goals" && field === "tasks" && index !== null && subField && taskIndex !== null) {
         newState.goals[index].tasks = Array.isArray(newState.goals[index].tasks)
           ? [...newState.goals[index].tasks]
           : [];
@@ -301,6 +247,8 @@ const AddEmployeeReview = () => {
   };
 
   const addItem = (section) => {
+    const today = new Date();
+    const defaultDueDate = endOfQuarter(today).toISOString().split("T")[0];
     setFormData((prev) => {
       if (section === "goals") {
         return {
@@ -311,28 +259,65 @@ const AddEmployeeReview = () => {
               id: Date.now() + Math.random(),
               title: "",
               description: "",
-              due_date: "",
+              due_date: defaultDueDate,
               tasks: [],
             },
           ],
         };
-      }
-      return {
-        ...prev,
-        [section]: [
-          ...prev[section],
-          {
-            id: Date.now() + Math.random(),
-            skill: "",
-            manager_rating: "",
-            feedback: "",
+      } else if (section === "competencies") {
+        return {
+          ...prev,
+          competencies: [
+            ...prev.competencies,
+            {
+              id: Date.now() + Math.random(),
+              skill: "",
+              manager_rating: "",
+              feedback: "",
+            },
+          ],
+        };
+      } else if (section === "achievements") {
+        return {
+          ...prev,
+          appraisal: {
+            ...prev.appraisal,
+            achievements: [
+              ...prev.appraisal.achievements,
+              {
+                id: Date.now() + Math.random(),
+                title: "",
+                date: "",
+                type: "Achievement",
+              },
+            ],
           },
-        ],
-      };
+        };
+      } else if (section === "bonuses") {
+        return {
+          ...prev,
+          appraisal: {
+            ...prev.appraisal,
+            bonuses: [
+              ...prev.appraisal.bonuses,
+              {
+                id: Date.now() + Math.random(),
+                bonus_type: "one_time",
+                amount: "",
+                effective_date: "",
+                remarks: "",
+              },
+            ],
+          },
+        };
+      }
+      return prev;
     });
   };
 
   const addTask = (goalIndex) => {
+    const today = new Date();
+    const defaultDueDate = endOfQuarter(today).toISOString().split("T")[0];
     setFormData((prev) => {
       const updatedGoals = Array.isArray(prev.goals) ? [...prev.goals] : [];
       updatedGoals[goalIndex] = {
@@ -344,7 +329,7 @@ const AddEmployeeReview = () => {
                 id: Date.now() + Math.random(),
                 title: "",
                 description: "",
-                due_date: "",
+                due_date: defaultDueDate,
                 priority: "Medium",
               },
             ]
@@ -353,7 +338,7 @@ const AddEmployeeReview = () => {
                 id: Date.now() + Math.random(),
                 title: "",
                 description: "",
-                due_date: "",
+                due_date: defaultDueDate,
                 priority: "Medium",
               },
             ],
@@ -365,91 +350,60 @@ const AddEmployeeReview = () => {
   const validateStep = () => {
     const newErrors = {};
     const today = new Date();
-    const quarterEnd = new Date(today);
-    quarterEnd.setMonth(today.getMonth() + 3 - (today.getMonth() % 3));
-    quarterEnd.setDate(0);
+    const quarterStart = startOfQuarter(today);
+    const quarterEnd = endOfQuarter(today);
 
     if (currentStep === 0) {
-      const { employee_id, name, email, department, reviewDate } =
-        formData.employeeDetails;
+      const { employee_id, name, email, department, reviewDate } = formData.employeeDetails;
       if (!employee_id) newErrors.employee_id = "Employee ID is required";
       if (!name) newErrors.name = "Employee name is required";
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
         newErrors.email = "Valid email is required";
       if (!department) newErrors.department = "Department is required";
       if (!reviewDate) newErrors.reviewDate = "Review date is required";
-      if (reviewDate && new Date(reviewDate) > quarterEnd)
-        newErrors.reviewDate = "Review date must be within the 3-month cycle";
-      if (
-        employee_id &&
-        !employees.find((e) => e.employee_id === employee_id)
-      ) {
+      if (reviewDate && (isAfter(new Date(reviewDate), quarterEnd) || new Date(reviewDate) < quarterStart))
+        newErrors.reviewDate = "Review date must be within the current quarter";
+      if (employee_id && !employees.find((e) => e.employee_id === employee_id)) {
         newErrors.employee_id = "Selected employee not found";
       }
       const goals = Array.isArray(formData.goals) ? formData.goals : [];
       if (goals.length === 0) newErrors.form = "At least one goal is required";
       goals.forEach((goal, index) => {
         if (!goal.title)
-          newErrors[`goal_title_${index}`] = `Goal ${
-            index + 1
-          }: Title is required`;
+          newErrors[`goal_title_${index}`] = `Goal ${index + 1}: Title is required`;
         if (!goal.due_date)
-          newErrors[`goal_due_date_${index}`] = `Goal ${
-            index + 1
-          }: Due date is required`;
-        else if (new Date(goal.due_date) > quarterEnd)
-          newErrors[`goal_due_date_${index}`] = `Goal ${
-            index + 1
-          }: Due date must be within the 3-month cycle`;
+          newErrors[`goal_due_date_${index}`] = `Goal ${index + 1}: Due date is required`;
+        else if (isAfter(new Date(goal.due_date), quarterEnd) || new Date(goal.due_date) < quarterStart)
+          newErrors[`goal_due_date_${index}`] = `Goal ${index + 1}: Due date must be within the current quarter`;
         const tasks = Array.isArray(goal.tasks) ? goal.tasks : [];
+        if (tasks.length === 0)
+          newErrors[`goal_tasks_${index}`] = `Goal ${index + 1}: At least one task is required`;
         tasks.forEach((task, taskIndex) => {
           if (!task.title)
-            newErrors[`task_title_${index}_${taskIndex}`] = `Goal ${
-              index + 1
-            }, Task ${taskIndex + 1}: Title is required`;
+            newErrors[`task_title_${index}_${taskIndex}`] = `Goal ${index + 1}, Task ${taskIndex + 1}: Title is required`;
           if (!task.due_date)
-            newErrors[`task_due_date_${index}_${taskIndex}`] = `Goal ${
-              index + 1
-            }, Task ${taskIndex + 1}: Due date is required`;
-          else if (new Date(task.due_date) > quarterEnd)
-            newErrors[`task_due_date_${index}_${taskIndex}`] = `Goal ${
-              index + 1
-            }, Task ${
-              taskIndex + 1
-            }: Due date must be within the 3-month cycle`;
+            newErrors[`task_due_date_${index}_${taskIndex}`] = `Goal ${index + 1}, Task ${taskIndex + 1}: Due date is required`;
+          else if (isAfter(new Date(task.due_date), quarterEnd) || new Date(task.due_date) < quarterStart)
+            newErrors[`task_due_date_${index}_${taskIndex}`] = `Goal ${index + 1}, Task ${taskIndex + 1}: Due date must be within the current quarter`;
+          if (!task.priority)
+            newErrors[`task_priority_${index}_${taskIndex}`] = `Goal ${index + 1}, Task ${taskIndex + 1}: Priority is required`;
         });
       });
     } else if (currentStep === 1) {
-      const competencies = Array.isArray(formData.competencies)
-        ? formData.competencies
-        : [];
+      const competencies = Array.isArray(formData.competencies) ? formData.competencies : [];
       if (competencies.length === 0)
         newErrors.form = "At least one competency is required";
       competencies.forEach((comp, index) => {
         if (!comp.skill)
-          newErrors[`comp_skill_${index}`] = `Competency ${
-            index + 1
-          }: Skill is required`;
-        if (
-          !comp.manager_rating ||
-          comp.manager_rating < 0 ||
-          comp.manager_rating > 10
-        ) {
-          newErrors[`comp_rating_${index}`] = `Competency ${
-            index + 1
-          }: Valid rating (0-10) is required`;
+          newErrors[`comp_skill_${index}`] = `Competency ${index + 1}: Skill is required`;
+        if (!comp.manager_rating || comp.manager_rating < 0 || comp.manager_rating > 10) {
+          newErrors[`comp_rating_${index}`] = `Competency ${index + 1}: Valid rating (0-10) is required`;
         }
       });
     } else if (currentStep === 2) {
-      const { performance_score, manager_comments, achievements, bonuses } =
-        formData.appraisal;
-      if (
-        !performance_score ||
-        performance_score < 0 ||
-        performance_score > 100
-      ) {
-        newErrors.performance_score =
-          "Valid performance score (0-100) is required";
+      const { performance_score, manager_comments, achievements, bonuses, promotion_recommended, salary_hike_percentage } = formData.appraisal;
+      if (!performance_score || performance_score < 0 || performance_score > 100) {
+        newErrors.performance_score = "Valid performance score (0-100) is required";
       }
       if (!manager_comments)
         newErrors.manager_comments = "Manager comments are required";
@@ -458,18 +412,32 @@ const AddEmployeeReview = () => {
         newErrors.form = "At least one achievement is required";
       achievementsArray.forEach((ach, index) => {
         if (!ach.title)
-          newErrors[`ach_title_${index}`] = `Achievement ${
-            index + 1
-          }: Title is required`;
+          newErrors[`ach_title_${index}`] = `Achievement ${index + 1}: Title is required`;
         if (!ach.date)
-          newErrors[`ach_date_${index}`] = `Achievement ${
-            index + 1
-          }: Date is required`;
-        else if (new Date(ach.date) > quarterEnd)
-          newErrors[`ach_date_${index}`] = `Achievement ${
-            index + 1
-          }: Date must be within the 3-month cycle`;
+          newErrors[`ach_date_${index}`] = `Achievement ${index + 1}: Date is required`;
+        else if (isAfter(new Date(ach.date), quarterEnd) || new Date(ach.date) < quarterStart)
+          newErrors[`ach_date_${index}`] = `Achievement ${index + 1}: Date must be within the current quarter`;
       });
+      if (promotion_recommended) {
+        if (!formData.appraisal.new_designation_name)
+          newErrors.new_designation_name = "New designation is required for promotion";
+        if (!formData.appraisal.new_department_name)
+          newErrors.new_department_name = "New department is required for promotion";
+      }
+      if (salary_hike_percentage || promotion_recommended || (Array.isArray(bonuses) && bonuses.length > 0)) {
+        if (!formData.appraisal.basic_salary || formData.appraisal.basic_salary <= 0)
+          newErrors.basic_salary = "Valid basic salary is required";
+        if (!formData.appraisal.hra_percentage || formData.appraisal.hra_percentage < 0 || formData.appraisal.hra_percentage > 100)
+          newErrors.hra_percentage = "HRA percentage must be between 0 and 100";
+        if (!formData.appraisal.hra || formData.appraisal.hra < 0)
+          newErrors.hra = "Valid HRA is required";
+        if (!formData.appraisal.special_allowances || formData.appraisal.special_allowances < 0)
+          newErrors.special_allowances = "Special allowances must be non-negative";
+        if (!formData.appraisal.provident_fund_percentage || formData.appraisal.provident_fund_percentage < 0)
+          newErrors.provident_fund_percentage = "Provident fund percentage must be non-negative";
+        if (!formData.appraisal.esic_percentage || formData.appraisal.esic_percentage < 0)
+          newErrors.esic_percentage = "ESIC percentage must be non-negative";
+      }
       if (role === "super_admin" && Array.isArray(bonuses)) {
         bonuses.forEach((bonus, index) => {
           if (!bonus.bonus_type)
@@ -478,7 +446,7 @@ const AddEmployeeReview = () => {
             newErrors[`bonus_amount_${index}`] = `Bonus ${index + 1}: Amount must be positive`;
           if (!bonus.effective_date)
             newErrors[`bonus_effective_date_${index}`] = `Bonus ${index + 1}: Effective date is required`;
-          else if (new Date(bonus.effective_date) < new Date())
+          else if (new Date(bonus.effective_date) < today)
             newErrors[`bonus_effective_date_${index}`] = `Bonus ${index + 1}: Effective date must be today or later`;
         });
       }
@@ -488,18 +456,60 @@ const AddEmployeeReview = () => {
   };
 
   const nextStep = async () => {
-    if (!validateStep()) return;
+    if (!validateStep()) {
+      toast.error("Please fix all errors before proceeding");
+      return;
+    }
     if (currentStep === 0 && formData.employeeDetails.employee_id) {
       try {
-        await dispatch(
-          fetchEmployeePerformance(formData.employeeDetails.employee_id)
-        ).unwrap();
+        // Submit goals to backend
+        const updatedGoals = [];
+        for (const goal of formData.goals) {
+          if (!goal.title || !goal.due_date) {
+            throw new Error(`Invalid goal data: Title or due_date missing for goal ID ${goal.id}`);
+          }
+          const goalPayload = {
+            employee_id: formData.employeeDetails.employee_id,
+            title: goal.title,
+            description: goal.description || "",
+            due_date: goal.due_date,
+            tasks: Array.isArray(goal.tasks)
+              ? goal.tasks.map((task) => {
+                  if (!task.title || !task.due_date) {
+                    throw new Error(`Invalid task data: Title or due_date missing for task ID ${task.id} in goal ID ${goal.id}`);
+                  }
+                  return {
+                    title: task.title,
+                    description: task.description || "",
+                    due_date: task.due_date,
+                    priority: task.priority || "Medium",
+                  };
+                })
+              : [],
+            appraisal_id: null, // Set to null since appraisal is not yet created
+          };
+          console.log(`Submitting goal payload:`, JSON.stringify(goalPayload, null, 2));
+          const result = await dispatch(setEmployeeGoal(goalPayload)).unwrap();
+          console.log(`Goal ${goal.title} submitted successfully:`, result);
+          updatedGoals.push(result.data);
+        }
+
+        // Update formData.goals with server response
+        setFormData((prev) => ({
+          ...prev,
+          goals: updatedGoals,
+        }));
+
+        // Fetch employee performance data
+        await dispatch(fetchEmployeePerformance(formData.employeeDetails.employee_id)).unwrap();
         setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
       } catch (error) {
+        console.error("Error in nextStep:", error);
         setFormErrors((prev) => ({
           ...prev,
-          form: error || "Failed to fetch employee performance data",
+          form: error.message || "Failed to save goals or fetch employee performance data",
         }));
+        toast.error(error.message || "Failed to save goals or fetch employee performance data");
       }
     } else {
       setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
@@ -510,7 +520,10 @@ const AddEmployeeReview = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateStep()) return;
+    if (!validateStep()) {
+      toast.error("Please fix all errors before submitting");
+      return;
+    }
 
     if (!["hr", "super_admin"].includes(role)) {
       setFormErrors({ form: "Only HR or Admin can submit reviews" });
@@ -519,43 +532,89 @@ const AddEmployeeReview = () => {
     }
 
     try {
-      // Submit goals
+      // Submit goals (already submitted in nextStep, but re-validate)
+      const updatedGoals = [];
       for (const goal of formData.goals) {
-        await dispatch(
-          setEmployeeGoal({
-            employee_id: formData.employeeDetails.employee_id,
-            title: goal.title,
-            description: goal.description,
-            due_date: goal.due_date,
-            tasks: goal.tasks,
-          })
-        ).unwrap();
+        if (!goal.title || !goal.due_date) {
+          throw new Error(`Invalid goal data: Title or due_date missing for goal ID ${goal.id}`);
+        }
+        const goalPayload = {
+          employee_id: formData.employeeDetails.employee_id,
+          title: goal.title,
+          description: goal.description || "",
+          due_date: goal.due_date,
+          tasks: Array.isArray(goal.tasks)
+            ? goal.tasks.map((task) => {
+                if (!task.title || !task.due_date) {
+                  throw new Error(`Invalid task data: Title or due_date missing for task ID ${task.id} in goal ID ${goal.id}`);
+                }
+                return {
+                  title: task.title,
+                  description: task.description || "",
+                  due_date: task.due_date,
+                  priority: task.priority || "Medium",
+                };
+              })
+            : [],
+          appraisal_id: null,
+        };
+        console.log(`Submitting goal payload:`, JSON.stringify(goalPayload, null, 2));
+        const result = await dispatch(setEmployeeGoal(goalPayload)).unwrap();
+        console.log(`Goal ${goal.title} submitted successfully:`, result);
+        updatedGoals.push(result.data);
       }
 
+      // Update formData.goals with server response
+      setFormData((prev) => ({
+        ...prev,
+        goals: updatedGoals,
+      }));
+
       // Submit appraisal
-      await dispatch(
-        conductAppraisal({
-          employee_id: formData.employeeDetails.employee_id,
-          reviewer_id: loggedInUserId,
-          ...formData.appraisal,
-          competencies: formData.competencies,
-        })
-      ).unwrap();
+      const appraisalPayload = {
+        employee_id: formData.employeeDetails.employee_id,
+        reviewer_id: loggedInUserId,
+        performance_score: parseFloat(formData.appraisal.performance_score),
+        manager_comments: formData.appraisal.manager_comments,
+        achievements: formData.appraisal.achievements,
+        bonus_eligible: formData.appraisal.bonus_eligible,
+        promotion_recommended: formData.appraisal.promotion_recommended,
+        salary_hike_percentage: formData.appraisal.salary_hike_percentage
+          ? parseFloat(formData.appraisal.salary_hike_percentage)
+          : null,
+        new_designation_name: formData.appraisal.new_designation_name || null,
+        new_department_name: formData.appraisal.new_department_name || null,
+        basic_salary: formData.appraisal.basic_salary ? parseFloat(formData.appraisal.basic_salary) : null,
+        hra_percentage: formData.appraisal.hra_percentage ? parseFloat(formData.appraisal.hra_percentage) : null,
+        hra: formData.appraisal.hra ? parseFloat(formData.appraisal.hra) : null,
+        special_allowances: formData.appraisal.special_allowances
+          ? parseFloat(formData.appraisal.special_allowances)
+          : null,
+        provident_fund_percentage: formData.appraisal.provident_fund_percentage
+          ? parseFloat(formData.appraisal.provident_fund_percentage)
+          : null,
+        esic_percentage: formData.appraisal.esic_percentage ? parseFloat(formData.appraisal.esic_percentage) : null,
+        competencies: formData.competencies,
+        goals: updatedGoals, // Include goals in appraisal payload
+      };
+      console.log("Submitting appraisal:", JSON.stringify(appraisalPayload, null, 2));
+      const appraisalResult = await dispatch(conductAppraisal(appraisalPayload)).unwrap();
+      console.log("Appraisal submitted successfully:", appraisalResult);
 
       // Submit bonuses (super_admin only)
       if (role === "super_admin" && Array.isArray(formData.appraisal.bonuses) && formData.appraisal.bonuses.length > 0) {
         for (const bonus of formData.appraisal.bonuses) {
-          await dispatch(
-            awardBonus({
-              employee_id: formData.employeeDetails.employee_id,
-              bonusData: {
-                bonus_type: bonus.bonus_type,
-                amount: parseFloat(bonus.amount),
-                effective_date: bonus.effective_date,
-                remarks: bonus.remarks,
-              },
-            })
-          ).unwrap();
+          const bonusPayload = {
+            employee_id: formData.employeeDetails.employee_id,
+            bonusData: {
+              bonus_type: bonus.bonus_type,
+              amount: parseFloat(bonus.amount),
+              effective_date: bonus.effective_date,
+              remarks: bonus.remarks,
+            },
+          };
+          console.log("Submitting bonus:", JSON.stringify(bonusPayload, null, 2));
+          await dispatch(awardBonus(bonusPayload)).unwrap();
         }
       }
 
@@ -563,8 +622,9 @@ const AddEmployeeReview = () => {
       setFormData(initialFormData);
       setCurrentStep(0);
     } catch (err) {
-      setFormErrors({ form: err || "Failed to submit review" });
-      toast.error(err || "Failed to submit review");
+      console.error("Submission error:", err);
+      setFormErrors({ form: err.message || "Failed to submit review. Please check all fields and try again." });
+      toast.error(err.message || "Failed to submit review. Please check all fields and try again.");
     }
   };
 
@@ -573,7 +633,7 @@ const AddEmployeeReview = () => {
       <div className="hidden sm:flex sm:justify-end sm:items-center">
         <PageBreadcrumb
           items={[
-            { label: "Home", link: "/admin/dashboard" },
+            { label: "Home", link: `/${role === "hr" ? "hr" : "admin"}-dashboard` },
             { label: "Add Employee Review", link: "/admin/add-performance" },
           ]}
         />
@@ -589,21 +649,20 @@ const AddEmployeeReview = () => {
           </h2>
         </div>
         <div className="bg-white rounded-xl border border-gray-300 shadow-lg p-4 sm:p-6 md:p-8">
-          {/* Success Message */}
           {successMessage && (
             <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg text-sm sm:text-base">
               {successMessage}
             </div>
           )}
-
-          {/* Error Message */}
-          {perfError && (
+          {(perfError || empError || formErrors.form) && (
             <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg text-sm sm:text-base">
-              {perfError}
+              {formErrors.form || perfError || empError || "An error occurred. Please try again."}
             </div>
           )}
-
-          {/* Stepper */}
+          <div className="bg-gray-100 p-4 rounded-lg mb-4 hidden">
+            <h3 className="text-sm font-semibold">Debug: Form Data</h3>
+            <pre className="text-xs">{JSON.stringify(formData, null, 2)}</pre>
+          </div>
           <div className="mb-6">
             <div className="flex flex-col sm:flex-row justify-between mb-4 space-y-4 sm:space-y-0 sm:space-x-2">
               {steps.map((step, index) => (
@@ -632,8 +691,6 @@ const AddEmployeeReview = () => {
               ></div>
             </div>
           </div>
-
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {currentStep === 0 && (
               <EmployeeInfoGoalsForm
@@ -664,10 +721,9 @@ const AddEmployeeReview = () => {
                 formErrors={formErrors}
                 handleChange={handleChange}
                 handleDateChange={handleDateChange}
+                perfError={perfError}
               />
             )}
-
-            {/* Navigation Buttons */}
             <div className="flex flex-col sm:flex-row justify-between mt-6 space-y-4 sm:space-y-0 sm:space-x-4">
               <button
                 type="button"
@@ -679,9 +735,7 @@ const AddEmployeeReview = () => {
               </button>
               <button
                 type={currentStep === steps.length - 1 ? "submit" : "button"}
-                onClick={
-                  currentStep === steps.length - 1 ? undefined : nextStep
-                }
+                onClick={currentStep === steps.length - 1 ? undefined : nextStep}
                 disabled={empLoading || perfLoading}
                 className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-slate-700 to-teal-600 text-white rounded-lg hover:from-slate-800 hover:to-teal-700 disabled:from-slate-600 disabled:to-teal-500 disabled:cursor-not-allowed transition-all text-sm sm:text-base"
               >

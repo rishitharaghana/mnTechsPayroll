@@ -1,42 +1,48 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Briefcase, User, Building, Calendar, Award, Target, Clock } from "lucide-react";
+import { startOfQuarter, endOfQuarter } from "date-fns";
 import Download from "/assets/download.png";
 import { getCurrentUserProfile } from "../../redux/slices/employeeSlice";
 import { fetchEmployeePerformance, submitSelfReview } from "../../redux/slices/performanceSlice";
+import { fetchLeaveBalances } from "../../redux/slices/leaveSlice";
 import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import { toast } from "react-toastify";
-import { fetchLeaveBalances } from "../../redux/slices/leaveSlice";
 
 const ViewGoals = () => {
   const dispatch = useDispatch();
   const { user, employee_id, role, loading: userLoading, error: userError } = useSelector((state) => state.auth);
   const { performance, loading: perfLoading, error: perfError } = useSelector((state) => state.performance);
-  const { leaveBalances, loading: leaveLoading, error: leaveError } = useSelector((state) => state.leaves); // Assuming leave slice exists
+  const { leaveBalances, loading: leaveLoading, error: leaveError } = useSelector((state) => state.leaves);
+  const { employees, loading: empLoading, error: empError } = useSelector((state) => state.employee);
   const [selfReviewComments, setSelfReviewComments] = useState("");
   const [closingComments, setClosingComments] = useState("");
-  const [activeTab, setActiveTab] = useState("goals"); // Add tabs for better navigation
+  const [activeTab, setActiveTab] = useState("goals");
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(employee_id || "");
 
   useEffect(() => {
     if (employee_id) {
-      dispatch(getCurrentUserProfile());
-      dispatch(fetchEmployeePerformance(employee_id)).catch((err) => {
-        console.error("Failed to fetch performance:", err);
-        toast.error("Failed to load performance data. Please try again.");
+      dispatch(getCurrentUserProfile()).catch((err) => {
+        toast.error("Failed to load user profile.");
       });
-      // Assuming a fetchLeaveBalances action exists
-      dispatch(fetchLeaveBalances(employee_id)).catch((err) => {
-        console.error("Failed to fetch leave balances:", err);
-        toast.error("Failed to load leave balances. Please try again.");
+      dispatch(fetchEmployees()).catch((err) => {
+        toast.error("Failed to load employees.");
+      });
+      dispatch(fetchEmployeePerformance(selectedEmployeeId)).catch((err) => {
+        toast.error("Failed to load performance data.");
+      });
+      dispatch(fetchLeaveBalances(selectedEmployeeId)).catch((err) => {
+        toast.error("Failed to load leave balances.");
       });
     }
-  }, [dispatch, employee_id]);
+  }, [dispatch, employee_id, selectedEmployeeId]);
 
   const getDateRange = () => {
     const today = new Date();
-    const start = new Date(today.getFullYear(), Math.floor(today.getMonth() / 3) * 3, 1);
-    const end = new Date(today.getFullYear(), Math.floor(today.getMonth() / 3) * 3 + 3, 0);
+    const start = startOfQuarter(today);
+    const end = endOfQuarter(today);
+    console.log("Date range:", { start: start.toISOString(), end: end.toISOString() });
     return { start, end };
   };
 
@@ -45,50 +51,70 @@ const ViewGoals = () => {
       try {
         const dueDate = new Date(goal.due_date);
         const { start, end } = getDateRange();
-        return !isNaN(dueDate.getTime()) && dueDate >= start && dueDate <= end;
+        if (isNaN(dueDate.getTime())) {
+          console.warn("Invalid goal due_date:", goal);
+          return false;
+        }
+        return dueDate >= start && dueDate <= end;
       } catch (e) {
-        console.error("Invalid goal due_date:", goal.due_date);
-        return false; // Exclude invalid dates
+        console.error("Error parsing goal due_date:", goal, e);
+        return false;
       }
     }),
     achievements: (performance?.achievements || []).filter((ach) => {
       try {
         const achDate = new Date(ach.date);
         const { start, end } = getDateRange();
-        return !isNaN(achDate.getTime()) && achDate >= start && achDate <= end;
+        if (isNaN(achDate.getTime())) {
+          console.warn("Invalid achievement date:", ach);
+          return false;
+        }
+        return achDate >= start && achDate <= end;
       } catch (e) {
-        console.error("Invalid achievement date:", ach.date);
-        return false; // Exclude invalid dates
+        console.error("Error parsing achievement date:", ach, e);
+        return false;
       }
     }),
     competencies: (performance?.competencies || []).filter((comp) => {
       try {
         const compDate = new Date(comp.created_at || comp.updated_at);
         const { start, end } = getDateRange();
-        return !isNaN(compDate.getTime()) && compDate >= start && compDate <= end;
+        if (isNaN(compDate.getTime())) {
+          console.warn("Invalid competency date:", comp);
+          return false;
+        }
+        return compDate >= start && compDate <= end;
       } catch (e) {
-        console.error("Invalid competency date:", comp);
-        return false; // Exclude invalid dates
+        console.error("Error parsing competency date:", comp, e);
+        return false;
       }
     }),
     appraisals: (performance?.appraisals || []).filter((app) => {
       try {
         const appDate = new Date(app.created_at);
         const { start, end } = getDateRange();
-        return !isNaN(appDate.getTime()) && appDate >= start && appDate <= end;
+        if (isNaN(appDate.getTime())) {
+          console.warn("Invalid appraisal date:", app);
+          return false;
+        }
+        return appDate >= start && appDate <= end;
       } catch (e) {
-        console.error("Invalid appraisal date:", app.created_at);
-        return false; // Exclude invalid dates
+        console.error("Error parsing appraisal date:", app, e);
+        return false;
       }
     }),
     bonuses: (performance?.bonuses || []).filter((bonus) => {
       try {
         const bonusDate = new Date(bonus.effective_date);
         const { start, end } = getDateRange();
-        return !isNaN(bonusDate.getTime()) && bonusDate >= start && bonusDate <= end;
+        if (isNaN(bonusDate.getTime())) {
+          console.warn("Invalid bonus date:", bonus);
+          return false;
+        }
+        return bonusDate >= start && bonusDate <= end;
       } catch (e) {
-        console.error("Invalid bonus date:", bonus.effective_date);
-        return false; // Exclude invalid dates
+        console.error("Error parsing bonus date:", bonus, e);
+        return false;
       }
     }),
   };
@@ -102,7 +128,7 @@ const ViewGoals = () => {
     try {
       await dispatch(
         submitSelfReview({
-          employee_id,
+          employee_id: selectedEmployeeId,
           comments: selfReviewComments,
           closing_comments: closingComments,
         })
@@ -111,14 +137,13 @@ const ViewGoals = () => {
       setClosingComments("");
       toast.success("Comments submitted successfully!");
     } catch (err) {
-      console.error("Error submitting comments:", err);
-      toast.error(err || "Failed to submit comments. Please try again.");
+      toast.error(err || "Failed to submit comments.");
     }
   };
 
   const employeeDetails = {
     name: user?.name || "N/A",
-    id: employee_id || "N/A",
+    id: selectedEmployeeId || "N/A",
     email: user?.email || "N/A",
     jobTitle: user?.designation_name || "N/A",
     manager: user?.manager_name || "N/A",
@@ -126,6 +151,18 @@ const ViewGoals = () => {
     startDate: user?.join_date || "N/A",
     image: Download,
   };
+
+  if (selectedEmployeeId !== employee_id && employees) {
+    const selectedEmployee = employees.find((emp) => emp.employee_id === selectedEmployeeId);
+    if (selectedEmployee) {
+      employeeDetails.name = selectedEmployee.full_name || "N/A";
+      employeeDetails.email = selectedEmployee.email || "N/A";
+      employeeDetails.jobTitle = selectedEmployee.designation_name || "N/A";
+      employeeDetails.department = selectedEmployee.department_name || "N/A";
+      employeeDetails.manager = selectedEmployee.manager_name || "N/A";
+      employeeDetails.startDate = selectedEmployee.join_date || "N/A";
+    }
+  }
 
   const tabs = [
     { id: "goals", label: "Goals & Tasks", icon: Target },
@@ -137,6 +174,7 @@ const ViewGoals = () => {
   ];
 
   const renderTabContent = () => {
+    console.log(`Rendering tab: ${activeTab}`, filteredPerformance[activeTab]);
     switch (activeTab) {
       case "goals":
         return (
@@ -345,12 +383,12 @@ const ViewGoals = () => {
           <p className="text-sm sm:text-lg md:text-md text-white">View your performance and leave details for the current 3-month cycle</p>
         </div>
 
-        {(userError || perfError || leaveError) && (
+        {(userError || perfError || leaveError || empError) && (
           <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-            {userError || perfError || leaveError || "Failed to load data. Please contact HR."}
+            {userError || perfError || leaveError || empError || "Failed to load data. Please contact HR."}
           </div>
         )}
-        {(userLoading || perfLoading || leaveLoading) && (
+        {(userLoading || perfLoading || leaveLoading || empLoading) && (
           <div className="flex justify-center mb-4">
             <svg
               className="animate-spin h-5 w-5 text-teal-600"
@@ -365,6 +403,31 @@ const ViewGoals = () => {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
+          </div>
+        )}
+
+        {["dept_head", "manager", "hr", "super_admin"].includes(role) && (
+          <div className="mb-6">
+            <label className="text-sm text-gray-600">Select Employee</label>
+            <select
+              value={selectedEmployeeId}
+              onChange={(e) => setSelectedEmployeeId(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
+              disabled={userLoading || perfLoading || empLoading}
+            >
+              <option value="">Select an employee</option>
+              {employees
+                ?.filter((emp) =>
+                  role === "hr" || role === "super_admin"
+                    ? true
+                    : emp.department_name === user?.department_name || emp.employee_id === employee_id
+                )
+                .map((emp) => (
+                  <option key={emp.employee_id} value={emp.employee_id}>
+                    {emp.full_name} ({emp.employee_id})
+                  </option>
+                ))}
+            </select>
           </div>
         )}
 
@@ -439,35 +502,37 @@ const ViewGoals = () => {
           {renderTabContent()}
         </div>
 
-        <div className="bg-white border-1 border-gray-300 rounded-xl shadow-lg p-6 mb-6 transition-all hover:shadow-xl">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Self-Review Comments</h2>
-          <div className="space-y-4">
-            <textarea
-              value={selfReviewComments}
-              onChange={(e) => setSelfReviewComments(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-              rows="4"
-              placeholder="Enter your self-review comments"
-              aria-label="Self-review comments"
-            ></textarea>
-            <textarea
-              value={closingComments}
-              onChange={(e) => setClosingComments(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-              rows="2"
-              placeholder="Enter closing comments (optional)"
-              aria-label="Closing comments"
-            ></textarea>
-            <button
-              onClick={handleSubmitComments}
-              disabled={userLoading || perfLoading}
-              className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 disabled:bg-teal-400 disabled:cursor-not-allowed transition-colors"
-              aria-label="Submit self-review comments"
-            >
-              Submit Comments
-            </button>
+        {role === "employee" && selectedEmployeeId === employee_id && (
+          <div className="bg-white border-1 border-gray-300 rounded-xl shadow-lg p-6 mb-6 transition-all hover:shadow-xl">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Self-Review Comments</h2>
+            <div className="space-y-4">
+              <textarea
+                value={selfReviewComments}
+                onChange={(e) => setSelfReviewComments(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+                rows="4"
+                placeholder="Enter your self-review comments"
+                aria-label="Self-review comments"
+              ></textarea>
+              <textarea
+                value={closingComments}
+                onChange={(e) => setClosingComments(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+                rows="2"
+                placeholder="Enter closing comments (optional)"
+                aria-label="Closing comments"
+              ></textarea>
+              <button
+                onClick={handleSubmitComments}
+                disabled={userLoading || perfLoading}
+                className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 disabled:bg-teal-400 disabled:cursor-not-allowed transition-colors"
+                aria-label="Submit self-review comments"
+              >
+                Submit Comments
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
