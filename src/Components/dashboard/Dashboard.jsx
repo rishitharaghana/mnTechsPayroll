@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Users, Clock, CreditCard, Calendar, BarChart, Activity, Clock as ClockIcon } from 'lucide-react';
-import { fetchDashboardData, clearState } from '../../redux/slices/dashboardSlice';
-import { getCurrentUserProfile } from '../../redux/slices/employeeSlice';
+import { fetchDashboardData, clearState as clearDashboardState } from '../../redux/slices/dashboardSlice';
+import { getCurrentUserProfile, clearState as clearEmployeeState } from '../../redux/slices/employeeSlice';
 
 const AdminDashboard = () => {
   const dispatch = useDispatch();
@@ -13,17 +13,23 @@ const AdminDashboard = () => {
   const { dashboardData, loading, error } = useSelector((state) => state.dashboard);
   const role = profile?.role || user?.role || '';
   const fullName = profile?.full_name || user?.full_name || role.toUpperCase();
+  const hasFetchedProfile = useRef(false);
+  const hasFetchedDashboard = useRef(false);
 
   useEffect(() => {
+    // Clear employee errors on mount
+    dispatch(clearEmployeeState());
+
     if (!isAuthenticated && !authLoading) {
       navigate('/login');
-    } else if (!profile?.full_name) {
+    } else if (!profile?.full_name && !hasFetchedProfile.current) {
+      hasFetchedProfile.current = true;
       dispatch(getCurrentUserProfile());
-    } else if (role && token) {
+    } else if (role && token && !hasFetchedDashboard.current) {
+      hasFetchedDashboard.current = true;
       dispatch(fetchDashboardData({ role }));
     }
-    return () => dispatch(clearState());
-  }, [dispatch, navigate, isAuthenticated, authLoading, profile, user, role, token]);
+  }, [dispatch, navigate, isAuthenticated, authLoading, profile?.full_name, role, token]);
 
   if (authLoading || employeeLoading || loading) {
     return <div className="flex justify-center items-center min-h-screen text-slate-500">Loading...</div>;
@@ -45,13 +51,16 @@ const AdminDashboard = () => {
     );
   }
 
-  if (authError || employeeError || error) {
+  if (authError || error) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-red-500 text-center">
-          <p>{authError || employeeError || error}</p>
+          <p>{authError || error}</p>
           <button
             onClick={() => {
+              dispatch(clearEmployeeState());
+              hasFetchedProfile.current = false;
+              hasFetchedDashboard.current = false;
               dispatch(getCurrentUserProfile());
               if (role && token) dispatch(fetchDashboardData({ role }));
             }}
@@ -66,7 +75,6 @@ const AdminDashboard = () => {
 
   const { stats = [], quickActions = [], recentActivities = [], performanceMetrics = [], leaveBalances = {} } = dashboardData || {};
 
-  // Role-specific insights title
   const getInsightsTitle = () => {
     if (role === 'super_admin') return 'Organization Insights';
     if (role === 'hr') return 'HR Insights';
@@ -79,41 +87,41 @@ const AdminDashboard = () => {
   const isTwoItems = totalItems === 2;
   const isHRorDeptHead = role === 'hr' || role === 'dept_head';
 
-const formatActivityTime = (timeString) => {
-  console.log('Formatting time:', timeString); // Log input time
-  if (!timeString) return 'Just now';
+  const formatActivityTime = (timeString) => {
+    console.log('Formatting time:', timeString);
+    if (!timeString) return 'Just now';
 
-  // Handle IST string format (e.g., "7/10/2025, 11:29:02 AM")
-  const date = new Date(timeString);
-  const now = new Date();
-  if (isNaN(date.getTime()) || date.getTime() === 0) {
-    console.warn(`Invalid or epoch time received: ${timeString}`);
-    return 'Invalid time';
-  }
-  if (date > now) {
-    console.warn(`Future time received: ${timeString}`);
-    return 'Invalid time (future date)';
-  }
+    const date = new Date(timeString);
+    const now = new Date();
+    if (isNaN(date.getTime()) || date.getTime() === 0) {
+      console.warn(`Invalid or epoch time received: ${timeString}`);
+      return 'Invalid time';
+    }
+    if (date > now) {
+      console.warn(`Future time received: ${timeString}`);
+      return 'Invalid time (future date)';
+    }
 
-  const diffInMs = now - date;
-  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  const diffInDays = Math.floor(diffInHours / 24);
+    const diffInMs = now - date;
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
 
-  if (diffInMinutes < 1) return 'Just now';
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-  if (diffInHours < 24) return `${diffInHours}h ago`;
-  if (diffInDays < 7) return `${diffInDays}d ago`;
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInDays < 7) return `${diffInDays}d ago`;
 
-  return date.toLocaleString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
-};
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
   const ProgressBar = ({ value, color = 'teal' }) => {
     const percentage = parseFloat(value) || 0;
     const bgColor = color === 'teal' ? 'bg-teal-500' : 'bg-emerald-500';
@@ -202,26 +210,26 @@ const formatActivityTime = (timeString) => {
               <h2 className="text-lg font-bold text-white">Recent Activities</h2>
             </div>
             <div className="mt-4 space-y-3">
-            {recentActivities.map((activity, index) => {
-  const Icon = { Users, Clock, Calendar }[activity.icon] || Users;
-  return (
-    <div
-      key={index}
-      className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 transition-colors duration-200"
-      role="listitem"
-      aria-label={`${activity.type} by ${activity.name}`}
-    >
-      <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg flex items-center justify-center w-8 h-8">
-        <Icon className="text-white" size={16} aria-hidden="true" />
-      </div>
-      <div className="flex-1">
-        <p className="text-slate-900 text-sm font-medium">{activity.type}</p>
-        <p className="text-slate-500 text-xs">{activity.name}</p>
-      </div>
-      <span className="text-slate-400 text-xs">{formatActivityTime(activity.time)}</span>
-    </div>
-  );
-})}
+              {recentActivities.map((activity, index) => {
+                const Icon = { Users, Clock, Calendar }[activity.icon] || Users;
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 transition-colors duration-200"
+                    role="listitem"
+                    aria-label={`${activity.type} by ${activity.name}`}
+                  >
+                    <div className="bg-gradient-to-r from-teal-600 to-slate-700 rounded-lg flex items-center justify-center w-8 h-8">
+                      <Icon className="text-white" size={16} aria-hidden="true" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-slate-900 text-sm font-medium">{activity.type}</p>
+                      <p className="text-slate-500 text-xs">{activity.name}</p>
+                    </div>
+                    <span className="text-slate-400 text-xs">{formatActivityTime(activity.time)}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ) : (
@@ -251,7 +259,6 @@ const formatActivityTime = (timeString) => {
                   <p className="text-xs text-slate-500">{metric.description}</p>
                 </div>
               ))}
-              
               {Object.keys(leaveBalances).map((type, index) => {
                 if (role === 'super_admin' && type !== 'paid_leave_balance') return null;
                 const label = type === 'paid_leave_balance' ? 'Paid Leave' : type.charAt(0).toUpperCase() + type.slice(1);
@@ -290,7 +297,6 @@ const formatActivityTime = (timeString) => {
                   </div>
                 </div>
               ))}
-              
               {Object.keys(leaveBalances).map((type, index) => {
                 if (role === 'super_admin' && type !== 'paid_leave_balance') return null;
                 const label = type === 'paid_leave_balance' ? 'Paid Leave' : type.charAt(0).toUpperCase() + type.slice(1);

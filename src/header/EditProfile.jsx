@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   User,
@@ -16,7 +16,8 @@ import {
   fetchEmployeeDocuments,
   fetchEmployeeBankDetails,
   fetchEmployeeById,
-} from "../redux/slices/employeeSlice"; 
+  clearState,
+} from "../redux/slices/employeeSlice";
 
 const EditProfile = () => {
   const dispatch = useDispatch();
@@ -28,24 +29,91 @@ const EditProfile = () => {
     bankDetails,
     currentEmployee,
     loading,
-    error,
     employeeId,
   } = useSelector((state) => state.employee);
   const [activeTab, setActiveTab] = useState(0);
+  const [fetchErrors, setFetchErrors] = useState({});
+  const hasClearedState = useRef(false);
 
   useEffect(() => {
     dispatch(getCurrentUserProfile());
   }, [dispatch]);
 
   useEffect(() => {
-    if (employeeId) {
-      dispatch(fetchEmployeeById(employeeId));
-      dispatch(fetchEmployeePersonalDetails(employeeId));
-      dispatch(fetchEmployeeEducationDetails(employeeId));
-      dispatch(fetchEmployeeDocuments(employeeId));
-      dispatch(fetchEmployeeBankDetails(employeeId));
+    if (!profile?.employee_id) return;
+
+    const employee_id = profile.employee_id;
+
+    if (employeeId && employeeId !== employee_id && !hasClearedState.current) {
+      console.warn("Mismatch detected in employeeId. Clearing stale state.", {
+        reduxEmployeeId: employeeId,
+        profileEmployeeId: employee_id,
+      });
+      dispatch(clearState());
+      hasClearedState.current = true;
     }
-  }, [employeeId, dispatch]);
+
+    console.log("Dispatching employee details fetches", { employee_id });
+
+    Promise.all([
+      dispatch(fetchEmployeeById(employee_id))
+        .unwrap()
+        .catch((err) => {
+          console.error("fetchEmployeeById failed:", err);
+          setFetchErrors((prev) => ({
+            ...prev,
+            position: err.status === 404 ? null : err.message || "Unable to fetch position information.",
+          }));
+          return null;
+        }),
+      dispatch(fetchEmployeePersonalDetails(employee_id))
+        .unwrap()
+        .catch((err) => {
+          console.error("fetchEmployeePersonalDetails failed:", err);
+          setFetchErrors((prev) => ({
+            ...prev,
+            personal: err.status === 404 ? null : err.message || "Unable to fetch personal details.",
+          }));
+          return null;
+        }),
+      dispatch(fetchEmployeeEducationDetails(employee_id))
+        .unwrap()
+        .catch((err) => {
+          console.error("fetchEmployeeEducationDetails failed:", err);
+          setFetchErrors((prev) => ({
+            ...prev,
+            education: err.status === 404 ? null : err.message || "Education details not found.",
+          }));
+          return null;
+        }),
+      dispatch(fetchEmployeeDocuments(employee_id))
+        .unwrap()
+        .catch((err) => {
+          console.error("fetchEmployeeDocuments failed:", err);
+          setFetchErrors((prev) => ({
+            ...prev,
+            documents: err.status === 404 ? null : err.message || "Unable to fetch documents.",
+          }));
+          return [];
+        }),
+      dispatch(fetchEmployeeBankDetails(employee_id))
+        .unwrap()
+        .catch((err) => {
+          console.error("fetchEmployeeBankDetails failed:", err);
+          let errorMessage = err.status === 404 ? null : "Bank details not found. Please add them.";
+          if (err.status === 403 || err.message?.includes("Access denied")) {
+            errorMessage = "Access denied: You can only view your own bank details.";
+          }
+          setFetchErrors((prev) => ({
+            ...prev,
+            bank: errorMessage,
+          }));
+          return null;
+        }),
+    ]).then(() => {
+      console.log("All fetches completed");
+    });
+  }, [dispatch, profile?.employee_id]);
 
   const steps = [
     {
@@ -81,7 +149,7 @@ const EditProfile = () => {
             "Contract End Date": currentEmployee.contract_end_date || "N/A",
           }
         : {},
-    },  
+    },
     {
       title: "Education Details",
       icon: <GraduationCap size={18} />,
@@ -94,18 +162,19 @@ const EditProfile = () => {
             "Graduation Name": educationDetails.graduation_name || "N/A",
             "Graduation Marks": educationDetails.graduation_marks || "N/A",
             "Postgraduation Name": educationDetails.postgraduation_name || "N/A",
-            "Postgraduation Marks":
-              educationDetails.postgraduation_marks || "N/A",
+            "Postgraduation Marks": educationDetails.postgraduation_marks || "N/A",
           }
         : {},
     },
     {
       title: "Documents",
       icon: <FileText size={18} />,
-      details: documents.reduce((acc, doc) => {
-        acc[doc.document_type] = doc.document_url || "N/A";
-        return acc;
-      }, {}),
+      details: documents && documents.length > 0
+        ? documents.reduce((acc, doc) => {
+            acc[doc.document_type] = doc.document_url || "N/A";
+            return acc;
+          }, {})
+        : {},
     },
     {
       title: "Bank Details",
@@ -126,10 +195,18 @@ const EditProfile = () => {
       return <div className="text-center text-gray-600">Loading...</div>;
     }
 
-    if (error) {
+    const tabErrors = {
+      0: fetchErrors.personal,
+      1: fetchErrors.position,
+      2: fetchErrors.education,
+      3: fetchErrors.documents,
+      4: fetchErrors.bank,
+    };
+
+    if (tabErrors[activeTab]) {
       return (
         <div className="text-center text-red-600">
-          Error: {error}
+          {tabErrors[activeTab]}
         </div>
       );
     }
@@ -143,10 +220,8 @@ const EditProfile = () => {
     }
 
     if (activeTab === 0) {
-      // Personal Details Layout
       return (
         <div className="space-y-6">
-          {/* Image Section */}
           <div className="flex justify-start">
             <img
               src={currentStep.details.Image}
@@ -154,8 +229,6 @@ const EditProfile = () => {
               className="w-32 h-32 rounded-full object-cover border-4 border-gray-200 shadow-md"
             />
           </div>
-
-          {/* Other details in grid */}
           <div className="grid sm:grid-cols-2 gap-6">
             {Object.entries(currentStep.details)
               .filter(([key]) => key !== "Image")
@@ -174,7 +247,6 @@ const EditProfile = () => {
     }
 
     if (activeTab === 3) {
-      // Documents Layout
       return (
         <div className="grid sm:grid-cols-2 gap-6">
           {Object.entries(currentStep.details).map(([key, value], idx) => (
@@ -182,7 +254,6 @@ const EditProfile = () => {
               key={idx}
               className="flex items-center space-x-3 p-4 bg-white rounded-lg shadow-md border border-gray-200"
             >
-              {/* PDF preview box */}
               <div className="w-12 h-14 bg-red-100 border border-red-300 rounded-md flex items-center justify-center text-red-600 font-bold text-xs">
                 PDF
               </div>
@@ -198,7 +269,6 @@ const EditProfile = () => {
       );
     }
 
-    // Default Layout for Position, Education, Bank
     return (
       <div className="grid sm:grid-cols-2 gap-6">
         {Object.entries(currentStep.details).map(([key, value], idx) => (
@@ -231,7 +301,6 @@ const EditProfile = () => {
             ? `${profile.fullName}'s Profile`
             : "Employee Profile"}
         </h2>
-        {/* Stepper at the top */}
         <div className="bg-white rounded-2xl shadow-xl p-4 mb-6">
           <ul className="flex flex-wrap gap-2" role="tablist">
             {steps.map((step, index) => (
@@ -256,8 +325,6 @@ const EditProfile = () => {
             ))}
           </ul>
         </div>
-
-        {/* Content Area */}
         <main>
           <div
             className="bg-white rounded-2xl shadow-xl p-6"
