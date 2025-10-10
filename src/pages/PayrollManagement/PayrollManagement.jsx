@@ -15,7 +15,7 @@ import { fetchEmployees } from "../../redux/slices/employeeSlice";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
 import DatePicker from "../../Components/ui/date/DatePicker";
-import PayslipGenerator from "../PayslipManagement/PaySlipGenerator";
+import PaySlipGenerator from "../PayslipManagement/PaySlipGenerator";
 
 const PayrollManagement = () => {
   const dispatch = useDispatch();
@@ -422,7 +422,7 @@ const PayrollManagement = () => {
                 <X size={24} />
               </button>
               <h2 className="text-2xl font-bold text-slate-900 mb-4">Payslip Preview</h2>
-              <PayslipGenerator
+              <PaySlipGenerator
                 employee={showPreview}
                 selectedMonth={format(selectedMonth, "yyyy-MM")}
                 onClose={() => setShowPreview(null)}

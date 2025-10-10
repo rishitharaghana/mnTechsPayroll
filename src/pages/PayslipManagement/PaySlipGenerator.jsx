@@ -32,7 +32,7 @@ const numberToWords = (num) => {
   return numToWords(Math.floor(num)).trim().replace(/^\w/, (c) => c.toUpperCase());
 };
 
-const PayslipGenerator = ({ employee = {}, selectedMonth, onClose }) => {
+const PaySlipGenerator = ({ employee = {}, selectedMonth, onClose }) => {
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.payslip);
   const { user, role } = useSelector((state) => state.auth);
@@ -242,4 +242,4 @@ const PayslipGenerator = ({ employee = {}, selectedMonth, onClose }) => {
   );
 };
 
-export default PayslipGenerator;
+export default PaySlipGenerator;

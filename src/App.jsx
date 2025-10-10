@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import AppLayout from "./layout/AppLayout";
-import Home from "./pages/HomePage/home";
+import Home from "./pages/HomePage/Home";
 import Dashboard from "./Components/dashboard/Dashboard";
 import EmployeeDashboard from "./Components/dashboard/EmployeeDashboard";
 import UserProfile from "./header/userProfile";
@@ -15,7 +15,7 @@ import Payroll from "./pages/PayrollManagement/Payroll";
 import GeneratePayroll from "./pages/PayrollManagement/GeneratePayroll";
 import PayrollHistory from "./pages/PayrollManagement/PayrollHistory";
 import Payslip from "./pages/PayslipManagement/Payslip";
-import PayslipGenerator from "./pages/PayslipManagement/PayslipGenerator";
+import PaySlipGenerator from "./pages/PayslipManagement/PaySlipGenerator";
 import PayslipForm from "./form/PayslipForm";
 import EmployeePayslip from "./pages/PayslipManagement/EmployeePayslip";
 import Performance from "./pages/PerformanceManagement/Performance";
@@ -117,7 +117,7 @@ const App = () => {
                 <Route path="/admin/payslip" element={<Payslip />} />
                 <Route
                   path="/admin/payslip-generator/:id"
-                  element={<PayslipGenerator />}
+                  element={<PaySlipGenerator />}
                 />
                 <Route
                   path="/admin/payslip/payslip-form"

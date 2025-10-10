@@ -10,7 +10,7 @@ import { getCurrentUserProfile, fetchEmployees } from "../../redux/slices/employ
 import { toast } from "react-toastify";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PageMeta from "../../Components/common/PageMeta";
-import PayslipGenerator from "../PayslipManagement/PayslipGenerator";
+import PaySlipGenerator from "../PayslipManagement/PaySlipGenerator";
 
 const CustomSelect = ({ value, onChange, options, label, placeholder = "Select an option" }) => {
   return (
@@ -533,7 +533,7 @@ const EmployeePayslip = () => {
               <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
                 Payslip Preview
               </h2>
-              <PayslipGenerator
+              <PaySlipGenerator
                 employee={showPreview}
                 selectedMonth={showPreview.month}
                 onClose={() => setShowPreview(null)}

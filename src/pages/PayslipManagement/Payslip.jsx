@@ -19,7 +19,7 @@ import {
 import { toast } from "react-toastify";
 import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
-import PayslipGenerator from "./PayslipGenerator";
+import PaySlipGenerator from "./PaySlipGenerator";
 
 // Custom styles for react-select
 const selectStyles = {
@@ -496,7 +496,7 @@ const Payslip = () => {
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
                 Payslip Preview
               </h2>
-              <PayslipGenerator
+              <PaySlipGenerator
                 employee={showPreview}
                 selectedMonth={selectedMonth}
                 onClose={() => setShowPreview(null)}

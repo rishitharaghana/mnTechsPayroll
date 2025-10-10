@@ -3,19 +3,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { Briefcase, User, Building, Calendar, Award, Target, Clock } from "lucide-react";
 import { startOfQuarter, endOfQuarter } from "date-fns";
 import Download from "/assets/download.png";
-import { getCurrentUserProfile } from "../../redux/slices/employeeSlice";
+import { fetchEmployees, getCurrentUserProfile } from "../../redux/slices/employeeSlice";
 import { fetchEmployeePerformance, submitSelfReview } from "../../redux/slices/performanceSlice";
-import { fetchLeaveBalances } from "../../redux/slices/leaveSlice";
 import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import { toast } from "react-toastify";
 
 const ViewGoals = () => {
   const dispatch = useDispatch();
-  const { user, employee_id, role, loading: userLoading, error: userError } = useSelector((state) => state.auth);
+  const { user,  role, loading: userLoading, error: userError } = useSelector((state) => state.auth);
   const { performance, loading: perfLoading, error: perfError } = useSelector((state) => state.performance);
-  const { leaveBalances, loading: leaveLoading, error: leaveError } = useSelector((state) => state.leaves);
-  const { employees, loading: empLoading, error: empError } = useSelector((state) => state.employee);
+  const { employees, employee_id,loading: empLoading, error: empError } = useSelector((state) => state.employee);
   const [selfReviewComments, setSelfReviewComments] = useState("");
   const [closingComments, setClosingComments] = useState("");
   const [activeTab, setActiveTab] = useState("goals");
@@ -32,9 +30,7 @@ const ViewGoals = () => {
       dispatch(fetchEmployeePerformance(selectedEmployeeId)).catch((err) => {
         toast.error("Failed to load performance data.");
       });
-      dispatch(fetchLeaveBalances(selectedEmployeeId)).catch((err) => {
-        toast.error("Failed to load leave balances.");
-      });
+     
     }
   }, [dispatch, employee_id, selectedEmployeeId]);
 
@@ -170,7 +166,6 @@ const ViewGoals = () => {
     { id: "achievements", label: "Achievements", icon: Award },
     { id: "appraisals", label: "Appraisals", icon: Briefcase },
     { id: "bonuses", label: "Bonuses", icon: Award },
-    { id: "leaves", label: "Leave Balances", icon: Clock },
   ];
 
   const renderTabContent = () => {
@@ -335,32 +330,7 @@ const ViewGoals = () => {
             )}
           </div>
         );
-      case "leaves":
-        return (
-          <div className="space-y-4">
-            {leaveLoading ? (
-              <p className="text-gray-600">Loading leave balances...</p>
-            ) : leaveError ? (
-              <p className="text-red-600">{leaveError}</p>
-            ) : !leaveBalances || leaveBalances.length === 0 ? (
-              <p className="text-gray-600">
-                No leave balances available. Contact HR.
-              </p>
-            ) : (
-              leaveBalances.map((leave, index) => (
-                <div key={index} className="p-4 rounded-lg bg-gray-100">
-                  <p className="text-gray-800 font-semibold">{leave.leave_type} Leave ({leave.year})</p>
-                  <p className="text-sm text-gray-600">Balance: {leave.balance} days</p>
-                  {leave.performance_bonus && (
-                    <p className="text-sm text-green-600">
-                      Includes {leave.performance_bonus} extra days due to high performance
-                    </p>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        );
+     
       default:
         return null;
     }
@@ -375,36 +345,13 @@ const ViewGoals = () => {
             { label: "My Performance", link: "/employee/viewgoals" },
           ]}
         />
-        <PageMeta title="My Performance" description="View your goals, competencies, achievements, appraisals, bonuses, and leave balances" />
+        <PageMeta title="My Performance" description="View your goals, competencies, achievements, appraisals, bonuses" />
       </div>
       <div className="bg-white rounded-xl p-4 md:p-8 shadow-lg border-1 border-gray-300">
         <div className="bg-gradient-to-r from-slate-700 to-teal-600 rounded-xl p-6 mb-6">
           <h1 className="sm:text-3xl text-2xl font-bold text-white mb-1">My Performance Dashboard</h1>
-          <p className="text-sm sm:text-lg md:text-md text-white">View your performance and leave details for the current 3-month cycle</p>
+          <p className="text-sm sm:text-lg md:text-md text-white">View your performance for the current 3-month cycle</p>
         </div>
-
-        {(userError || perfError || leaveError || empError) && (
-          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-            {userError || perfError || leaveError || empError || "Failed to load data. Please contact HR."}
-          </div>
-        )}
-        {(userLoading || perfLoading || leaveLoading || empLoading) && (
-          <div className="flex justify-center mb-4">
-            <svg
-              className="animate-spin h-5 w-5 text-teal-600"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-          </div>
-        )}
 
         {["dept_head", "manager", "hr", "super_admin"].includes(role) && (
           <div className="mb-6">

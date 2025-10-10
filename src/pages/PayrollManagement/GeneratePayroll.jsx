@@ -13,7 +13,7 @@ import {
 } from "../../redux/slices/payrollSlice";
 import { fetchEmployees, fetchDepartments } from "../../redux/slices/employeeSlice";
 import { downloadPayslip } from "../../redux/slices/payslipSlice";
-import PayslipGenerator from "../PayslipManagement/PayslipGenerator";
+import PaySlipGenerator from "../PayslipManagement/PaySlipGenerator";
 import { toast } from "react-toastify";
 import { ChevronDown, FileText, FileDown, Eye, ArrowLeft, ArrowRight } from "lucide-react";
 
@@ -297,7 +297,7 @@ const GeneratePayroll = () => {
         {selectedPayroll && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg border border-slate-200 sm:p-6 p-4 shadow-sm max-w-lg w-full max-h-[80vh] overflow-y-auto">
-              <PayslipGenerator
+              <PaySlipGenerator
                 employee={selectedPayroll}
                 selectedMonth={format(selectedMonth, "yyyy-MM")}
                 onClose={() => setSelectedPayroll(null)}

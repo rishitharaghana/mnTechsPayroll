@@ -12,7 +12,7 @@ import { downloadPayslip } from "../../redux/slices/payslipSlice";
 import DatePicker from "../../Components/ui/date/DatePicker";
 import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
-import PayslipGenerator from "../PayslipManagement/PayslipGenerator";
+import PaySlipGenerator from "../PayslipManagement/PaySlipGenerator";
 import {
   FileDown,
   FileText,
@@ -447,7 +447,7 @@ const EmployeePayrollDetails = () => {
         {selectedPayroll && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg border border-slate-200 p-4 sm:p-6 shadow-sm max-w-lg w-full max-h-[80vh] overflow-y-auto">
-              <PayslipGenerator
+              <PaySlipGenerator
                 employee={selectedPayroll}
                 selectedMonth={format(selectedMonth, "yyyy-MM")}
                 onClose={() => setSelectedPayroll(null)}
