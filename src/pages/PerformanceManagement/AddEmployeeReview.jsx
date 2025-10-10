@@ -605,7 +605,6 @@ const AddEmployeeReview = () => {
       console.log("Submitting appraisal:", JSON.stringify(appraisalPayload, null, 2));
       const appraisalResult = await dispatch(conductAppraisal(appraisalPayload)).unwrap();
 
-      // Submit bonuses (super_admin only)
       if (role === "super_admin" && Array.isArray(formData.appraisal.bonuses) && formData.appraisal.bonuses.length > 0) {
         for (const bonus of formData.appraisal.bonuses) {
           const bonusPayload = {
@@ -667,13 +666,6 @@ const AddEmployeeReview = () => {
           {(perfError || empError || formErrors.form) && (
             <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg text-sm sm:text-base">
               {formErrors.form || perfError || empError || "An error occurred. Please try again."}
-            </div>
-          )}
-          {/* Debug section for development only */}
-          {process.env.NODE_ENV === "development" && (
-            <div className="bg-gray-100 p-4 rounded-lg mb-4">
-              <h3 className="text-sm font-semibold">Debug: Form Data</h3>
-              <pre className="text-xs">{JSON.stringify(formData, null, 2)}</pre>
             </div>
           )}
           <div className="mb-6">
