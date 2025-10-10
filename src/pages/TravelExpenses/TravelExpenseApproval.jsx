@@ -612,7 +612,6 @@ const TravelExpenseApproval = () => {
                                       </ul>
                                     </div>
                                   </div>
-                                  {/* Comment */}
                                   <div className="md:col-span-2 lg:col-span-3 space-y-1">
                                     <span className="text-xs font-medium text-slate-700 block mb-1">
                                       Comment
@@ -622,7 +621,7 @@ const TravelExpenseApproval = () => {
                                         userRole
                                       ) && viewMode === "pending" ? (
                                         <textarea
-                                          className="w-full border-0 text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all duration-300 disabled:bg-gray-50 resize-none"
+                                          className="w-full border-0 text-xs text-slate-600 focus:outline-none  transition-all duration-300 disabled:bg-gray-50 resize-none"
                                           placeholder="Add a comment (optional)"
                                           value={
                                             adminComments[submission.id] || ""
@@ -714,7 +713,7 @@ const TravelExpenseApproval = () => {
               <button
                 onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
                 disabled={page === 1}
-                className="px-4 py-1.5 text-sm font-medium bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-full hover:from-teal-700 hover:to-teal-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-sm"
+                className="px-4 py-1.5 mb-2 ml-2 text-sm font-medium bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-full hover:from-teal-700 hover:to-teal-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-sm"
               >
                 Previous
               </button>
@@ -739,7 +738,7 @@ const TravelExpenseApproval = () => {
               <button
                 onClick={() => setPage((prev) => prev + 1)}
                 disabled={page >= (paginationData?.totalPages || 1)}
-                className="px-4 py-1.5 text-sm font-medium bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-full hover:from-teal-700 hover:to-teal-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-sm"
+                className="px-4 py-1.5 mb-1 mr-2 text-sm font-medium bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-full hover:from-teal-700 hover:to-teal-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-sm"
               >
                 Next
               </button>
