@@ -17,8 +17,7 @@ const AdminDashboard = () => {
   const hasFetchedDashboard = useRef(false);
 
   useEffect(() => {
-    // Clear employee errors on mount
-    dispatch(clearEmployeeState());
+
 
     if (!isAuthenticated && !authLoading) {
       navigate('/login');
