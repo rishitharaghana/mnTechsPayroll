@@ -831,7 +831,7 @@ const EmployeeDetails = () => {
       {isPreviewOpen && (
         <EmployeePreview
           formData={formData}
-          error={error}
+          // error={error}
           successMessage={successMessage}
           closePreview={closePreview}
         />
