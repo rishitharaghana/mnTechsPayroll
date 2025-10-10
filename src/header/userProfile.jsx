@@ -68,7 +68,7 @@ const UserProfile = () => {
       </div>
 
       <div className="mb-6 p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">{profile.full_name}</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">{profile.name}</h2>
         <p className="text-sm font-medium text-slate-700">{profile.designation_name || "N/A"}</p>
         <p className="text-sm text-gray-500">Employee ID: {profile.employee_id}</p>
       </div>
