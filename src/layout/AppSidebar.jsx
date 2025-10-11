@@ -246,26 +246,26 @@ const AppSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
         },
       ],
     },
-    {
-      id: "time-tracking",
-      label: "Time Tracking",
-      icon: RouteOff,
-      allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
-      children: [
-        {
-          id: "time-tracking-admin",
-          label: "Time Tracking",
-          path: "/admin/time-tracking",
-          allowedRoles: ["super_admin", "hr", "manager", "dept_head"],
-        },
-        {
-          id: "time-tracking-employee",
-          label: "Time Tracking",
-          path: "/employee/emp-timetracking",
-          allowedRoles: ["employee"],
-        },
-      ],
-    },
+    // {
+    //   id: "time-tracking",
+    //   label: "Time Tracking",
+    //   icon: RouteOff,
+    //   allowedRoles: ["super_admin", "hr", "dept_head", "manager", "employee"],
+    //   children: [
+    //     {
+    //       id: "time-tracking-admin",
+    //       label: "Time Tracking",
+    //       path: "/admin/time-tracking",
+    //       allowedRoles: ["super_admin", "hr", "manager", "dept_head"],
+    //     },
+    //     {
+    //       id: "time-tracking-employee",
+    //       label: "Time Tracking",
+    //       path: "/employee/emp-timetracking",
+    //       allowedRoles: ["employee"],
+    //     },
+    //   ],
+    // },
     {
       id: "visitingcards",
       label: "Visiting Cards",
