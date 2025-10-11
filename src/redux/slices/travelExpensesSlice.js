@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import AxiosInstance from "../../hooks/AxiosInstance";
 
 export const submitTravelExpense = createAsyncThunk(
   "travelExpense/submitTravelExpense",
@@ -37,8 +37,8 @@ export const submitTravelExpense = createAsyncThunk(
         formData.append("receipt", travelData.receipt);
       }
 
-      const response = await axios.post(
-        "http://localhost:3007/api/travel-expenses",
+      const response = await AxiosInstance.post(
+        "api/travel-expenses",
         formData,
         {
           headers: {
@@ -74,8 +74,8 @@ export const fetchTravelExpenses = createAsyncThunk(
         return rejectWithValue("Invalid token format");
       }
 
-      const response = await axios.get(
-        `http://localhost:3007/api/travel-expenses?page=${page}&limit=${limit}`,
+      const response = await AxiosInstance.get(
+        `api/travel-expenses?page=${page}&limit=${limit}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -106,8 +106,8 @@ export const fetchTravelExpenseHistory = createAsyncThunk(
         return rejectWithValue("Invalid token format");
       }
 
-      const response = await axios.get(
-        `http://localhost:3007/api/travel-expenses/history?page=${page}&limit=${limit}`,
+      const response = await AxiosInstance.get(
+        `api/travel-expenses/history?page=${page}&limit=${limit}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -139,8 +139,8 @@ export const updateTravelExpenseStatus = createAsyncThunk(
         return rejectWithValue("Invalid token format");
       }
 
-      const response = await axios.put(
-        `http://localhost:3007/api/travel-expenses/${id}`, 
+      const response = await AxiosInstance.put(
+        `api/travel-expenses/${id}`, 
         { status, admin_comment }, 
         {
           headers: {

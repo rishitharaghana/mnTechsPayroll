@@ -1,6 +1,6 @@
 // src/redux/slices/companySlice.js
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import AxiosInstance from "../../hooks/AxiosInstance";
 
 
 export const fetchCompanyDetails = createAsyncThunk(
@@ -16,7 +16,7 @@ export const fetchCompanyDetails = createAsyncThunk(
         return rejectWithValue("Invalid token format");
       }
 
-      const response = await axios.get(`$http://localhost:3007/api/company`, {
+      const response = await AxiosInstance.get(`api/company`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

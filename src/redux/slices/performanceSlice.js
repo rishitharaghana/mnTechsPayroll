@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import AxiosInstance from "../../hooks/AxiosInstance";
 
 export const setEmployeeGoal = createAsyncThunk(
   "performance/setEmployeeGoal",
@@ -11,8 +11,8 @@ export const setEmployeeGoal = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.post(
-        "http://localhost:3007/api/employee/goals",
+      const response = await AxiosInstance.post(
+        "api/employee/goals",
         goalData,
         {
           headers: {
@@ -38,8 +38,8 @@ export const updateGoalProgress = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.put(
-        `http://localhost:3007/api/employee-performance/goals/${goal_id}`,
+      const response = await AxiosInstance.put(
+        `api/employee-performance/goals/${goal_id}`,
         { progress, status },
         {
           headers: {
@@ -67,8 +67,8 @@ export const conductAppraisal = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.post(
-        "http://localhost:3007/api/employee/appraisals",
+      const response = await AxiosInstance.post(
+        "api/employee/appraisals",
         appraisalData,
         {
           headers: {
@@ -94,8 +94,8 @@ export const fetchEmployeePerformance = createAsyncThunk(
       if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
       const { token } = JSON.parse(userToken);
       console.log("fetchEmployeePerformance - Requesting for employee_id:", employee_id);
-      const response = await axios.get(
-        `http://localhost:3007/api/employee-performance/${encodeURIComponent(employee_id)}`,
+      const response = await AxiosInstance.get(
+        `api/employee-performance/${encodeURIComponent(employee_id)}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -142,8 +142,8 @@ export const submitSelfReview = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.post(
-        "http://localhost:3007/api/employee/self-review",
+      const response = await AxiosInstance.post(
+        "api/employee/self-review",
         { employee_id, comments, closing_comments },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -164,8 +164,8 @@ export const awardBonus = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.post(
-        "http://localhost:3007/api/employee/awardbonus",
+      const response = await AxiosInstance.post(
+        "api/employee/awardbonus",
         { employee_id, ...bonusData },
         {
           headers: {

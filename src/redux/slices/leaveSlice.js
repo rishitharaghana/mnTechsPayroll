@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import AxiosInstance from "../../hooks/AxiosInstance";
 
 export const applyLeave = createAsyncThunk(
   "leaves/applyLeave",
@@ -10,8 +10,8 @@ export const applyLeave = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.post(
-        "http://localhost:3007/api/leaves",
+      const response = await AxiosInstance.post(
+        "api/leaves",
         { ...leaveData, leave_status: leaveData.leave_status || "Paid" }, // Ensure leave_status is sent
         {
           headers: {
@@ -40,7 +40,7 @@ export const fetchMyLeaves = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get("http://localhost:3007/api/leaves", {
+      const response = await AxiosInstance.get("api/leaves", {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("fetchMyLeaves response:", response.data);
@@ -63,8 +63,8 @@ export const fetchPendingLeaves = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        "http://localhost:3007/api/leaves/pending",
+      const response = await AxiosInstance.get(
+        "api/leaves/pending",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -92,8 +92,8 @@ export const fetchAllLeaves = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        "http://localhost:3007/api/leaves/getAll",
+      const response = await AxiosInstance.get(
+        "api/leaves/getAll",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -118,8 +118,8 @@ export const approveLeave = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.put(
-        `http://localhost:3007/api/leaves/${leave_id}`,
+      const response = await AxiosInstance.put(
+        `api/leaves/${leave_id}`,
         { leave_id, status: "Approved" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -143,8 +143,8 @@ export const rejectLeave = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.put(
-        `http://localhost:3007/api/leaves/${leave_id}`,
+      const response = await AxiosInstance.put(
+        `api/leaves/${leave_id}`,
         { leave_id, status: "Rejected" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -168,8 +168,8 @@ export const fetchRecipientOptions = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        "http://localhost:3007/api/leaves/recipient-options",
+      const response = await AxiosInstance.get(
+        "api/leaves/recipient-options",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -197,8 +197,8 @@ export const fetchLeaveBalances = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        "http://localhost:3007/api/leaves/balances",
+      const response = await AxiosInstance.get(
+        "api/leaves/balances",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -226,8 +226,8 @@ export const allocateMonthlyLeaves = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.post(
-        "http://localhost:3007/api/leaves/total-leaves",
+      const response = await AxiosInstance.post(
+        "api/leaves/total-leaves",
         { year, month },
         {
           headers: {
@@ -259,9 +259,9 @@ export const allocateSpecialLeave = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.post(
-        "http://localhost:3007/api/leaves/special-leaves",
-        { leave_type: "paid", employee_id, days }, // Force leave_type to 'paid'
+      const response = await AxiosInstance.post(
+        "api/leaves/special-leaves",
+        { leave_type: "paid", employee_id, days }, 
         {
           headers: {
             "Content-Type": "application/json",

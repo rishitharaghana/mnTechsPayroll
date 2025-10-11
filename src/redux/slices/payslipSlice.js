@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import axios from 'axios';
+import AxiosInstance from '../../hooks/AxiosInstance';
 
 export const fetchPayslips = createAsyncThunk(
   'payslip/fetchPayslips',
@@ -17,7 +17,7 @@ export const fetchPayslips = createAsyncThunk(
       const query = new URLSearchParams({ page, limit });
       if (month) query.append('month', month);
       if (employeeId) query.append('employeeId', employeeId);
-      const response = await axios.get(`http://localhost:3007/api/employees/payslips?${query}`, {
+      const response = await AxiosInstance.get(`api/employees/payslips?${query}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -47,7 +47,7 @@ export const downloadPayslip = createAsyncThunk(
         return rejectWithValue('Invalid employee ID or month format. Use YYYY-MM');
       }
 
-      const response = await axios.get(`http://localhost:3007/api/payslip/${employeeId}/${month}`, {
+      const response = await AxiosInstance.get(`api/payslip/${employeeId}/${month}`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob',
       });
@@ -105,7 +105,7 @@ export const fetchRecentPayslip = createAsyncThunk(
       }
       if (!employeeId) return rejectWithValue('Employee ID is missing');
       const query = new URLSearchParams({ limit: 1, employeeId });
-      const response = await axios.get(`http://localhost:3007/api/employees/payslips?${query}`, {
+      const response = await AxiosInstance.get(`api/employees/payslips?${query}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log('Fetch recent payslip response:', response.data);

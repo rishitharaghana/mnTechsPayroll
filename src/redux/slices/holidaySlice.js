@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import AxiosInstance from "../../hooks/AxiosInstance";
 
 // Fetch holidays for a specific year
 export const fetchHolidays = createAsyncThunk(
@@ -14,7 +14,7 @@ export const fetchHolidays = createAsyncThunk(
       const { token } = JSON.parse(userToken);
       console.log("fetchHolidays - Requesting for year:", year);
       const response = await axios.get(
-        `http://localhost:3007/api/holidays?year=${year}`,
+        `api/holidays?year=${year}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -48,7 +48,7 @@ export const createHoliday = createAsyncThunk(
 
       const { token } = JSON.parse(userToken);
       const response = await axios.post(
-        "http://localhost:3007/api/holidays/add",
+        "api/holidays/add",
         holidayData,
         {
           headers: {
@@ -77,7 +77,7 @@ export const updateHoliday = createAsyncThunk(
 
       const { token } = JSON.parse(userToken);
       const response = await axios.put(
-        `http://localhost:3007/api/holidays/${id}`,
+        `api/holidays/${id}`,
         holidayData,
         {
           headers: {
@@ -105,7 +105,7 @@ export const deleteHoliday = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      await axios.delete(`http://localhost:3007/api/holidays/delete/${id}`, {
+      await AxiosInstance.delete(`api/holidays/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import AxiosInstance from "../../hooks/AxiosInstance";
 
 export const downloadVisitingCard = createAsyncThunk(
   "visitingCard/downloadVisitingCard",
@@ -20,8 +20,8 @@ export const downloadVisitingCard = createAsyncThunk(
         return rejectWithValue("Employee ID is missing.");
       }
 
-      const response = await axios.get(
-        `http://localhost:3007/api/download/${targetEmployeeId}/${style}`,
+      const response = await AxiosInstance.get(
+        `api/download/${targetEmployeeId}/${style}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

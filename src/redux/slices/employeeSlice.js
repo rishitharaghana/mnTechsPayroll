@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import AxiosInstance from "../../hooks/AxiosInstance";
 
 export const createEmployee = createAsyncThunk(
   "employee/createEmployee",
@@ -27,8 +27,8 @@ export const createEmployee = createAsyncThunk(
         console.log(`${key}:`, value instanceof File ? value.name : value);
       }
 
-      const response = await axios.post(
-        "http://localhost:3007/api/employees",
+      const response = await AxiosInstance.post(
+        "api/employees",
         formData,
         {
           headers: {
@@ -80,8 +80,8 @@ export const createEmployeePersonalDetails = createAsyncThunk(
           : employee_id,
       };
 
-      const response = await axios.post(
-        "http://localhost:3007/api/employees/personal-details",
+      const response = await AxiosInstance.post(
+        "api/employees/personal-details",
         payload,
         {
           headers: {
@@ -121,8 +121,8 @@ export const updateEmployeePersonalDetails = createAsyncThunk(
           : employee_id,
       };
 
-      const response = await axios.put(
-        `http://localhost:3007/api/employees/personal-details/${payload.employeeId}`,
+      const response = await AxiosInstance.put(
+        `api/employees/personal-details/${payload.employeeId}`,
         payload,
         {
           headers: {
@@ -155,8 +155,8 @@ export const createEducationDetails = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.post(
-        "http://localhost:3007/api/employees/education-details",
+      const response = await AxiosInstance.post(
+        "api/employees/education-details",
         educationData,
         {
           headers: {
@@ -186,8 +186,8 @@ export const updateEducationDetails = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.put(
-        `http://localhost:3007/api/employees/education-details/${educationData.employee_id}`,
+      const response = await AxiosInstance.put(
+        `api/employees/education-details/${educationData.employee_id}`,
         educationData,
         {
           headers: {
@@ -222,8 +222,8 @@ export const createDocuments = createAsyncThunk(
       formData.append("documentType", documentType.toLowerCase());
       formData.append("document", file);
 
-      const response = await axios.post(
-        "http://localhost:3007/api/employees/documents",
+      const response = await AxiosInstance.post(
+        "api/employees/documents",
         formData,
         {
           headers: {
@@ -253,8 +253,8 @@ export const createBankDetails = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.post(
-        "http://localhost:3007/api/employees/bank-details",
+      const response = await AxiosInstance.post(
+        "api/employees/bank-details",
         bankData,
         {
           headers: {
@@ -284,8 +284,8 @@ export const updateBankDetails = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.put(
-        `http://localhost:3007/api/employees/bank-details/${bankData.employee_id}`,
+      const response = await AxiosInstance.put(
+        `api/employees/bank-details/${bankData.employee_id}`,
         bankData,
         {
           headers: {
@@ -324,8 +324,8 @@ export const updateEmployee = createAsyncThunk(
         }
       });
 
-      const response = await axios.put(
-        `http://localhost:3007/api/employees/${id}`,
+      const response = await AxiosInstance.put(
+        `api/employees/${id}`,
         formData,
         {
           headers: {
@@ -367,8 +367,8 @@ export const deleteEmployee = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.post(
-        `http://localhost:3007/api/employees/${id}/terminate`,
+      const response = await AxiosInstance.post(
+        `api/employees/${id}/terminate`,
         {
           role,
           exitType,
@@ -411,8 +411,8 @@ export const fetchAlumni = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        "http://localhost:3007/api/employees/alumni",
+      const response = await AxiosInstance.get(
+        "api/employees/alumni",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -443,7 +443,7 @@ export const fetchEmployees = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get("http://localhost:3007/api/employees", {
+      const response = await AxiosInstance.get("api/employees", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -468,8 +468,8 @@ export const fetchEmployeeById = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        `http://localhost:3007/api/employees/${id}`,
+      const response = await AxiosInstance.get(
+        `api/employees/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -500,7 +500,7 @@ export const getCurrentUserProfile = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get("http://localhost:3007/api/profile", {
+      const response = await AxiosInstance.get("api/profile", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -525,8 +525,8 @@ export const getEmployeeProgress = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        "http://localhost:3007/api/employees/progress",
+      const response = await AxiosInstance.get(
+        "api/employees/progress",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -551,8 +551,8 @@ export const fetchDepartments = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        "http://localhost:3007/api/departments",
+      const response = await AxiosInstance.get(
+        "api/departments",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -580,8 +580,8 @@ export const fetchDesignations = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        "http://localhost:3007/api/designations",
+      const response = await AxiosInstance.get(
+        "api/designations",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -609,8 +609,8 @@ export const fetchRoles = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        "http://localhost:3007/api/employee/roles",
+      const response = await AxiosInstance.get(
+        "api/employee/roles",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -638,8 +638,8 @@ export const createRole = createAsyncThunk(
         return rejectWithValue("No authentication token found. Please log in.");
       }
       const { token } = JSON.parse(userToken);
-      const response = await axios.post(
-        "http://localhost:3007/api/employee/role",
+      const response = await AxiosInstance.post(
+        "api/employee/role",
         roleData,
         {
           headers: {
@@ -672,8 +672,8 @@ export const fetchEmployeePersonalDetails = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        `http://localhost:3007/api/employees/personal-details/${employeeId}`,
+      const response = await AxiosInstance.get(
+        `api/employees/personal-details/${employeeId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -699,8 +699,8 @@ export const fetchEmployeeEducationDetails = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        `http://localhost:3007/api/employees/education-details/${employeeId}`,
+      const response = await AxiosInstance.get(
+        `api/employees/education-details/${employeeId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -726,8 +726,8 @@ export const fetchEmployeeDocuments = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        `http://localhost:3007/api/employees/documents/${employeeId}`,
+      const response = await AxiosInstance.get(
+        `api/employees/documents/${employeeId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -753,8 +753,8 @@ export const fetchEmployeeBankDetails = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(
-        `http://localhost:3007/api/employees/bank-details/${employeeId}`,
+      const response = await AxiosInstance.get(
+        `api/employees/bank-details/${employeeId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

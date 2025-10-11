@@ -1,11 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import AxiosInstance from "../../hooks/AxiosInstance";
 
 export const login = createAsyncThunk(
   "auth/login",
   async ({ mobileNumber, password, role }, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:3007/api/login", {
+      const response = await AxiosInstance.post("api/login", {
         mobile: mobileNumber,
         password,
         role,
@@ -30,8 +30,8 @@ export const changePassword = createAsyncThunk(
         throw new Error("No authentication token found");
       }
 
-      const response = await axios.post(
-        "http://localhost:3007/api/change-password",
+      const response = await AxiosInstance.post(
+        "api/change-password",
         { currentPassword, newPassword },
         {
           headers: {
@@ -54,7 +54,7 @@ export const checkMobileAndRoleExists = createAsyncThunk(
   "auth/checkMobileAndRoleExists",
   async ({ mobile, role }, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:3007/api/check-mobile", {
+      const response = await AxiosInstance.post("api/check-mobile", {
         mobile,
         role,
       });
@@ -73,7 +73,7 @@ export const forgotPassword = createAsyncThunk(
   "auth/forgotPassword",
   async ({ mobileNumber, newPassword, role }, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:3007/api/forgot-password", {
+      const response = await AxiosInstance.post("api/forgot-password", {
         mobile: mobileNumber,
         newPassword,
         role,

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import AxiosInstance from "../../hooks/AxiosInstance";
 
 export const fetchPayroll = createAsyncThunk(
   "payroll/fetchPayroll",
@@ -16,7 +16,7 @@ export const fetchPayroll = createAsyncThunk(
 
       const query = new URLSearchParams({ page, limit });
       if (month) query.append("month", month);
-      const response = await axios.get(`http://localhost:3007/api/payroll?${query}`, {
+      const response = await AxiosInstance.get(`api/payroll?${query}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -45,8 +45,8 @@ export const createPayroll = createAsyncThunk(
         return rejectWithValue("Invalid employee ID or month format");
       }
 
-      const response = await axios.post(
-        `http://localhost:3007/api/payroll`,
+      const response = await AxiosInstance.post(
+        `api/payroll`,
         {
           employee_id: payrollData.employeeId,
           month: payrollData.month,
@@ -92,8 +92,8 @@ export const generatePayroll = createAsyncThunk(
         return rejectWithValue("Invalid month format. Use YYYY-MM");
       }
 
-      const response = await axios.post(
-        `http://localhost:3007/api/payroll/generate`,
+      const response = await AxiosInstance.post(
+        `api/payroll/generate`,
         { month },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -133,10 +133,10 @@ export const downloadPayrollPDF = createAsyncThunk(
       }
 
       const url = employeeId
-        ? `http://localhost:3007/api/payroll/download-pdf?month=${month}&employee_id=${employeeId}`
-        : `http://localhost:3007/api/payroll/download-pdf?month=${month}`;
+        ? `api/payroll/download-pdf?month=${month}&employee_id=${employeeId}`
+        : `api/payroll/download-pdf?month=${month}`;
 
-      const response = await axios.get(url, {
+      const response = await AxiosInstance.get(url, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: "blob",
       });
@@ -196,8 +196,8 @@ export const generatePayrollForEmployee = createAsyncThunk(
         return rejectWithValue("Invalid employee ID or month format");
       }
 
-      const response = await axios.post(
-        "http://localhost:3007/api/payroll/employee",
+      const response = await AxiosInstance.post(
+        "api/payroll/employee",
         { employeeId, month },
         {
           headers: {

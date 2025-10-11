@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import AxiosInstance from '../../hooks/AxiosInstance';
 
 export const fetchDashboardData = createAsyncThunk(
   'dashboard/fetchDashboardData',
@@ -12,7 +12,7 @@ export const fetchDashboardData = createAsyncThunk(
         return rejectWithValue('No authentication token found. Please log in.');
       }
 
-      const response = await axios.get(`http://localhost:3007/api/dashboard/${role}`, {
+      const response = await AxiosInstance.get(`api/dashboard/${role}`, {
         headers: { Authorization: `Bearer ${userToken}` },
       });
       console.log('Fetch dashboard data response:', JSON.stringify(response.data.recentActivities, null, 2));
