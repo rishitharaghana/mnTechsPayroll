@@ -1,15 +1,12 @@
-// import axios from 'axios';
+import axios from "axios";
 
+const AxiosInstance = axios.create({
+  baseURL: "https://payrollapi.mntechs.com/",
+  //    baseURL: 'http://localhost:3007/',
 
-// const ngrokAxiosInstance = axios.create({
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-//     //  baseURL: 'https://fe2663e99cb4.ngrok-free.app',
-//     baseURL: '',
-
-//   headers: {
-//     'Content-Type': 'application/json',
-//   },  
-// });
-
-
-// export default ngrokAxiosInstance;
+export default AxiosInstance;
