@@ -40,13 +40,18 @@ const EmployeeTravelExpenses = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-  const { profile, error: userError, loading: profileLoading } = useSelector((state) => state.user);
-  const { submissions, history, loading, error, successMessage, pagination } = useSelector(
-    (state) => state.travelExpenses
-  );
+  const {
+    profile,
+    error: userError,
+    loading: profileLoading,
+  } = useSelector((state) => state.user);
+  const { submissions, history, loading, error, successMessage, pagination } =
+    useSelector((state) => state.travelExpenses);
 
   const [viewMode, setViewMode] = useState("form"); // "form" for submission form, "history" for history view
-  const [expenses, setExpenses] = useState([{ date: "", purpose: "", amount: "" }]);
+  const [expenses, setExpenses] = useState([
+    { date: "", purpose: "", amount: "" },
+  ]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [travelDate, setTravelDate] = useState("");
   const [destination, setDestination] = useState("");
@@ -60,11 +65,16 @@ const EmployeeTravelExpenses = () => {
   const [shouldRefresh, setShouldRefresh] = useState(false);
   const limit = 10;
 
-  const employeeName = profile ? `${profile.full_name} (${profile.employee_id})` : "Unknown";
+  const employeeName = profile
+    ? `${profile.full_name} (${profile.employee_id})`
+    : "Unknown";
   const userRole = profile?.role || user?.role;
 
   const calculateTotal = debounce(() => {
-    const total = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+    const total = expenses.reduce(
+      (sum, exp) => sum + (parseFloat(exp.amount) || 0),
+      0
+    );
     setTotalAmount(total);
   }, 300);
 
@@ -102,10 +112,15 @@ const EmployeeTravelExpenses = () => {
 
   useEffect(() => {
     if (error) {
-      toast.error(error === "No travel expense history records found" ? "No history records available" : error, {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.error(
+        error === "No travel expense history records found"
+          ? "No history records available"
+          : error,
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
       dispatch(clearState());
     }
     if (userError) {
@@ -167,7 +182,12 @@ const EmployeeTravelExpenses = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!profile?.employee_id || !travelDate || !destination || !travelPurpose) {
+    if (
+      !profile?.employee_id ||
+      !travelDate ||
+      !destination ||
+      !travelPurpose
+    ) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -222,7 +242,8 @@ const EmployeeTravelExpenses = () => {
       const blob = await response.blob();
       const contentDisposition = response.headers.get("Content-Disposition");
       const fileName = contentDisposition
-        ? contentDisposition.split("filename=")[1]?.replace(/"/g, "") || `receipt-${submissionId}`
+        ? contentDisposition.split("filename=")[1]?.replace(/"/g, "") ||
+          `receipt-${submissionId}`
         : `receipt-${submissionId}`;
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -292,7 +313,8 @@ const EmployeeTravelExpenses = () => {
   const filteredData = statusFilter
     ? dataToDisplay.filter((s) => s.status === statusFilter)
     : dataToDisplay;
-  const paginationData = viewMode === "form" ? pagination.submissions : pagination.history;
+  const paginationData =
+    viewMode === "form" ? pagination.submissions : pagination.history;
 
   return (
     <div className="w-full mt-4 sm:mt-0">
@@ -358,12 +380,16 @@ const EmployeeTravelExpenses = () => {
       <div className="bg-white rounded-2xl shadow-lg p-6">
         {viewMode === "form" ? (
           <>
-            <h2 className="text-2xl font-semibold text-slate-700 mb-6">Travel Expenses Form</h2>
+            <h2 className="text-2xl font-semibold text-slate-700 mb-6">
+              Travel Expenses Form
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="border border-slate-300 p-4 rounded-lg shadow-sm">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-md font-semibold text-slate-700 mb-1 block">Employee</label>
+                    <label className="text-md font-semibold text-slate-700 mb-1 block">
+                      Employee
+                    </label>
                     <div className="flex items-center space-x-2">
                       <User size={20} className="text-teal-600" />
                       <input
@@ -376,7 +402,9 @@ const EmployeeTravelExpenses = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="text-md font-semibold text-slate-700 mb-1 block">Travel Date</label>
+                    <label className="text-md font-semibold text-slate-700 mb-1 block">
+                      Travel Date
+                    </label>
                     <div className="flex items-center space-x-2">
                       <Calendar size={20} className="text-teal-600" />
                       <input
@@ -390,7 +418,9 @@ const EmployeeTravelExpenses = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="text-md font-semibold text-slate-700 mb-1 block">Travel Destination</label>
+                    <label className="text-md font-semibold text-slate-700 mb-1 block">
+                      Travel Destination
+                    </label>
                     <div className="flex items-center space-x-2">
                       <MapPin size={20} className="text-teal-600" />
                       <input
@@ -405,7 +435,9 @@ const EmployeeTravelExpenses = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="text-md font-semibold text-slate-700 mb-1 block">Department</label>
+                    <label className="text-md font-semibold text-slate-700 mb-1 block">
+                      Department
+                    </label>
                     <div className="flex items-center space-x-2">
                       <Grid3X3 size={20} className="text-teal-600" />
                       <input
@@ -419,7 +451,9 @@ const EmployeeTravelExpenses = () => {
                   </div>
                 </div>
                 <div className="pt-4">
-                  <label className="text-md font-semibold text-slate-700 mb-1 block">Purpose of the Travel</label>
+                  <label className="text-md font-semibold text-slate-700 mb-1 block">
+                    Purpose of the Travel
+                  </label>
                   <div className="flex items-start space-x-2">
                     <FileText size={20} className="text-teal-600 mt-2" />
                     <textarea
@@ -433,7 +467,9 @@ const EmployeeTravelExpenses = () => {
                   </div>
                 </div>
                 <div className="pt-4">
-                  <label className="text-md font-semibold text-slate-700 mb-1 block">Receipt (Optional)</label>
+                  <label className="text-md font-semibold text-slate-700 mb-1 block">
+                    Receipt (Optional)
+                  </label>
                   <div className="flex items-center space-x-2">
                     <Upload size={20} className="text-teal-600" />
                     <input
@@ -444,7 +480,9 @@ const EmployeeTravelExpenses = () => {
                       aria-label="Receipt Upload"
                     />
                     {receipt && (
-                      <span className="text-xs text-teal-600">{receipt.name}</span>
+                      <span className="text-xs text-teal-600">
+                        {receipt.name}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -478,7 +516,9 @@ const EmployeeTravelExpenses = () => {
                             type="date"
                             className="w-full border border-slate-300 shadow-sm p-1 sm:p-2 rounded text-xs sm:text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
                             value={exp.date}
-                            onChange={(e) => handleExpenseChange(index, "date", e.target.value)}
+                            onChange={(e) =>
+                              handleExpenseChange(index, "date", e.target.value)
+                            }
                             aria-label={`Expense Date ${index + 1}`}
                           />
                         </td>
@@ -488,7 +528,13 @@ const EmployeeTravelExpenses = () => {
                             className="w-full border border-slate-300 shadow-sm p-1 sm:p-2 rounded text-xs sm:text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
                             placeholder="Purpose"
                             value={exp.purpose}
-                            onChange={(e) => handleExpenseChange(index, "purpose", e.target.value)}
+                            onChange={(e) =>
+                              handleExpenseChange(
+                                index,
+                                "purpose",
+                                e.target.value
+                              )
+                            }
                             aria-label={`Expense Purpose ${index + 1}`}
                           />
                         </td>
@@ -500,7 +546,13 @@ const EmployeeTravelExpenses = () => {
                             placeholder="0.00"
                             className="w-full border border-slate-300 shadow-sm p-1 sm:p-2 rounded text-xs sm:text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
                             value={exp.amount}
-                            onChange={(e) => handleExpenseChange(index, "amount", e.target.value)}
+                            onChange={(e) =>
+                              handleExpenseChange(
+                                index,
+                                "amount",
+                                e.target.value
+                              )
+                            }
                             aria-label={`Expense Amount ${index + 1}`}
                           />
                         </td>
@@ -536,13 +588,16 @@ const EmployeeTravelExpenses = () => {
               </div>
               <div className="flex justify-between items-center">
                 <div className="text-sm text-gray-500">
-                  Status: <span className="font-semibold">{submissionStatus}</span>
+                  Status:{" "}
+                  <span className="font-semibold">{submissionStatus}</span>
                 </div>
                 <button
                   type="submit"
                   disabled={submissionStatus !== "draft" || loading}
                   className={`inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-lg text-sm shadow-md hover:from-teal-700 hover:to-teal-900 transition ${
-                    submissionStatus !== "draft" || loading ? "opacity-50 cursor-not-allowed" : ""
+                    submissionStatus !== "draft" || loading
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
                   }`}
                   aria-label="Submit Travel Expenses"
                 >
@@ -553,7 +608,9 @@ const EmployeeTravelExpenses = () => {
           </>
         ) : (
           <>
-            <h2 className="text-2xl font-semibold text-slate-700 mb-6">My Expense History</h2>
+            <h2 className="text-2xl font-semibold text-slate-700 mb-6">
+              My Expense History
+            </h2>
             {loading && (
               <div className="text-center text-gray-500 text-sm font-medium py-8 animate-pulse">
                 Loading history...
@@ -561,8 +618,14 @@ const EmployeeTravelExpenses = () => {
             )}
             {!loading && filteredData.length === 0 && (
               <div className="text-center text-gray-500 text-sm font-medium py-8">
-                No {statusFilter ? `history records for status: ${statusFilter}` : "history records"} found.
-                {statusFilter === "Rejected" ? " Try submitting and getting a rejection to see it here." : ""}
+                No{" "}
+                {statusFilter
+                  ? `history records for status: ${statusFilter}`
+                  : "history records"}{" "}
+                found.
+                {statusFilter === "Rejected"
+                  ? " Try submitting and getting a rejection to see it here."
+                  : ""}
               </div>
             )}
             {!loading && filteredData.length > 0 && (
@@ -614,7 +677,8 @@ const EmployeeTravelExpenses = () => {
                           <tr className="hover:bg-teal-50 transition-all duration-300 border border-slate-200">
                             <td className="border border-slate-200 p-3">
                               <div className="font-medium text-sm text-slate-700">
-                                {submission.employee_name || "N/A"} ({submission.employee_id || "N/A"})
+                                {submission.employee_name || "N/A"} (
+                                {submission.employee_id || "N/A"})
                               </div>
                             </td>
                             <td className="border border-slate-200 p-3">
@@ -648,7 +712,9 @@ const EmployeeTravelExpenses = () => {
                             <td className="border border-slate-200 p-3 text-center">
                               <div className="flex items-center justify-center gap-2">
                                 <button
-                                  onClick={() => handleViewSubmission(submission)}
+                                  onClick={() =>
+                                    handleViewSubmission(submission)
+                                  }
                                   className="p-2 bg-teal-100 text-teal-600 hover:bg-teal-200 hover:text-teal-700 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-400 relative group"
                                   aria-label={`View Submission ${submission.id}`}
                                 >
@@ -658,7 +724,9 @@ const EmployeeTravelExpenses = () => {
                                   </span>
                                 </button>
                                 <button
-                                  onClick={() => toggleRowExpansion(submission.id)}
+                                  onClick={() =>
+                                    toggleRowExpansion(submission.id)
+                                  }
                                   className="p-2 bg-teal-100 text-teal-600 hover:bg-teal-200 hover:text-teal-700 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-400 relative group"
                                   aria-label={
                                     isExpanded
@@ -666,9 +734,15 @@ const EmployeeTravelExpenses = () => {
                                       : `Show Details for Submission ${submission.id}`
                                   }
                                 >
-                                  {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                                  {isExpanded ? (
+                                    <ChevronUp size={18} />
+                                  ) : (
+                                    <ChevronDown size={18} />
+                                  )}
                                   <span className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 transition-all duration-200">
-                                    {isExpanded ? "Hide Details" : "Show Details"}
+                                    {isExpanded
+                                      ? "Hide Details"
+                                      : "Show Details"}
                                   </span>
                                 </button>
                               </div>
@@ -679,7 +753,9 @@ const EmployeeTravelExpenses = () => {
                               <td colSpan={6} className="p-0">
                                 <div
                                   className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                                    isExpanded ? "max-h-[300px] opacity-100" : "max-h-0 opacity-0"
+                                    isExpanded
+                                      ? "max-h-[300px] opacity-100"
+                                      : "max-h-0 opacity-0"
                                   }`}
                                 >
                                   <div className="p-4 border-t border-slate-200">
@@ -713,7 +789,11 @@ const EmployeeTravelExpenses = () => {
                                             "http://localhost:3007/uploads/"
                                           ) ? (
                                             <button
-                                              onClick={() => handleDownloadReceipt(submission.id)}
+                                              onClick={() =>
+                                                handleDownloadReceipt(
+                                                  submission.id
+                                                )
+                                              }
                                               className="text-teal-500 hover:text-teal-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-teal-400 flex items-center gap-1 text-xs"
                                               aria-label={`Download Receipt for Submission ${submission.id}`}
                                             >
@@ -730,15 +810,29 @@ const EmployeeTravelExpenses = () => {
                                         </span>
                                         <div className="bg-white p-1.5 rounded-md border border-slate-300 max-h-20 overflow-y-auto">
                                           <ul className="space-y-0.5 text-xs text-slate-600 list-disc pl-3">
-                                            {submission.expenses && submission.expenses.length > 0 ? (
-                                              submission.expenses.slice(0, 3).map((exp, idx) => (
-                                                <li key={idx} className="break-words">
-                                                  <span className="font-medium">{exp.purpose || "N/A"}:</span>{" "}
-                                                  {formatAmount(exp.amount)} on {formatDate(exp.expense_date)}
-                                                </li>
-                                              ))
+                                            {submission.expenses &&
+                                            submission.expenses.length > 0 ? (
+                                              submission.expenses
+                                                .slice(0, 3)
+                                                .map((exp, idx) => (
+                                                  <li
+                                                    key={idx}
+                                                    className="break-words"
+                                                  >
+                                                    <span className="font-medium">
+                                                      {exp.purpose || "N/A"}:
+                                                    </span>{" "}
+                                                    {formatAmount(exp.amount)}{" "}
+                                                    on{" "}
+                                                    {formatDate(
+                                                      exp.expense_date
+                                                    )}
+                                                  </li>
+                                                ))
                                             ) : (
-                                              <li className="text-gray-500 italic">No expenses listed</li>
+                                              <li className="text-gray-500 italic">
+                                                No expenses listed
+                                              </li>
                                             )}
                                           </ul>
                                         </div>
@@ -773,7 +867,10 @@ const EmployeeTravelExpenses = () => {
                     Previous
                   </button>
                   <div className="flex items-center gap-2">
-                    {Array.from({ length: paginationData?.totalPages || 1 }, (_, i) => i + 1).map((p) => (
+                    {Array.from(
+                      { length: paginationData?.totalPages || 1 },
+                      (_, i) => i + 1
+                    ).map((p) => (
                       <button
                         key={p}
                         onClick={() => setPage(p)}
