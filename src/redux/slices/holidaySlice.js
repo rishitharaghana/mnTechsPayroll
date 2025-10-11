@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import AxiosInstance from "../../hooks/AxiosInstance";
 
-// Fetch holidays for a specific year
 export const fetchHolidays = createAsyncThunk(
   "holidays/fetchHolidays",
   async ({ year }, { rejectWithValue }) => {
@@ -13,7 +12,7 @@ export const fetchHolidays = createAsyncThunk(
 
       const { token } = JSON.parse(userToken);
       console.log("fetchHolidays - Requesting for year:", year);
-      const response = await axios.get(
+      const response = await AxiosInstance.get(
         `api/holidays?year=${year}`,
         {
           headers: {
@@ -36,7 +35,6 @@ export const fetchHolidays = createAsyncThunk(
   }
 );
 
-// Create a new holiday
 export const createHoliday = createAsyncThunk(
   "holidays/createHoliday",
   async (holidayData, { rejectWithValue }) => {
@@ -47,7 +45,7 @@ export const createHoliday = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.post(
+      const response = await AxiosInstance.post(
         "api/holidays/add",
         holidayData,
         {
@@ -76,7 +74,7 @@ export const updateHoliday = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.put(
+      const response = await AxiosInstance.put(
         `api/holidays/${id}`,
         holidayData,
         {
