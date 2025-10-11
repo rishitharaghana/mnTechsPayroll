@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import AxiosInstance from '../../hooks/AxiosInstance';
 
 export const markAttendance = createAsyncThunk(
   'attendance/markAttendance',
@@ -12,9 +12,9 @@ export const markAttendance = createAsyncThunk(
 
       const { token } = JSON.parse(userToken);
       console.log("markAttendance sending payload:", { employee_id, date, login_time, logout_time, recipient_id, location });
-      const response = await axios.post(
-        'http://localhost:3007/api/attendance',
-        { employee_id, date, login_time, logout_time, recipient_id, location }, // Changed recipient to recipient_id
+      const response = await AxiosInstance.post(
+        'api/attendance',
+        { employee_id, date, login_time, logout_time, recipient_id, location },
         {
           headers: {
             'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ export const fetchEmployeeAttendance = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get('http://localhost:3007/api/attendance/employee', {
+      const response = await AxiosInstance.get('api/attendance/employee', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -64,7 +64,7 @@ export const fetchAllAttendance = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get('http://localhost:3007/api/attendance/getAll', {
+      const response = await AxiosInstance.get('api/attendance/getAll', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -86,7 +86,7 @@ export const fetchEmployeeAverageHours = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get(`http://localhost:3007/api/attendance/avg-hours/${employee_id}`, {
+      const response = await AxiosInstance.get(`api/attendance/avg-hours/${employee_id}`, {
         params: { start_date, end_date },
         headers: {
           Authorization: `Bearer ${token}`,
@@ -110,7 +110,7 @@ export const fetchAllEmployeesTotalHours = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get('http://localhost:3007/api/attendance/All/avg-hours', {
+      const response = await AxiosInstance.get('api/attendance/All/avg-hours', {
         params: { start_date, end_date },
         headers: {
           Authorization: `Bearer ${token}`,
@@ -134,7 +134,7 @@ export const fetchTotalAverageWorkingHours = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.get('http://localhost:3007/api/attendance/employee/avg-hours', {
+      const response = await AxiosInstance.get('api/attendance/employee/avg-hours', {
         params: { start_date, end_date },
         headers: {
           Authorization: `Bearer ${token}`,
@@ -158,8 +158,8 @@ export const updateAttendanceStatus = createAsyncThunk(
       }
 
       const { token } = JSON.parse(userToken);
-      const response = await axios.put(
-        `http://localhost:3007/api/attendance/status/${id}`,
+      const response = await AxiosInstance.put(
+        `iiapi/attendance/status/${id}`,
         { status },
         {
           headers: {
@@ -185,7 +185,7 @@ export const fetchDetailedAttendance = createAsyncThunk(
       }
             const { token } = JSON.parse(userToken);
 
-      const response = await axios.post('http://localhost:3007/api/attendance/detailed', { employee_id, start_date, end_date },
+      const response = await AxiosInstance.post('api/attendance/detailed', { employee_id, start_date, end_date },
          {
           headers: {
             'Content-Type': 'application/json',
