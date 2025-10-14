@@ -44,6 +44,7 @@ const AssignEmployee = () => {
     esiPercentage: "0.75",
     esiAmount: "",
     bonus: "",
+    customEmployeeIdSuffix: "", // Field for numeric suffix
   });
 
   const [errors, setErrors] = useState({});
@@ -180,10 +181,10 @@ const AssignEmployee = () => {
       if (
         error.includes("Access token is required") ||
         error.includes("Invalid or expired token") ||
-        error.includes("Forbidden Action")
+        error.includes("Forbidden Action") ||
+        error.includes("Custom suffix")
       ) {
-        toast.error("Session expired or unauthorized. Please log in again.");
-        navigate("/login");
+        toast.error(error);
       } else {
         toast.error(error);
         setErrors({ submit: error });
@@ -336,6 +337,11 @@ const AssignEmployee = () => {
       } else if (!genders.includes(employee.gender)) {
         newErrors.gender = "Please select a valid gender option";
       }
+      if (!employee.customEmployeeIdSuffix) {
+        newErrors.customEmployeeIdSuffix = "Employee ID suffix is required";
+      } else if (!/^[0-9]{1,10}$/.test(employee.customEmployeeIdSuffix)) {
+        newErrors.customEmployeeIdSuffix = "Employee ID suffix must be numeric and 1-10 digits";
+      }
     }
     if (step === 3) {
       if (!employee.joinDate) newErrors.joinDate = "Join Date is required";
@@ -458,6 +464,7 @@ const AssignEmployee = () => {
       formData.append("blood_group", employee.bloodGroup || "");
       formData.append("dob", employee.dateOfBirth || "");
       formData.append("gender", employee.gender || "");
+      formData.append("custom_employee_id_suffix", employee.customEmployeeIdSuffix.trim() || "");
       if (employee.photo) formData.append("photo", employee.photo);
       if (["HR", "Department Head", "Manager", "Employee"].includes(employee.roleType)) {
         formData.append("department_name", employee.department || "");
@@ -648,6 +655,13 @@ const AssignEmployee = () => {
                       required: true,
                       accept: "image/jpeg,image/jpg,image/png",
                     },
+                    {
+                      label: "Employee ID Suffix",
+                      field: "customEmployeeIdSuffix",
+                      type: "text",
+                      required: true,
+                      tooltip: "Enter numeric suffix for Employee ID (e.g., '001' for MO-EMP-001)",
+                    },
                   ].map(({ label, field, type, required, tooltip, options, accept, isPassword }) => (
                     <div key={field} className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -707,6 +721,24 @@ const AssignEmployee = () => {
                             required={required}
                           />
                         </div>
+                      ) : field === "customEmployeeIdSuffix" ? (
+                        <div className="relative flex items-center">
+                          <span className="absolute left-0 px-4 py-3 text-gray-500 font-medium bg-gray-100 rounded-l-md border-0 border-b-2 border-gray-200">
+                            MO-EMP-
+                          </span>
+                          <input
+                            type="text"
+                            value={employee[field]}
+                            onChange={(e) => handleInput(field, e.target.value)}
+                            required={required}
+                            placeholder="e.g., 001"
+                            pattern="[0-9]{1,10}" // Enforce numeric input in the browser
+                            className={`w-full pl-20 pr-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
+                              errors[field] ? "border-red-500 animate-pulse" : ""
+                            }`}
+                            aria-label={label}
+                          />
+                        </div>
                       ) : (
                         <div className="relative">
                           <input
@@ -730,6 +762,11 @@ const AssignEmployee = () => {
                             </button>
                           )}
                         </div>
+                      )}
+                      {field === "customEmployeeIdSuffix" && (
+                        <p className="mt-1 text-sm text-gray-500">
+                          Full Employee ID: MO-EMP-{employee.customEmployeeIdSuffix || "<suffix>"}
+                        </p>
                       )}
                       {errors[field] && (
                         <p className="mt-1 text-sm text-red-600 font-medium">{errors[field]}</p>
