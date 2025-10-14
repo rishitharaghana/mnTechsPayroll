@@ -159,7 +159,7 @@ export const updateAttendanceStatus = createAsyncThunk(
 
       const { token } = JSON.parse(userToken);
       const response = await AxiosInstance.put(
-        `iiapi/attendance/status/${id}`,
+        `api/attendance/status/${id}`,
         { status },
         {
           headers: {
