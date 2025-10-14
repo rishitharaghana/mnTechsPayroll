@@ -21,7 +21,6 @@ import PageMeta from "../../Components/common/PageMeta";
 import PageBreadcrumb from "../../Components/common/PageBreadcrumb";
 import PaySlipGenerator from "./PaySlipGenerator";
 
-// Custom styles for react-select
 const selectStyles = {
   control: (provided) => ({
     ...provided,
@@ -70,7 +69,6 @@ const selectStyles = {
   }),
 };
 
-// Custom styles for input fields
 const inputStyles = {
   base: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm py-2 px-3 border",
 };
@@ -352,33 +350,25 @@ const Payslip = () => {
           </div>
         </div>
 
-        {/* Actions Section */}
-        {["hr", "super_admin"].includes(role) && (
-          <div className="bg-white rounded-xl shadow-md border-1 border-gray-300 sm:p-6 p-4 mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Actions
-            </h2>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={handleGeneratePayroll}
-                disabled={loading || payrollLoading || employeesLoading}
-                className="flex-1 py-2 px-4 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                Generate Payroll{" "}
-                {selectedEmployeeId ? "for Employee" : "for All"}
-              </button>
-              <button
-                onClick={() => handleDownloadPayslip(selectedEmployeeId)}
-                disabled={loading || payrollLoading || !selectedEmployeeId}
-                className="flex-1 py-2 px-4 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                Download Payslip
-              </button>
-            </div>
-          </div>
-        )}
+     {["hr", "super_admin"].includes(role) && (
+  <div className="bg-white rounded-xl shadow-md border border-gray-300 sm:p-6 p-4 mb-6">
+    <h2 className="text-lg font-semibold text-gray-800 mb-4">
+      Actions
+    </h2>
 
-        {/* Payslip Records */}
+    <div className="flex justify-center">
+      <button
+        onClick={() => handleDownloadPayslip(selectedEmployeeId)}
+        disabled={loading || payrollLoading || !selectedEmployeeId}
+        className="py-1.5 px-4 text-sm bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed w-[150px]"
+      >
+        Download Payslip
+      </button>
+    </div>
+  </div>
+)}
+
+
         <div className="bg-white rounded-xl shadow-md border border-gray-300 p-4 sm:p-6">
   <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
     Payslip Records
@@ -482,8 +472,6 @@ const Payslip = () => {
     </>
   )}
 </div>
-
-        {/* Payslip Preview */}
         {showPreview && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto relative">
