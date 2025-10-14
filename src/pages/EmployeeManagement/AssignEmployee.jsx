@@ -15,8 +15,14 @@ import PageMeta from "../../Components/common/PageMeta";
 const AssignEmployee = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, error, successMessage, departments, designations, employeeId } =
-    useSelector((state) => state.employee);
+  const {
+    loading,
+    error,
+    successMessage,
+    departments,
+    designations,
+    employeeId,
+  } = useSelector((state) => state.employee);
   const { user } = useSelector((state) => state.auth);
 
   const [employee, setEmployee] = useState({
@@ -59,20 +65,50 @@ const AssignEmployee = () => {
   });
 
   const roleTypes = [
-    { name: "HR", icon: <UserCog className="w-6 h-6" />, description: "Manage HR-related tasks" },
-    { name: "Department Head", icon: <Users className="w-6 h-6" />, description: "Lead a department" },
-    { name: "Manager", icon: <Briefcase className="w-6 h-6" />, description: "Manage a team" },
-    { name: "Employee", icon: <User className="w-6 h-6" />, description: "Standard employee role" },
+    {
+      name: "HR",
+      icon: <UserCog className="w-6 h-6" />,
+      description: "Manage HR-related tasks",
+    },
+    {
+      name: "Department Head",
+      icon: <Users className="w-6 h-6" />,
+      description: "Lead a department",
+    },
+    {
+      name: "Manager",
+      icon: <Briefcase className="w-6 h-6" />,
+      description: "Manage a team",
+    },
+    {
+      name: "Employee",
+      icon: <User className="w-6 h-6" />,
+      description: "Standard employee role",
+    },
   ];
 
-  const filteredRoleTypes = user?.role === "hr" ? roleTypes.filter((role) => role.name !== "HR") : roleTypes;
-  const bloodGroups = ["A+ve", "A-ve", "B+ve", "B-ve", "AB+ve", "AB-ve", "O+ve", "O-ve"];
+  const filteredRoleTypes =
+    user?.role === "hr"
+      ? roleTypes.filter((role) => role.name !== "HR")
+      : roleTypes;
+  const bloodGroups = [
+    "A+ve",
+    "A-ve",
+    "B+ve",
+    "B-ve",
+    "AB+ve",
+    "AB-ve",
+    "O+ve",
+    "O-ve",
+  ];
   const employmentTypes = ["full_time", "part_time", "intern", "contract"];
   const genders = ["Male", "Female", "Others"];
 
   useEffect(() => {
     if (!["super_admin", "hr"].includes(user?.role)) {
-      toast.error("Unauthorized access. Please log in with appropriate permissions.");
+      toast.error(
+        "Unauthorized access. Please log in with appropriate permissions."
+      );
       navigate("/login");
       return;
     }
@@ -82,8 +118,16 @@ const AssignEmployee = () => {
   }, [dispatch, navigate, user]);
 
   useEffect(() => {
-    if (employee.emergencyPhone && employee.mobile && employee.emergencyPhone.trim() === employee.mobile.trim()) {
-      setErrors((prev) => ({ ...prev, emergencyPhone: "Mobile and emergency contact numbers cannot be the same" }));
+    if (
+      employee.emergencyPhone &&
+      employee.mobile &&
+      employee.emergencyPhone.trim() === employee.mobile.trim()
+    ) {
+      setErrors((prev) => ({
+        ...prev,
+        emergencyPhone:
+          "Mobile and emergency contact numbers cannot be the same",
+      }));
     } else {
       setErrors((prev) => ({ ...prev, emergencyPhone: "" }));
     }
@@ -116,31 +160,56 @@ const AssignEmployee = () => {
     (field, value) => {
       setEmployee((prev) => {
         const updated = { ...prev, [field]: value };
-        if (field === "roleType") return { ...updated, department: "", position: "" };
+        if (field === "roleType")
+          return { ...updated, department: "", position: "" };
         if (field === "department") return { ...updated, position: "" };
         return updated;
       });
       setErrors((prev) => ({ ...prev, [field]: "" }));
 
-      const basic = parseFloat(field === "basicSalary" ? value : employee.basicSalary) || 0;
+      const basic =
+        parseFloat(field === "basicSalary" ? value : employee.basicSalary) || 0;
       const gross =
         basic +
         parseFloat(employee.hraAmount || 0) +
-        parseFloat(field === "specialAllowances" ? value : employee.specialAllowances || 0) +
+        parseFloat(
+          field === "specialAllowances"
+            ? value
+            : employee.specialAllowances || 0
+        ) +
         parseFloat(field === "bonus" ? value : employee.bonus || 0);
 
       if (field === "hraPercentage" || field === "basicSalary") {
-        const hraPercent = parseFloat(field === "hraPercentage" ? value : employee.hraPercentage) || 0;
-        setEmployee((prev) => ({ ...prev, hraAmount: ((basic * hraPercent) / 100).toFixed(2) }));
+        const hraPercent =
+          parseFloat(
+            field === "hraPercentage" ? value : employee.hraPercentage
+          ) || 0;
+        setEmployee((prev) => ({
+          ...prev,
+          hraAmount: ((basic * hraPercent) / 100).toFixed(2),
+        }));
       }
 
       if (field === "pfPercentage" || field === "basicSalary") {
-        const pfPercent = parseFloat(field === "pfPercentage" ? value : employee.pfPercentage) || 0;
+        const pfPercent =
+          parseFloat(
+            field === "pfPercentage" ? value : employee.pfPercentage
+          ) || 0;
         if (basic <= 15000 && pfPercent !== 12) {
-          setErrors((prev) => ({ ...prev, pfPercentage: "PF must be 12% for basic salary ≤ ₹15,000" }));
-          setEmployee((prev) => ({ ...prev, pfPercentage: "12", pfAmount: ((basic * 12) / 100).toFixed(2) }));
+          setErrors((prev) => ({
+            ...prev,
+            pfPercentage: "PF must be 12% for basic salary ≤ ₹15,000",
+          }));
+          setEmployee((prev) => ({
+            ...prev,
+            pfPercentage: "12",
+            pfAmount: ((basic * 12) / 100).toFixed(2),
+          }));
         } else {
-          setEmployee((prev) => ({ ...prev, pfAmount: ((basic * pfPercent) / 100).toFixed(2) }));
+          setEmployee((prev) => ({
+            ...prev,
+            pfAmount: ((basic * pfPercent) / 100).toFixed(2),
+          }));
         }
       }
 
@@ -150,15 +219,35 @@ const AssignEmployee = () => {
         field === "specialAllowances" ||
         field === "bonus"
       ) {
-        const esiPercent = parseFloat(field === "esiPercentage" ? value : employee.esiPercentage) || 0;
+        const esiPercent =
+          parseFloat(
+            field === "esiPercentage" ? value : employee.esiPercentage
+          ) || 0;
         if (gross > 21000 && esiPercent > 0) {
-          setErrors((prev) => ({ ...prev, esiPercentage: "ESI not applicable for gross salary > ₹21,000" }));
-          setEmployee((prev) => ({ ...prev, esiPercentage: "0", esiAmount: "0" }));
+          setErrors((prev) => ({
+            ...prev,
+            esiPercentage: "ESI not applicable for gross salary > ₹21,000",
+          }));
+          setEmployee((prev) => ({
+            ...prev,
+            esiPercentage: "0",
+            esiAmount: "0",
+          }));
         } else if (gross <= 21000 && esiPercent !== 0.75) {
-          setErrors((prev) => ({ ...prev, esiPercentage: "ESI must be 0.75% for employee contribution" }));
-          setEmployee((prev) => ({ ...prev, esiPercentage: "0.75", esiAmount: ((gross * 0.75) / 100).toFixed(2) }));
+          setErrors((prev) => ({
+            ...prev,
+            esiPercentage: "ESI must be 0.75% for employee contribution",
+          }));
+          setEmployee((prev) => ({
+            ...prev,
+            esiPercentage: "0.75",
+            esiAmount: ((gross * 0.75) / 100).toFixed(2),
+          }));
         } else {
-          setEmployee((prev) => ({ ...prev, esiAmount: ((gross * esiPercent) / 100).toFixed(2) }));
+          setEmployee((prev) => ({
+            ...prev,
+            esiAmount: ((gross * esiPercent) / 100).toFixed(2),
+          }));
         }
       }
     },
@@ -203,7 +292,9 @@ const AssignEmployee = () => {
 
   const getFilteredDesignations = () => {
     if (!designations || !employee.department) return [];
-    const deptDesignations = designations.filter((des) => des.department_name === employee.department);
+    const deptDesignations = designations.filter(
+      (des) => des.department_name === employee.department
+    );
     if (employee.roleType === "HR") return deptDesignations;
     if (employee.roleType === "Department Head") {
       return deptDesignations.filter((des) =>
@@ -258,12 +349,18 @@ const AssignEmployee = () => {
     const maxSize = 5 * 1024 * 1024;
     if (file) {
       if (!allowedTypes.includes(file.type)) {
-        setErrors((prev) => ({ ...prev, photo: "Only JPG, JPEG, or PNG files are allowed" }));
+        setErrors((prev) => ({
+          ...prev,
+          photo: "Only JPG, JPEG, or PNG files are allowed",
+        }));
         toast.error("Only JPG, JPEG, or PNG files are allowed for photo");
         return;
       }
       if (file.size > maxSize) {
-        setErrors((prev) => ({ ...prev, photo: "Photo size must not exceed 5MB" }));
+        setErrors((prev) => ({
+          ...prev,
+          photo: "Photo size must not exceed 5MB",
+        }));
         toast.error("Photo size must not exceed 5MB");
         return;
       }
@@ -285,24 +382,36 @@ const AssignEmployee = () => {
     if (step === 2) {
       if (!employee.name) newErrors.name = "Full Name is required";
       if (!employee.email) newErrors.email = "Email is required";
-      if (employee.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employee.email)) {
+      if (
+        employee.email &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employee.email)
+      ) {
         newErrors.email = "Invalid email format";
       }
       if (!employee.mobile) newErrors.mobile = "Mobile number is required";
       if (employee.mobile && !/^[0-9]{10}$/.test(employee.mobile)) {
         newErrors.mobile = "Mobile number must be a 10-digit number";
       }
-      if (employee.emergencyPhone && !/^[0-9]{10}$/.test(employee.emergencyPhone)) {
+      if (
+        employee.emergencyPhone &&
+        !/^[0-9]{10}$/.test(employee.emergencyPhone)
+      ) {
         newErrors.emergencyPhone = "Emergency Phone must be a 10-digit number";
       }
-      if (employee.emergencyPhone && employee.mobile && employee.emergencyPhone.trim() === employee.mobile.trim()) {
-        newErrors.emergencyPhone = "Mobile and emergency contact numbers cannot be the same";
+      if (
+        employee.emergencyPhone &&
+        employee.mobile &&
+        employee.emergencyPhone.trim() === employee.mobile.trim()
+      ) {
+        newErrors.emergencyPhone =
+          "Mobile and emergency contact numbers cannot be the same";
       }
       if (!employee.password) newErrors.password = "Password is required";
       if (employee.password && employee.password.length < 8) {
         newErrors.password = "Password must be at least 8 characters";
       }
-      if (!employee.bloodGroup) newErrors.bloodGroup = "Blood Group is required";
+      if (!employee.bloodGroup)
+        newErrors.bloodGroup = "Blood Group is required";
       if (!employee.photo) newErrors.photo = "Photo is required";
       else {
         const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
@@ -322,7 +431,10 @@ const AssignEmployee = () => {
         const dob = new Date(employee.dateOfBirth);
         let age = today.getFullYear() - dob.getFullYear();
         const monthDiff = today.getMonth() - dob.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        if (
+          monthDiff < 0 ||
+          (monthDiff === 0 && today.getDate() < dob.getDate())
+        ) {
           age--;
         }
         if (age < 18) {
@@ -340,51 +452,81 @@ const AssignEmployee = () => {
       if (!employee.customEmployeeIdSuffix) {
         newErrors.customEmployeeIdSuffix = "Employee ID suffix is required";
       } else if (!/^[0-9]{1,10}$/.test(employee.customEmployeeIdSuffix)) {
-        newErrors.customEmployeeIdSuffix = "Employee ID suffix must be numeric and 1-10 digits";
+        newErrors.customEmployeeIdSuffix =
+          "Employee ID suffix must be numeric and 1-10 digits";
       }
     }
     if (step === 3) {
       if (!employee.joinDate) newErrors.joinDate = "Join Date is required";
-      if (["HR", "Department Head", "Employee", "Manager"].includes(employee.roleType) && !employee.department) {
+      if (
+        ["HR", "Department Head", "Employee", "Manager"].includes(
+          employee.roleType
+        ) &&
+        !employee.department
+      ) {
         newErrors.department = `Department is required for ${employee.roleType} role`;
       }
-      if (["HR", "Department Head", "Employee", "Manager"].includes(employee.roleType) && !employee.position) {
+      if (
+        ["HR", "Department Head", "Employee", "Manager"].includes(
+          employee.roleType
+        ) &&
+        !employee.position
+      ) {
         newErrors.position = `Position is required for ${employee.roleType} role`;
       }
       if (employee.roleType === "HR" && employee.department !== "HR") {
         newErrors.department = "HR role must be in HR department";
       }
-      if (["Employee", "Manager"].includes(employee.roleType) && !employee.employmentType) {
+      if (
+        ["Employee", "Manager"].includes(employee.roleType) &&
+        !employee.employmentType
+      ) {
         newErrors.employmentType = "Employment Type is required";
       }
     }
     if (step === 4) {
-      if (!employee.basicSalary) newErrors.basicSalary = "Basic Salary is required";
-      else if (isNaN(employee.basicSalary) || Number(employee.basicSalary) <= 0) {
+      if (!employee.basicSalary)
+        newErrors.basicSalary = "Basic Salary is required";
+      else if (
+        isNaN(employee.basicSalary) ||
+        Number(employee.basicSalary) <= 0
+      ) {
         newErrors.basicSalary = "Basic Salary must be a positive number";
       }
-      if (!employee.hraPercentage) newErrors.hraPercentage = "HRA Percentage is required";
+      if (!employee.hraPercentage)
+        newErrors.hraPercentage = "HRA Percentage is required";
       if (
         employee.hraPercentage &&
-        (isNaN(employee.hraPercentage) || Number(employee.hraPercentage) < 0 || Number(employee.hraPercentage) > 100)
+        (isNaN(employee.hraPercentage) ||
+          Number(employee.hraPercentage) < 0 ||
+          Number(employee.hraPercentage) > 100)
       ) {
         newErrors.hraPercentage = "HRA Percentage must be between 0 and 100";
       }
-      if (!employee.specialAllowances) newErrors.specialAllowances = "Special Allowances is required";
+      if (!employee.specialAllowances)
+        newErrors.specialAllowances = "Special Allowances is required";
       if (
         employee.specialAllowances &&
-        (isNaN(employee.specialAllowances) || Number(employee.specialAllowances) < 0)
+        (isNaN(employee.specialAllowances) ||
+          Number(employee.specialAllowances) < 0)
       ) {
-        newErrors.specialAllowances = "Special Allowances must be a non-negative number";
+        newErrors.specialAllowances =
+          "Special Allowances must be a non-negative number";
       }
-      if (!employee.pfPercentage) newErrors.pfPercentage = "PF Percentage is required";
+      if (!employee.pfPercentage)
+        newErrors.pfPercentage = "PF Percentage is required";
       if (
         employee.pfPercentage &&
-        (isNaN(employee.pfPercentage) || Number(employee.pfPercentage) < 0 || Number(employee.pfPercentage) > 100)
+        (isNaN(employee.pfPercentage) ||
+          Number(employee.pfPercentage) < 0 ||
+          Number(employee.pfPercentage) > 100)
       ) {
         newErrors.pfPercentage = "PF Percentage must be between 0 and 100";
       }
-      if (employee.bonus && (isNaN(employee.bonus) || Number(employee.bonus) < 0)) {
+      if (
+        employee.bonus &&
+        (isNaN(employee.bonus) || Number(employee.bonus) < 0)
+      ) {
         newErrors.bonus = "Bonus must be a non-negative number";
       }
       const basic = parseFloat(employee.basicSalary) || 0;
@@ -397,7 +539,8 @@ const AssignEmployee = () => {
         newErrors.pfPercentage = "PF must be 12% for basic salary ≤ ₹15,000";
       }
       if (gross > 21000 && parseFloat(employee.esiPercentage) > 0) {
-        newErrors.esiPercentage = "ESI not applicable for gross salary > ₹21,000";
+        newErrors.esiPercentage =
+          "ESI not applicable for gross salary > ₹21,000";
       }
       if (gross <= 21000 && parseFloat(employee.esiPercentage) !== 0.75) {
         newErrors.esiPercentage = "ESI must be 0.75% for employee contribution";
@@ -433,7 +576,9 @@ const AssignEmployee = () => {
         userId = parsedToken.employee_id;
         userRole = parsedToken.role;
         if (!token || !["super_admin", "hr"].includes(userRole)) {
-          toast.error("Unauthorized. Please log in with appropriate permissions.");
+          toast.error(
+            "Unauthorized. Please log in with appropriate permissions."
+          );
           navigate("/login");
           setIsSubmitting(false);
           return;
@@ -464,9 +609,16 @@ const AssignEmployee = () => {
       formData.append("blood_group", employee.bloodGroup || "");
       formData.append("dob", employee.dateOfBirth || "");
       formData.append("gender", employee.gender || "");
-      formData.append("custom_employee_id_suffix", employee.customEmployeeIdSuffix.trim() || "");
+      formData.append(
+        "custom_employee_id_suffix",
+        employee.customEmployeeIdSuffix.trim() || ""
+      );
       if (employee.photo) formData.append("photo", employee.photo);
-      if (["HR", "Department Head", "Manager", "Employee"].includes(employee.roleType)) {
+      if (
+        ["HR", "Department Head", "Manager", "Employee"].includes(
+          employee.roleType
+        )
+      ) {
         formData.append("department_name", employee.department || "");
         formData.append("designation_name", employee.position || "");
       }
@@ -474,12 +626,24 @@ const AssignEmployee = () => {
         formData.append("employment_type", employee.employmentType || "");
       }
       formData.append("basic_salary", parseFloat(employee.basicSalary) || 0);
-      formData.append("hra_percentage", parseFloat(employee.hraPercentage) || 0);
+      formData.append(
+        "hra_percentage",
+        parseFloat(employee.hraPercentage) || 0
+      );
       formData.append("hra", parseFloat(employee.hraAmount) || 0);
-      formData.append("special_allowances", parseFloat(employee.specialAllowances) || 0);
-      formData.append("provident_fund_percentage", parseFloat(employee.pfPercentage) || 0);
+      formData.append(
+        "special_allowances",
+        parseFloat(employee.specialAllowances) || 0
+      );
+      formData.append(
+        "provident_fund_percentage",
+        parseFloat(employee.pfPercentage) || 0
+      );
       formData.append("provident_fund", parseFloat(employee.pfAmount) || 0);
-      formData.append("esic_percentage", parseFloat(employee.esiPercentage) || 0);
+      formData.append(
+        "esic_percentage",
+        parseFloat(employee.esiPercentage) || 0
+      );
       formData.append("esic", parseFloat(employee.esiAmount) || 0);
       formData.append("bonus", parseFloat(employee.bonus) || 0);
       formData.append("created_by", userId || "");
@@ -524,7 +688,10 @@ const AssignEmployee = () => {
   const renderStepIndicator = () => (
     <div className="flex flex-col sm:flex-row border-2 border-gray-200 sm:border-0 sm:border-none p-4 sm:p-0 rounded-xl sm:rounded-none shadow-md sm:shadow-none items-start sm:items-center sm:justify-center justify-start mb-5 sm:mb-6 space-y-3 sm:space-y-0 sm:space-x-3 md:space-x-4 lg:space-x-6">
       {["Role", "Personal", "Employment", "Salary"].map((label, index) => (
-        <div key={label} className="flex sm:items-center items-center sm:justify-center justify-start w-full sm:w-auto">
+        <div
+          key={label}
+          className="flex sm:items-center items-center sm:justify-center justify-start w-full sm:w-auto"
+        >
           <div
             className={`w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs xs:text-sm sm:text-base font-medium z-50 ${
               step > index + 1
@@ -573,12 +740,17 @@ const AssignEmployee = () => {
           </h2>
           {renderStepIndicator()}
           {error && <p className="text-red-600 text-center mb-4">{error}</p>}
-          {successMessage && <p className="text-green-600 text-center mb-4">{successMessage}</p>}
-          {errors.submit && <p className="text-red-600 text-center mb-4">{errors.submit}</p>}
+          {successMessage && (
+            <p className="text-green-600 text-center mb-4">{successMessage}</p>
+          )}
+          {errors.submit && (
+            <p className="text-red-600 text-center mb-4">{errors.submit}</p>
+          )}
           {step === 1 && (
             <div className="pb-2">
               <label className="block text-sm sm:text-md font-semibold text-gray-900 mb-4">
-                Select Role Type <span className="text-red-600 font-bold">*</span>
+                Select Role Type{" "}
+                <span className="text-red-600 font-bold">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4">
                 {filteredRoleTypes.map((role) => (
@@ -595,13 +767,19 @@ const AssignEmployee = () => {
                     <div className="mb-2 text-teal-600 flex items-center justify-center h-8 sm:h-10">
                       <span className="text-2xl sm:text-3xl">{role.icon}</span>
                     </div>
-                    <h3 className="text-sm sm:text-base md:text-lg font-semibold">{role.name}</h3>
-                    <p className="text-xs sm:text-sm text-gray-500 mt-1">{role.description}</p>
+                    <h3 className="text-sm sm:text-base md:text-lg font-semibold">
+                      {role.name}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                      {role.description}
+                    </p>
                   </button>
                 ))}
               </div>
               {errors.roleType && (
-                <p className="mt-3 text-sm text-red-600 text-center font-medium">{errors.roleType}</p>
+                <p className="mt-3 text-sm text-red-600 text-center font-medium">
+                  {errors.roleType}
+                </p>
               )}
               {employee.roleType && (
                 <div className="w-full flex justify-end mt-6">
@@ -617,20 +795,43 @@ const AssignEmployee = () => {
             </div>
           )}
           {step > 1 && (
-            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 relative z-10">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-6 sm:space-y-8 relative z-10"
+            >
               {step === 2 && (
                 <div className="space-y-4 sm:space-y-6">
                   {[
-                    { label: "Full Name", field: "name", type: "text", required: true },
-                    { label: "Email", field: "email", type: "email", required: true },
-                    { label: "Mobile", field: "mobile", type: "tel", required: true },
+                    {
+                      label: "Full Name",
+                      field: "name",
+                      type: "text",
+                      required: true,
+                    },
+                    {
+                      label: "Email",
+                      field: "email",
+                      type: "email",
+                      required: true,
+                    },
+                    {
+                      label: "Mobile",
+                      field: "mobile",
+                      type: "tel",
+                      required: true,
+                    },
                     {
                       label: "Emergency Phone",
                       field: "emergencyPhone",
                       type: "tel",
                       tooltip: "Optional emergency contact",
                     },
-                    { label: "Address", field: "address", type: "textarea", tooltip: "Optional address" },
+                    {
+                      label: "Address",
+                      field: "address",
+                      type: "textarea",
+                      tooltip: "Optional address",
+                    },
                     {
                       label: "Date of Birth",
                       field: "dateOfBirth",
@@ -638,7 +839,13 @@ const AssignEmployee = () => {
                       required: true,
                       tooltip: "Employee must be at least 18 years old",
                     },
-                    { label: "Gender", field: "gender", type: "select", required: true, options: genders },
+                    {
+                      label: "Gender",
+                      field: "gender",
+                      type: "select",
+                      required: true,
+                      options: genders,
+                    },
                     {
                       label: "Password",
                       field: "password",
@@ -647,7 +854,13 @@ const AssignEmployee = () => {
                       tooltip: "Minimum 8 characters",
                       isPassword: true,
                     },
-                    { label: "Blood Group", field: "bloodGroup", type: "select", required: true, options: bloodGroups },
+                    {
+                      label: "Blood Group",
+                      field: "bloodGroup",
+                      type: "select",
+                      required: true,
+                      options: bloodGroups,
+                    },
                     {
                       label: "Photo",
                       field: "photo",
@@ -660,126 +873,173 @@ const AssignEmployee = () => {
                       field: "customEmployeeIdSuffix",
                       type: "text",
                       required: true,
-                      tooltip: "Enter numeric suffix for Employee ID (e.g., '001' for MO-EMP-001)",
+                      tooltip:
+                        "Enter numeric suffix for Employee ID (e.g., '001' for MO-EMP-001)",
                     },
-                  ].map(({ label, field, type, required, tooltip, options, accept, isPassword }) => (
-                    <div key={field} className="relative group z-10">
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        {label} {required && <span className="text-red-600 font-bold">*</span>}
-                        {tooltip && (
-                          <span className="ml-1 text-gray-400 cursor-help" title={tooltip}>
-                            ⓘ
-                          </span>
-                        )}
-                      </label>
-                      {type === "textarea" ? (
-                        <textarea
-                          value={employee[field]}
-                          onChange={(e) => handleInput(field, e.target.value)}
-                          className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
-                            errors[field] ? "border-red-500 animate-pulse" : ""
-                          }`}
-                          aria-label={label}
-                          rows="4"
-                        />
-                      ) : type === "select" ? (
-                        <select
-                          value={employee[field]}
-                          onChange={(e) => handleInput(field, e.target.value)}
-                          className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                            errors[field] ? "border-red-500 animate-pulse" : ""
-                          }`}
-                          aria-label={label}
-                          required={required}
-                        >
-                          <option value="">Select {label}</option>
-                          {options.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      ) : type === "file" ? (
-                        <div>
-                          {photoPreview && (
-                            <div className="mt-4">
-                              <img
-                                src={photoPreview}
-                                alt="Photo preview"
-                                className="w-25 h-25 object-cover rounded-md border-2 border-gray-200"
-                              />
-                            </div>
+                  ].map(
+                    ({
+                      label,
+                      field,
+                      type,
+                      required,
+                      tooltip,
+                      options,
+                      accept,
+                      isPassword,
+                    }) => (
+                      <div key={field} className="relative group z-10">
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          {label}{" "}
+                          {required && (
+                            <span className="text-red-600 font-bold">*</span>
                           )}
-                          <input
-                            type="file"
-                            accept={accept}
-                            onChange={handleFileChange}
-                            className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                              errors[field] ? "border-red-500 animate-pulse" : ""
-                            }`}
-                            aria-label={label}
-                            required={required}
-                          />
-                        </div>
-                      ) : field === "customEmployeeIdSuffix" ? (
-                        <div className="relative flex items-center">
-                          <span className="absolute left-0 px-4 py-3 text-gray-500 font-medium bg-gray-100 rounded-l-md border-0 border-b-2 border-gray-200">
-                            MO-EMP-
-                          </span>
-                          <input
-                            type="text"
-                            value={employee[field]}
-                            onChange={(e) => handleInput(field, e.target.value)}
-                            required={required}
-                            placeholder="e.g., 001"
-                            pattern="[0-9]{1,10}" // Enforce numeric input in the browser
-                            className={`w-full pl-20 pr-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
-                              errors[field] ? "border-red-500 animate-pulse" : ""
-                            }`}
-                            aria-label={label}
-                          />
-                        </div>
-                      ) : (
-                        <div className="relative">
-                          <input
-                            type={type}
-                            value={employee[field]}
-                            onChange={(e) => handleInput(field, e.target.value)}
-                            required={required}
-                            max={type === "date" ? new Date().toISOString().split("T")[0] : undefined}
-                            className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
-                              errors[field] ? "border-red-500 animate-pulse" : ""
-                            }`}
-                            aria-label={label}
-                          />
-                          {isPassword && (
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-teal-600"
+                          {tooltip && (
+                            <span
+                              className="ml-1 text-gray-400 cursor-help"
+                              title={tooltip}
                             >
-                              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                            </button>
+                              ⓘ
+                            </span>
                           )}
-                        </div>
-                      )}
-                      {field === "customEmployeeIdSuffix" && (
-                        <p className="mt-1 text-sm text-gray-500">
-                          Full Employee ID: MO-EMP-{employee.customEmployeeIdSuffix || "<suffix>"}
-                        </p>
-                      )}
-                      {errors[field] && (
-                        <p className="mt-1 text-sm text-red-600 font-medium">{errors[field]}</p>
-                      )}
-                    </div>
-                  ))}
+                        </label>
+                        {type === "textarea" ? (
+                          <textarea
+                            value={employee[field]}
+                            onChange={(e) => handleInput(field, e.target.value)}
+                            className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
+                              errors[field]
+                                ? "border-red-500 animate-pulse"
+                                : ""
+                            }`}
+                            aria-label={label}
+                            rows="4"
+                          />
+                        ) : type === "select" ? (
+                          <select
+                            value={employee[field]}
+                            onChange={(e) => handleInput(field, e.target.value)}
+                            className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
+                              errors[field]
+                                ? "border-red-500 animate-pulse"
+                                : ""
+                            }`}
+                            aria-label={label}
+                            required={required}
+                          >
+                            <option value="">Select {label}</option>
+                            {options.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        ) : type === "file" ? (
+                          <div>
+                            {photoPreview && (
+                              <div className="mt-4">
+                                <img
+                                  src={photoPreview}
+                                  alt="Photo preview"
+                                  className="w-25 h-25 object-cover rounded-md border-2 border-gray-200"
+                                />
+                              </div>
+                            )}
+                            <input
+                              type="file"
+                              accept={accept}
+                              onChange={handleFileChange}
+                              className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
+                                errors[field]
+                                  ? "border-red-500 animate-pulse"
+                                  : ""
+                              }`}
+                              aria-label={label}
+                              required={required}
+                            />
+                          </div>
+                        ) : field === "customEmployeeIdSuffix" ? (
+                          <div className="relative flex items-center w-full">
+                            <span
+                              className="absolute left-0 top-1/2 -translate-y-1/2 px-4 py-3 text-gray-500 font-medium bg-gray-100 rounded-l-md border-0 border-b-2 border-gray-200"
+                              style={{ minWidth: "4rem" }}
+                            >
+                              MO-EMP-
+                            </span>
+                            <input
+                              type="text"
+                              value={employee[field]}
+                              onChange={(e) =>
+                                handleInput(field, e.target.value)
+                              }
+                              required={required}
+                              placeholder="001"
+                              pattern="[0-9]{1,10}"
+                              className={`w-full pl-[7rem] pr-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
+                                errors[field]
+                                  ? "border-red-500 animate-pulse"
+                                  : ""
+                              }`}
+                              aria-label={label}
+                            />
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <input
+                              type={type}
+                              value={employee[field]}
+                              onChange={(e) =>
+                                handleInput(field, e.target.value)
+                              }
+                              required={required}
+                              max={
+                                type === "date"
+                                  ? new Date().toISOString().split("T")[0]
+                                  : undefined
+                              }
+                              className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
+                                errors[field]
+                                  ? "border-red-500 animate-pulse"
+                                  : ""
+                              }`}
+                              aria-label={label}
+                            />
+                            {isPassword && (
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-teal-600"
+                              >
+                                {showPassword ? (
+                                  <EyeOff className="w-5 h-5" />
+                                ) : (
+                                  <Eye className="w-5 h-5" />
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        {field === "customEmployeeIdSuffix" && (
+                          <p className="mt-1 text-sm text-gray-500">
+                            Full Employee ID: MO-EMP-
+                            {employee.customEmployeeIdSuffix || "<suffix>"}
+                          </p>
+                        )}
+                        {errors[field] && (
+                          <p className="mt-1 text-sm text-red-600 font-medium">
+                            {errors[field]}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  )}
                 </div>
               )}
               {step === 3 && (
                 <div className="space-y-4 sm:space-y-6">
                   <div className="relative group z-10">
                     <label className="block text-sm font-medium text-gray-900 mb-2">
-                      Join Date <span className="text-red-600 font-bold">*</span>
+                      Join Date{" "}
+                      <span className="text-red-600 font-bold">*</span>
                     </label>
                     <input
                       type="date"
@@ -792,19 +1052,28 @@ const AssignEmployee = () => {
                       required
                     />
                     {errors.joinDate && (
-                      <p className="mt-1 text-sm text-red-600 font-medium">{errors.joinDate}</p>
+                      <p className="mt-1 text-sm text-red-600 font-medium">
+                        {errors.joinDate}
+                      </p>
                     )}
                   </div>
-                  {["HR", "Department Head", "Employee", "Manager"].includes(employee.roleType) && (
+                  {["HR", "Department Head", "Employee", "Manager"].includes(
+                    employee.roleType
+                  ) && (
                     <div className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Department <span className="text-red-600 font-bold">*</span>
+                        Department{" "}
+                        <span className="text-red-600 font-bold">*</span>
                       </label>
                       <select
                         value={employee.department}
-                        onChange={(e) => handleInput("department", e.target.value)}
+                        onChange={(e) =>
+                          handleInput("department", e.target.value)
+                        }
                         className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                          errors.department ? "border-red-500 animate-pulse" : ""
+                          errors.department
+                            ? "border-red-500 animate-pulse"
+                            : ""
                         }`}
                         aria-label="Select department"
                         required
@@ -817,50 +1086,73 @@ const AssignEmployee = () => {
                         ))}
                       </select>
                       {errors.department && (
-                        <p className="mt-1 text-sm text-red-600 font-medium">{errors.department}</p>
+                        <p className="mt-1 text-sm text-red-600 font-medium">
+                          {errors.department}
+                        </p>
                       )}
                     </div>
                   )}
-                  {["HR", "Department Head", "Employee", "Manager"].includes(employee.roleType) &&
+                  {["HR", "Department Head", "Employee", "Manager"].includes(
+                    employee.roleType
+                  ) &&
                     employee.department && (
                       <div className="relative group z-10">
                         <label className="block text-sm font-medium text-gray-900 mb-2">
-                          {employee.roleType === "Employee" ? "Position" : "Designation"}{" "}
+                          {employee.roleType === "Employee"
+                            ? "Position"
+                            : "Designation"}{" "}
                           <span className="text-red-600 font-bold">*</span>
                         </label>
                         <select
                           value={employee.position}
-                          onChange={(e) => handleInput("position", e.target.value)}
+                          onChange={(e) =>
+                            handleInput("position", e.target.value)
+                          }
                           className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                            errors.position ? "border-red-500 animate-pulse" : ""
+                            errors.position
+                              ? "border-red-500 animate-pulse"
+                              : ""
                           }`}
                           aria-label="Select designation"
                           required
                         >
                           <option value="">
-                            Select {employee.roleType === "Employee" ? "Position" : "Designation"}
+                            Select{" "}
+                            {employee.roleType === "Employee"
+                              ? "Position"
+                              : "Designation"}
                           </option>
                           {getFilteredDesignations().map((des) => (
-                            <option key={des.designation_name} value={des.designation_name}>
+                            <option
+                              key={des.designation_name}
+                              value={des.designation_name}
+                            >
                               {des.designation_name}
                             </option>
                           ))}
                         </select>
                         {errors.position && (
-                          <p className="mt-1 text-sm text-red-600 font-medium">{errors.position}</p>
+                          <p className="mt-1 text-sm text-red-600 font-medium">
+                            {errors.position}
+                          </p>
                         )}
                       </div>
                     )}
                   {["Employee", "Manager"].includes(employee.roleType) && (
                     <div className="relative group z-10">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Employment Type <span className="text-red-600 font-bold">*</span>
+                        Employment Type{" "}
+                        <span className="text-red-600 font-bold">*</span>
                       </label>
                       <select
                         value={employee.employmentType}
-                        onChange={(e) => handleInput("employmentType", e.target.value)}
+                        onChange={(e) =>
+                          handleInput("employmentType", e.target.value)
+                        }
                         className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 z-10 ${
-                          errors.employmentType ? "border-red-500 animate-pulse" : ""
+                          errors.employmentType
+                            ? "border-red-500 animate-pulse"
+                            : ""
                         }`}
                         aria-label="Select employment type"
                         required
@@ -873,7 +1165,9 @@ const AssignEmployee = () => {
                         ))}
                       </select>
                       {errors.employmentType && (
-                        <p className="mt-1 text-sm text-red-600 font-medium">{errors.employmentType}</p>
+                        <p className="mt-1 text-sm text-red-600 font-medium">
+                          {errors.employmentType}
+                        </p>
                       )}
                     </div>
                   )}
@@ -881,7 +1175,9 @@ const AssignEmployee = () => {
               )}
               {step === 4 && (
                 <div className="space-y-4 sm:space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Salary Structure</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Salary Structure
+                  </h3>
                   {[
                     {
                       label: "Basic Salary (₹)",
@@ -945,38 +1241,55 @@ const AssignEmployee = () => {
                       required: false,
                       tooltip: "Optional monthly bonus amount",
                     },
-                  ].map(({ label, field, type, required, tooltip, readOnly }) => (
-                    <div key={field} className="relative group z-10">
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        {label} {required && <span className="text-red-600 font-bold">*</span>}
-                        {tooltip && (
-                          <span className="ml-1 text-gray-400 cursor-help" title={tooltip}>
-                            ⓘ
-                          </span>
+                  ].map(
+                    ({ label, field, type, required, tooltip, readOnly }) => (
+                      <div key={field} className="relative group z-10">
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          {label}{" "}
+                          {required && (
+                            <span className="text-red-600 font-bold">*</span>
+                          )}
+                          {tooltip && (
+                            <span
+                              className="ml-1 text-gray-400 cursor-help"
+                              title={tooltip}
+                            >
+                              ⓘ
+                            </span>
+                          )}
+                        </label>
+                        <input
+                          type={type}
+                          value={employee[field]}
+                          onChange={(e) => handleInput(field, e.target.value)}
+                          readOnly={readOnly}
+                          className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
+                            errors[field] ? "border-red-500 animate-pulse" : ""
+                          } ${
+                            readOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
+                          aria-label={label}
+                          required={required}
+                          min="0"
+                          step="0.01"
+                        />
+                        {errors[field] && (
+                          <p className="mt-1 text-sm text-red-600 font-medium">
+                            {errors[field]}
+                          </p>
                         )}
-                      </label>
-                      <input
-                        type={type}
-                        value={employee[field]}
-                        onChange={(e) => handleInput(field, e.target.value)}
-                        readOnly={readOnly}
-                        className={`w-full px-4 py-3 border-0 border-b-2 border-gray-200 focus:border-teal-600 focus:ring-0 transition-all duration-200 bg-transparent text-gray-900 placeholder-gray-400 hover:bg-gray-50/50 z-10 ${
-                          errors[field] ? "border-red-500 animate-pulse" : ""
-                        } ${readOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                        aria-label={label}
-                        required={required}
-                        min="0"
-                        step="0.01"
-                      />
-                      {errors[field] && (
-                        <p className="mt-1 text-sm text-red-600 font-medium">{errors[field]}</p>
-                      )}
-                    </div>
-                  ))}
+                      </div>
+                    )
+                  )}
                   <div className="mb-6 p-4 bg-teal-50 rounded-xl">
-                    <h3 className="text-lg font-semibold text-teal-700 mb-2">Real-Time Salary Breakdown</h3>
+                    <h3 className="text-lg font-semibold text-teal-700 mb-2">
+                      Real-Time Salary Breakdown
+                    </h3>
                     <p>Gross Salary: ₹{realTimeCalculations.grossSalary}</p>
-                    <p>Total Deductions (PF + ESI): ₹{realTimeCalculations.totalDeductions}</p>
+                    <p>
+                      Total Deductions (PF + ESI): ₹
+                      {realTimeCalculations.totalDeductions}
+                    </p>
                     <p>Net Salary: ₹{realTimeCalculations.netSalary}</p>
                   </div>
                 </div>
