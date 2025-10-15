@@ -57,6 +57,8 @@ import AlumniList from "./pages/EmployeeManagement/AlumniList";
 import AssignLeave from "./pages/LeaveManagement/AssignLeave";
 import ViewEmployeeDetails from "./pages/EmployeeManagement/ViewEmployeeDetails";
 import EmployeePayrollDetails from "./pages/PayrollManagement/EmployeePayrollDetails";
+import ManualPayroll from "./pages/PayrollManagement/ManualPayroll";
+import PayrollDetails from "./pages/PayrollManagement/PayrollDetails";
 
 const App = () => {
   return (
@@ -129,7 +131,8 @@ const App = () => {
                   element={<AddEmployeeReview />}
                 />
                 <Route path='/admin/payroll-details' element={<EmployeePayrollDetails/>} />
-
+                <Route path='/admin/payroll-manual' element={<ManualPayroll/>} />
+<Route path="/admin/payroll-employee" element={<PayrollDetails />} />
                 <Route path='/admin/view-details/:employee_id' element={<ViewEmployeeDetails/>} />
                 <Route path="/admin/leave-tracker" element={<LeaveTracker />} />
                 <Route path="/admin/visitingcards" element={<VisitingCard />} />

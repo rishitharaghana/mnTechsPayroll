@@ -6,7 +6,8 @@ export const fetchPayroll = createAsyncThunk(
   async ({ month, page = 1, limit = 10 }, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      if (!userToken)
+        return rejectWithValue("No authentication token found. Please log in.");
       let token;
       try {
         token = JSON.parse(userToken).token;
@@ -23,7 +24,9 @@ export const fetchPayroll = createAsyncThunk(
       return response.data;
     } catch (error) {
       console.error("fetchPayroll error:", error);
-      return rejectWithValue(error.response?.data?.error || "Failed to fetch payroll");
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch payroll"
+      );
     }
   }
 );
@@ -33,7 +36,8 @@ export const createPayroll = createAsyncThunk(
   async (payrollData, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      if (!userToken)
+        return rejectWithValue("No authentication token found. Please log in.");
       let token;
       try {
         token = JSON.parse(userToken).token;
@@ -41,7 +45,11 @@ export const createPayroll = createAsyncThunk(
         return rejectWithValue("Invalid token format");
       }
 
-      if (!payrollData.employeeId || !payrollData.month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(payrollData.month)) {
+      if (
+        !payrollData.employeeId ||
+        !payrollData.month ||
+        !/^\d{4}-(0[1-9]|1[0-2])$/.test(payrollData.month)
+      ) {
         return rejectWithValue("Invalid employee ID or month format");
       }
 
@@ -64,13 +72,43 @@ export const createPayroll = createAsyncThunk(
           payment_method: payrollData.paymentMethod || "Bank Transfer",
           payment_date: payrollData.paymentDate || `${payrollData.month}-01`,
         },
-        { headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       return response.data;
     } catch (error) {
       console.error("createPayroll error:", error);
-      return rejectWithValue(error.response?.data?.error || "Failed to create payroll");
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to create payroll"
+      );
+    }
+  }
+);
+
+export const fetchEmployeePayrollDetails = createAsyncThunk(
+  "payroll/fetchEmployeePayrollDetails",
+  async ({ employeeId, month }, { rejectWithValue }) => {
+    try {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) return rejectWithValue("No authentication token found.");
+      const token = JSON.parse(userToken).token;
+
+      const response = await AxiosInstance.get(
+        `api/payroll/employee-details?employeeId=${employeeId}&month=${month}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to fetch details"
+      );
     }
   }
 );
@@ -80,7 +118,8 @@ export const generatePayroll = createAsyncThunk(
   async ({ month }, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      if (!userToken)
+        return rejectWithValue("No authentication token found. Please log in.");
       let token;
       try {
         token = JSON.parse(userToken).token;
@@ -110,7 +149,9 @@ export const generatePayroll = createAsyncThunk(
           return rejectWithValue(text || "Failed to generate payroll");
         }
       }
-      return rejectWithValue(error.response?.data?.error || "Failed to generate payroll");
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to generate payroll"
+      );
     }
   }
 );
@@ -120,7 +161,8 @@ export const downloadPayrollPDF = createAsyncThunk(
   async ({ month, employeeId }, { rejectWithValue }) => {
     try {
       const userToken = localStorage.getItem("userToken");
-      if (!userToken) return rejectWithValue("No authentication token found. Please log in.");
+      if (!userToken)
+        return rejectWithValue("No authentication token found. Please log in.");
       let token;
       try {
         token = JSON.parse(userToken).token;
@@ -166,12 +208,16 @@ export const downloadPayrollPDF = createAsyncThunk(
         const text = await error.response.data.text();
         try {
           const json = JSON.parse(text);
-          return rejectWithValue(json.error || "Failed to download payroll PDF");
+          return rejectWithValue(
+            json.error || "Failed to download payroll PDF"
+          );
         } catch (e) {
           return rejectWithValue(text || "Failed to download payroll PDF");
         }
       }
-      return rejectWithValue(error.response?.data?.error || "Failed to download payroll PDF");
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to download payroll PDF"
+      );
     }
   }
 );
@@ -243,8 +289,10 @@ const payrollSlice = createSlice({
       .addCase(fetchPayroll.fulfilled, (state, action) => {
         state.loading = false;
         state.payrollList = action.payload.data || [];
-        state.totalRecords = action.payload.totalRecords || action.payload.data.length;
-        state.successMessage = action.payload.message || "Payroll fetched successfully";
+        state.totalRecords =
+          action.payload.totalRecords || action.payload.data.length;
+        state.successMessage =
+          action.payload.message || "Payroll fetched successfully";
       })
       .addCase(fetchPayroll.rejected, (state, action) => {
         state.loading = false;
@@ -259,7 +307,8 @@ const payrollSlice = createSlice({
         state.loading = false;
         state.payrollList = [...state.payrollList, action.payload.data];
         state.totalRecords += 1;
-        state.successMessage = action.payload.message || "Payroll created successfully";
+        state.successMessage =
+          action.payload.message || "Payroll created successfully";
       })
       .addCase(createPayroll.rejected, (state, action) => {
         state.loading = false;
@@ -274,7 +323,8 @@ const payrollSlice = createSlice({
         state.loading = false;
         state.payrollList = action.payload.data || state.payrollList;
         state.totalRecords = action.payload.data?.length || state.totalRecords;
-        state.successMessage = action.payload.message || "Payroll generated successfully";
+        state.successMessage =
+          action.payload.message || "Payroll generated successfully";
       })
       .addCase(generatePayroll.rejected, (state, action) => {
         state.loading = false;
@@ -289,12 +339,15 @@ const payrollSlice = createSlice({
         state.loading = false;
         state.payrollList = [
           ...state.payrollList.filter(
-            (p) => p.employee_id !== action.payload.data.employee_id || p.month !== action.payload.data.month
+            (p) =>
+              p.employee_id !== action.payload.data.employee_id ||
+              p.month !== action.payload.data.month
           ),
           action.payload.data,
         ];
         state.totalRecords = state.payrollList.length;
-        state.successMessage = action.payload.message || "Payroll generated successfully";
+        state.successMessage =
+          action.payload.message || "Payroll generated successfully";
       })
       .addCase(generatePayrollForEmployee.rejected, (state, action) => {
         state.loading = false;
@@ -307,9 +360,22 @@ const payrollSlice = createSlice({
       })
       .addCase(downloadPayrollPDF.fulfilled, (state, action) => {
         state.loading = false;
-        state.successMessage = action.payload.message || "Payroll PDF downloaded successfully";
+        state.successMessage =
+          action.payload.message || "Payroll PDF downloaded successfully";
       })
       .addCase(downloadPayrollPDF.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchEmployeePayrollDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchEmployeePayrollDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        state.employeeDetails = action.payload.data;
+      })
+      .addCase(fetchEmployeePayrollDetails.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
